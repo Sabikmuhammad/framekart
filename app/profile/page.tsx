@@ -24,14 +24,14 @@ export default function ProfilePage() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">My Profile</h1>
+    <div className="container mx-auto px-4 py-6 sm:py-8">
+      <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">My Profile</h1>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 lg:gap-8 lg:grid-cols-3">
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Profile Information</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -53,7 +53,7 @@ export default function ProfilePage() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Order History</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Order History</CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -74,23 +74,23 @@ export default function ProfilePage() {
                       className="block"
                     >
                       <Card className="transition-shadow hover:shadow-md">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-semibold">
+                        <CardContent className="p-3 sm:p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-sm sm:text-base">
                                 Order #{order._id.slice(-8)}
                               </p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-xs sm:text-sm text-muted-foreground">
                                 {new Date(order.createdAt).toLocaleDateString()}
                               </p>
-                              <p className="text-sm">
+                              <p className="text-xs sm:text-sm">
                                 {order.items.length} item(s) •{" "}
                                 {formatPrice(order.totalAmount)}
                               </p>
                             </div>
-                            <div>
+                            <div className="self-start sm:self-center">
                               <span
-                                className={`rounded-full px-3 py-1 text-xs ${
+                                className={`rounded-full px-2 sm:px-3 py-1 text-xs whitespace-nowrap ${
                                   order.paymentStatus === "completed"
                                     ? "bg-green-100 text-green-800"
                                     : order.paymentStatus === "pending"

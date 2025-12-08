@@ -151,17 +151,17 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">Checkout</h1>
+    <div className="container mx-auto px-4 py-6 sm:py-8">
+      <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">Checkout</h1>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 lg:gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Shipping Address</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Shipping Address</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input
@@ -205,7 +205,7 @@ export default function CheckoutPage() {
                   />
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-3">
                   <div className="grid gap-2">
                     <Label htmlFor="city">City</Label>
                     <Input
@@ -245,12 +245,12 @@ export default function CheckoutPage() {
         </div>
 
         <div>
-          <Card>
+          <Card className="lg:sticky lg:top-20">
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Order Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-2 text-sm sm:text-base">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
                     Subtotal ({items.length} items)
@@ -278,7 +278,7 @@ export default function CheckoutPage() {
               <Button
                 onClick={handlePayment}
                 disabled={loading}
-                className="mt-6 w-full"
+                className="mt-4 sm:mt-6 w-full"
                 size="lg"
               >
                 {loading ? "Processing..." : "Pay Now"}

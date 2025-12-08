@@ -20,11 +20,11 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="mb-8 text-3xl font-bold">All Users</h1>
+      <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">All Users</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Users List</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Users List</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -34,24 +34,24 @@ export default function AdminUsersPage() {
               ))}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-6 sm:mx-0">
+              <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="border-b">
-                    <th className="pb-2 text-left">Name</th>
-                    <th className="pb-2 text-left">Email</th>
-                    <th className="pb-2 text-left">Role</th>
-                    <th className="pb-2 text-left">Joined</th>
+                    <th className="pb-2 px-3 sm:px-0 text-left text-xs sm:text-sm">Name</th>
+                    <th className="pb-2 px-3 sm:px-0 text-left text-xs sm:text-sm">Email</th>
+                    <th className="pb-2 px-3 sm:px-0 text-left text-xs sm:text-sm">Role</th>
+                    <th className="pb-2 px-3 sm:px-0 text-left text-xs sm:text-sm">Joined</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((user: any) => (
                     <tr key={user._id} className="border-b">
-                      <td className="py-3">{user.name}</td>
-                      <td className="py-3">{user.email}</td>
-                      <td className="py-3">
+                      <td className="py-3 px-3 sm:px-0 text-xs sm:text-sm">{user.name}</td>
+                      <td className="py-3 px-3 sm:px-0 text-xs sm:text-sm">{user.email}</td>
+                      <td className="py-3 px-3 sm:px-0">
                         <span
-                          className={`rounded-full px-2 py-1 text-xs ${
+                          className={`rounded-full px-2 py-1 text-xs whitespace-nowrap ${
                             user.role === "admin"
                               ? "bg-purple-100 text-purple-800"
                               : "bg-gray-100 text-gray-800"
@@ -60,7 +60,7 @@ export default function AdminUsersPage() {
                           {user.role}
                         </span>
                       </td>
-                      <td className="py-3">
+                      <td className="py-3 px-3 sm:px-0 text-xs sm:text-sm">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </td>
                     </tr>

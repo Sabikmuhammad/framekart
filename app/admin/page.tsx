@@ -82,28 +82,28 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="mb-8 text-3xl font-bold">Admin Dashboard</h1>
+      <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat, index) => (
           <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-xs sm:text-sm font-medium">
                 {stat.title}
               </CardTitle>
               <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-lg sm:text-2xl font-bold">{stat.value}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="mt-8">
+      <div className="mt-6 sm:mt-8">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">

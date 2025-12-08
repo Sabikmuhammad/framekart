@@ -64,13 +64,13 @@ export default function AdminUploadsPage() {
 
   return (
     <div>
-      <h1 className="mb-8 text-3xl font-bold">Upload Images</h1>
+      <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">Upload Images</h1>
 
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle>Cloudinary Upload</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Cloudinary Upload</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4">
           <div>
             <Input
               type="file"
@@ -80,22 +80,23 @@ export default function AdminUploadsPage() {
             />
           </div>
 
-          <Button onClick={handleUpload} disabled={uploading || !file}>
+          <Button onClick={handleUpload} disabled={uploading || !file} className="w-full sm:w-auto">
             <Upload className="mr-2 h-4 w-4" />
             {uploading ? "Uploading..." : "Upload to Cloudinary"}
           </Button>
 
           {uploadedUrl && (
-            <div className="rounded-lg border p-4">
-              <p className="mb-2 text-sm font-semibold">Uploaded Image URL:</p>
-              <div className="flex items-center gap-2">
-                <Input value={uploadedUrl} readOnly />
+            <div className="rounded-lg border p-3 sm:p-4">
+              <p className="mb-2 text-xs sm:text-sm font-semibold">Uploaded Image URL:</p>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <Input value={uploadedUrl} readOnly className="text-xs sm:text-sm" />
                 <Button
                   size="sm"
                   onClick={() => {
                     navigator.clipboard.writeText(uploadedUrl);
                     toast({ title: "Copied!", description: "URL copied to clipboard." });
                   }}
+                  className="w-full sm:w-auto"
                 >
                   Copy
                 </Button>
@@ -103,7 +104,7 @@ export default function AdminUploadsPage() {
               <img
                 src={uploadedUrl}
                 alt="Uploaded"
-                className="mt-4 max-h-64 rounded object-contain"
+                className="mt-3 sm:mt-4 max-h-48 sm:max-h-64 rounded object-contain w-full"
               />
             </div>
           )}

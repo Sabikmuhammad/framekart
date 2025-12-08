@@ -89,7 +89,7 @@ export default function AdminOrdersPage() {
 
   return (
     <div>
-      <h1 className="mb-8 text-3xl font-bold">All Orders</h1>
+      <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">All Orders</h1>
       
       {orders.length === 0 ? (
         <Card>
@@ -98,14 +98,14 @@ export default function AdminOrdersPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {orders.map((order) => (
             <Card key={order._id}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Order #{order._id.slice(-8)}</span>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-base sm:text-lg">Order #{order._id.slice(-8)}</span>
                   <span
-                    className={`text-sm px-3 py-1 rounded-full ${
+                    className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full self-start ${
                       order.paymentStatus === "completed"
                         ? "bg-green-100 text-green-800"
                         : order.paymentStatus === "pending"
@@ -118,16 +118,16 @@ export default function AdminOrdersPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4">
+                <div className="grid gap-3 sm:gap-4">
                   <div>
-                    <h3 className="font-semibold mb-2">Customer Details</h3>
-                    <p className="text-sm">
+                    <h3 className="font-semibold mb-2 text-sm sm:text-base">Customer Details</h3>
+                    <p className="text-xs sm:text-sm">
                       <strong>Name:</strong> {order.address.fullName}
                     </p>
-                    <p className="text-sm">
+                    <p className="text-xs sm:text-sm">
                       <strong>Phone:</strong> {order.address.phone}
                     </p>
-                    <p className="text-sm">
+                    <p className="text-xs sm:text-sm break-words">
                       <strong>Address:</strong> {order.address.addressLine1},{" "}
                       {order.address.city}, {order.address.state} -{" "}
                       {order.address.pincode}
@@ -135,12 +135,12 @@ export default function AdminOrdersPage() {
                   </div>
 
                   <div>
-                    <h3 className="font-semibold mb-2">Items</h3>
+                    <h3 className="font-semibold mb-2 text-sm sm:text-base">Items</h3>
                     <div className="space-y-2">
                       {order.items.map((item, idx) => (
                         <div
                           key={idx}
-                          className="flex justify-between text-sm border-b pb-2"
+                          className="flex justify-between text-xs sm:text-sm border-b pb-2 gap-2"
                         >
                           <span>
                             {item.title} x {item.quantity}
@@ -151,35 +151,35 @@ export default function AdminOrdersPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center pt-2 border-t">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-2 border-t gap-2">
                     <div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Order Date: {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                       {order.razorpayOrderId && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground break-all">
                           Razorpay ID: {order.razorpayOrderId}
                         </p>
                       )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold">
+                    <div className="sm:text-right">
+                      <p className="text-base sm:text-lg font-bold">
                         Total: ₹{order.totalAmount}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       onClick={() => updateOrderStatus(order._id, "completed")}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                      className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-xs sm:text-sm"
                       disabled={order.paymentStatus === "completed"}
                     >
                       Mark Completed
                     </button>
                     <button
                       onClick={() => updateOrderStatus(order._id, "failed")}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                      className="px-3 sm:px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs sm:text-sm"
                       disabled={order.paymentStatus === "failed"}
                     >
                       Mark Failed

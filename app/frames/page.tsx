@@ -39,16 +39,16 @@ export default function FramesPage() {
   const categories = ["All", "Modern", "Classic", "Vintage", "Minimalist"];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="mb-4 text-4xl font-bold">Our Frames Collection</h1>
+    <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="mb-3 sm:mb-4 text-3xl sm:text-4xl font-bold">Our Frames Collection</h1>
         <p className="text-muted-foreground">
           Browse our extensive collection of premium wall frames
         </p>
       </div>
 
       {/* Search and Filter */}
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mb-6 sm:mb-8 flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
         <div className="relative flex-1 md:max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -59,7 +59,7 @@ export default function FramesPage() {
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
           {categories.map((category) => (
             <Button
               key={category}
@@ -82,13 +82,13 @@ export default function FramesPage() {
 
       {/* Frames Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
           {[...Array(8)].map((_, i) => (
-            <Card key={i} className="h-96 animate-pulse bg-muted" />
+            <Card key={i} className="h-64 sm:h-80 animate-pulse bg-muted" />
           ))}
         </div>
       ) : filteredFrames.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
           {filteredFrames.map((frame: any) => (
             <FrameCard key={frame._id} frame={frame} />
           ))}

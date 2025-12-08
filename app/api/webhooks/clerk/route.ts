@@ -4,6 +4,7 @@ import { WebhookEvent } from "@clerk/nextjs/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
+import { clerkClient } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -53,13 +54,26 @@ export async function POST(req: Request) {
     // Check if this is the first user
     const userCount = await User.countDocuments();
     const isFirstUser = userCount === 0;
+    const userRole = isFirstUser ? "admin" : "user";
 
     await User.create({
       clerkId: id,
       email: email_addresses[0].email_address,
       name: `${first_name || ""} ${last_name || ""}`.trim(),
-      role: isFirstUser ? "admin" : "user", // First user becomes admin
+      role: userRole, // First user becomes admin
     });
+
+    // Also set the role in Clerk's publicMetadata
+    try {
+      await clerkClient.users.updateUserMetadata(id, {
+        publicMetadata: {
+          role: userRole,
+        },
+      });
+      console.log(`✅ User ${id} role set to ${userRole} in Clerk`);
+    } catch (error) {
+      console.error("Error updating Clerk metadata:", error);
+    }
   }
 
   if (eventType === "user.updated") {

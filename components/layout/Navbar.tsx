@@ -2,18 +2,24 @@
 
 import Link from "next/link";
 import { useUser, UserButton } from "@clerk/nextjs";
-import { ShoppingCart, Menu } from "lucide-react";
+import { ShoppingCart, Menu, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const { isSignedIn, user } = useUser();
   const getTotalItems = useCartStore((state) => state.getTotalItems);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  useEffect(() => {
+    if (user) {
+      console.log("Navbar - User role:", user.publicMetadata?.role);
+    }
+  }, [user]);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden md:block">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="text-2xl font-bold">
           FrameKart
@@ -61,6 +67,14 @@ export default function Navbar() {
 
           {isSignedIn ? (
             <>
+              {user?.publicMetadata?.role === "admin" && (
+                <Link href="/admin">
+                  <Button variant="default" size="sm" className="gap-2">
+                    <Shield className="h-4 w-4" />
+                    Admin
+                  </Button>
+                </Link>
+              )}
               <Link href="/profile">
                 <Button variant="ghost" size="sm">
                   Profile
@@ -73,13 +87,6 @@ export default function Navbar() {
               <Button size="sm">Sign In</Button>
             </Link>
           )}
-
-          <button
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
         </div>
       </div>
 

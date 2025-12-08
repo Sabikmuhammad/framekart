@@ -137,14 +137,15 @@ export default function AdminFramesPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Manage Frames</h1>
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold">Manage Frames</h1>
         <Button
           onClick={() => {
             setShowForm(!showForm);
             setEditingFrame(null);
             resetForm();
           }}
+          className="w-full sm:w-auto"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Frame
@@ -152,9 +153,9 @@ export default function AdminFramesPage() {
       </div>
 
       {showForm && (
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <Card className="mb-6 sm:mb-8">
+          <CardContent className="pt-4 sm:pt-6">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="title">Title</Label>
@@ -258,8 +259,8 @@ export default function AdminFramesPage() {
                 />
               </div>
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={loading}>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                   {loading ? "Saving..." : editingFrame ? "Update" : "Create"}
                 </Button>
                 <Button
@@ -270,6 +271,7 @@ export default function AdminFramesPage() {
                     setEditingFrame(null);
                     resetForm();
                   }}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
@@ -279,10 +281,10 @@ export default function AdminFramesPage() {
         </Card>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {frames.map((frame: any) => (
           <Card key={frame._id}>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="relative mb-4 aspect-square overflow-hidden rounded">
                 <Image
                   src={frame.imageUrl}
@@ -291,14 +293,14 @@ export default function AdminFramesPage() {
                   className="object-cover"
                 />
               </div>
-              <h3 className="mb-2 font-semibold">{frame.title}</h3>
-              <p className="mb-2 text-sm text-muted-foreground line-clamp-2">
+              <h3 className="mb-2 font-semibold text-sm sm:text-base">{frame.title}</h3>
+              <p className="mb-2 text-xs sm:text-sm text-muted-foreground line-clamp-2">
                 {frame.description}
               </p>
-              <p className="mb-2 font-bold text-primary">
+              <p className="mb-2 font-bold text-primary text-sm sm:text-base">
                 {formatPrice(frame.price)}
               </p>
-              <p className="mb-4 text-sm text-muted-foreground">
+              <p className="mb-3 sm:mb-4 text-xs sm:text-sm text-muted-foreground">
                 Stock: {frame.stock}
               </p>
               <div className="flex gap-2">
@@ -306,17 +308,18 @@ export default function AdminFramesPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleEdit(frame)}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
                 >
-                  <Pencil className="mr-2 h-4 w-4" />
+                  <Pencil className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Edit
                 </Button>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={() => handleDelete(frame._id)}
+                  className="px-2 sm:px-3"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </CardContent>

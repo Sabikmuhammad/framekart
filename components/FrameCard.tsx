@@ -48,40 +48,41 @@ export default function FrameCard({ frame }: FrameCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ y: -5 }}
-      className="group"
+      className="group h-full"
     >
-      <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+      <Card className="overflow-hidden transition-shadow hover:shadow-lg h-full flex flex-col">
         <Link href={`/frames/${frame.slug}`}>
-          <div className="relative aspect-square overflow-hidden">
+          <div className="relative aspect-square overflow-hidden bg-muted">
             <Image
               src={frame.imageUrl}
               alt={frame.title}
               fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover transition-transform duration-300 group-hover:scale-110"
             />
           </div>
         </Link>
-        <CardContent className="p-4">
+        <CardContent className="p-2 sm:p-3 flex-1 flex flex-col gap-1">
           <Link href={`/frames/${frame.slug}`}>
-            <h3 className="font-semibold line-clamp-1 hover:text-primary">
+            <h3 className="font-semibold text-[11px] sm:text-sm line-clamp-2 hover:text-primary leading-tight">
               {frame.title}
             </h3>
           </Link>
-          <p className="text-sm text-muted-foreground">
-            {frame.frame_size} • {frame.frame_material}
+          <p className="text-[9px] sm:text-xs text-muted-foreground">
+            {frame.frame_size}
           </p>
-          <p className="mt-2 text-lg font-bold text-primary">
+          <p className="mt-auto text-xs sm:text-base font-bold text-primary">
             {formatPrice(frame.price)}
           </p>
         </CardContent>
-        <CardFooter className="p-4 pt-0">
+        <CardFooter className="p-2 sm:p-3 pt-0">
           <Button
             onClick={handleAddToCart}
-            className="w-full"
+            className="w-full text-[10px] sm:text-xs h-7 sm:h-9 px-2"
             size="sm"
           >
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            Add to Cart
+            <ShoppingCart className="h-3 w-3 sm:mr-1" />
+            <span className="hidden sm:inline">Add</span>
           </Button>
         </CardFooter>
       </Card>

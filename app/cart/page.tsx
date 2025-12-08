@@ -27,17 +27,17 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">Shopping Cart</h1>
+    <div className="container mx-auto px-4 py-6 sm:py-8">
+      <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">Shopping Cart</h1>
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="space-y-4">
             {items.map((item) => (
               <Card key={item._id}>
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex gap-3 sm:gap-4">
+                    <div className="relative h-20 w-20 sm:h-24 sm:w-24 flex-shrink-0 overflow-hidden rounded">
                       <Image
                         src={item.imageUrl}
                         alt={item.title}
@@ -46,22 +46,23 @@ export default function CartPage() {
                       />
                     </div>
 
-                    <div className="flex flex-1 flex-col justify-between">
+                    <div className="flex flex-1 flex-col justify-between min-w-0">
                       <div>
-                        <h3 className="font-semibold">{item.title}</h3>
-                        <p className="text-sm text-muted-foreground">
+                        <h3 className="font-semibold text-sm sm:text-base truncate">{item.title}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           {item.frame_size} • {item.frame_material}
                         </p>
-                        <p className="mt-1 font-semibold text-primary">
+                        <p className="mt-1 font-semibold text-primary text-sm sm:text-base">
                           {formatPrice(item.price)}
                         </p>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                           <Button
                             variant="outline"
                             size="icon"
+                            className="h-8 w-8"
                             onClick={() =>
                               updateQuantity(
                                 item._id,
@@ -69,25 +70,27 @@ export default function CartPage() {
                               )
                             }
                           >
-                            <Minus className="h-4 w-4" />
+                            <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
-                          <span className="w-8 text-center">
+                          <span className="w-6 sm:w-8 text-center text-sm">
                             {item.quantity}
                           </span>
                           <Button
                             variant="outline"
                             size="icon"
+                            className="h-8 w-8"
                             onClick={() =>
                               updateQuantity(item._id, item.quantity + 1)
                             }
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
 
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="h-8 px-2"
                           onClick={() => removeItem(item._id)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
