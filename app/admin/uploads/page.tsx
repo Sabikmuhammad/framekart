@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -101,9 +102,11 @@ export default function AdminUploadsPage() {
                   Copy
                 </Button>
               </div>
-              <img
+              <Image
                 src={uploadedUrl}
                 alt="Uploaded"
+                width={500}
+                height={500}
                 className="mt-3 sm:mt-4 max-h-48 sm:max-h-64 rounded object-contain w-full"
               />
             </div>

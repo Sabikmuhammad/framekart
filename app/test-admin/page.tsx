@@ -70,8 +70,8 @@ export default function SyncAdminPage() {
           <div className="border-t pt-4 mt-4">
             <p className="text-sm font-semibold mb-2">Instructions:</p>
             <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-              <li>If you're the first user, you should already be admin in the database</li>
-              <li>Click "Sync Role from Database to Clerk" to update your Clerk profile</li>
+              <li>If you&apos;re the first user, you should already be admin in the database</li>
+              <li>Click &quot;Sync Role from Database to Clerk&quot; to update your Clerk profile</li>
               <li>The page will reload and admin buttons should appear</li>
               <li>Check the browser console for detailed user data</li>
             </ol>

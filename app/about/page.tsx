@@ -20,7 +20,7 @@ export default function AboutPage() {
             Our team of craftsmen and designers work tirelessly to bring you frames that combine traditional craftsmanship with modern aesthetics. Each frame in our collection is carefully selected to ensure it meets our high standards of quality and design.
           </p>
           <p>
-            Today, we're proud to serve thousands of customers across India, helping them transform their spaces with our carefully curated collection of wall frames.
+            Today, we&apos;re proud to serve thousands of customers across India, helping them transform their spaces with our carefully curated collection of wall frames.
           </p>
         </div>
 
@@ -84,7 +84,7 @@ export default function AboutPage() {
               <div>
                 <h3 className="mb-2 font-semibold">Sustainability</h3>
                 <p className="text-muted-foreground">
-                  We're committed to eco-friendly practices and sustainable sourcing.
+                  We&apos;re committed to eco-friendly practices and sustainable sourcing.
                 </p>
               </div>
             </div>

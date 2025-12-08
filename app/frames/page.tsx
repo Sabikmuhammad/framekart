@@ -15,6 +15,7 @@ export default function FramesPage() {
 
   useEffect(() => {
     fetchFrames();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   const fetchFrames = async () => {
