@@ -101,8 +101,8 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {["Modern", "Classic", "Vintage", "Minimalist"].map((category) => (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+            {["Wall Frames", "Calligraphy Frames", "Birthday Frames", "Photo Frames", "Custom Frames"].map((category) => (
               <Link key={category} href={`/frames?category=${category}`}>
                 <Card className="group cursor-pointer transition-all hover:shadow-lg">
                   <CardContent className="flex aspect-square items-center justify-center p-4 sm:p-6">
@@ -185,17 +185,17 @@ export default function HomePage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {[
               {
-                name: "Priya Sharma",
+                name: "",
                 review: "Absolutely love my frames! The quality is outstanding and delivery was super fast.",
                 rating: 5,
               },
               {
-                name: "Rahul Verma",
+                name: "",
                 review: "Best online frame store in India. Great variety and excellent customer service.",
                 rating: 5,
               },
               {
-                name: "Anita Desai",
+                name: "",
                 review: "The frames transformed my living room. Highly recommend FrameKart!",
                 rating: 5,
               },

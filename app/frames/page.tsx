@@ -37,7 +37,7 @@ export default function FramesPage() {
     frame.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const categories = ["All", "Modern", "Classic", "Vintage", "Minimalist"];
+  const categories = ["All", "Wall Frames", "Calligraphy Frames", "Birthday Frames", "Photo Frames", "Custom Frames"];
 
   return (
     <div className="container mx-auto px-4 py-6 sm:py-8">
