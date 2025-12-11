@@ -9,6 +9,14 @@ export interface CartItem {
   quantity: number;
   frame_size: string;
   frame_material: string;
+  // Custom frame fields
+  isCustom?: boolean;
+  customFrame?: {
+    uploadedImageUrl: string;
+    frameStyle: "Black" | "White" | "Wooden";
+    frameSize: "A4" | "12x18" | "18x24" | "24x36";
+    customerNotes?: string;
+  };
 }
 
 interface CartStore {

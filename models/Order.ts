@@ -14,8 +14,9 @@ export interface IOrder {
   totalAmount: number;
   paymentStatus: "pending" | "completed" | "failed";
   paymentId?: string;
-  razorpayOrderId?: string;
-  razorpaySignature?: string;
+  cashfreeOrderId?: string;
+  razorpayOrderId?: string; // Keep for backward compatibility
+  razorpaySignature?: string; // Keep for backward compatibility
   address: {
     fullName: string;
     phone: string;
@@ -25,6 +26,15 @@ export interface IOrder {
     state: string;
     pincode: string;
   };
+  // Custom Frame fields
+  type?: "regular" | "custom";
+  customFrame?: {
+    imageUrl: string;
+    frameStyle: "Black" | "White" | "Wooden";
+    frameSize: "A4" | "12x18" | "18x24" | "24x36";
+    customerNotes?: string;
+  };
+  status?: "Pending" | "Processing" | "Printed" | "Shipped" | "Delivered";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,7 +50,7 @@ const OrderSchema = new Schema<IOrder>(
         productId: {
           type: Schema.Types.ObjectId,
           ref: "Frame",
-          required: true,
+          required: false, // Optional for custom frames
         },
         title: String,
         price: Number,
@@ -58,8 +68,9 @@ const OrderSchema = new Schema<IOrder>(
       default: "pending",
     },
     paymentId: String,
-    razorpayOrderId: String,
-    razorpaySignature: String,
+    cashfreeOrderId: String,
+    razorpayOrderId: String, // Keep for backward compatibility
+    razorpaySignature: String, // Keep for backward compatibility
     address: {
       fullName: String,
       phone: String,
@@ -68,6 +79,28 @@ const OrderSchema = new Schema<IOrder>(
       city: String,
       state: String,
       pincode: String,
+    },
+    type: {
+      type: String,
+      enum: ["regular", "custom"],
+      default: "regular",
+    },
+    customFrame: {
+      imageUrl: String,
+      frameStyle: {
+        type: String,
+        enum: ["Black", "White", "Wooden"],
+      },
+      frameSize: {
+        type: String,
+        enum: ["A4", "12x18", "18x24", "24x36"],
+      },
+      customerNotes: String,
+    },
+    status: {
+      type: String,
+      enum: ["Pending", "Processing", "Printed", "Shipped", "Delivered"],
+      default: "Pending",
     },
   },
   {

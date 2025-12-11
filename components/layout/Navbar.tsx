@@ -11,6 +11,11 @@ export default function Navbar() {
   const { isSignedIn, user } = useUser();
   const getTotalItems = useCartStore((state) => state.getTotalItems);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   useEffect(() => {
     if (user) {
@@ -32,6 +37,12 @@ export default function Navbar() {
             className="text-sm font-medium transition-colors hover:text-primary"
           >
             Frames
+          </Link>
+          <Link
+            href="/custom-frame"
+            className="text-sm font-medium transition-colors hover:text-primary"
+          >
+            Custom Frame
           </Link>
           <Link
             href="/about"
@@ -58,7 +69,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <Link href="/cart" className="relative">
             <ShoppingCart className="h-5 w-5" />
-            {getTotalItems() > 0 && (
+            {mounted && getTotalItems() > 0 && (
               <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
                 {getTotalItems()}
               </span>
@@ -80,7 +91,6 @@ export default function Navbar() {
                   Profile
                 </Button>
               </Link>
-              <UserButton afterSignOutUrl="/" />
             </>
           ) : (
             <Link href="/sign-in">
@@ -100,6 +110,13 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Frames
+            </Link>
+            <Link
+              href="/custom-frame"
+              className="text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Custom Frame
             </Link>
             <Link
               href="/about"

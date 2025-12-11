@@ -13,7 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Cashfree: any;
   }
 }
 
@@ -49,95 +49,137 @@ export default function CheckoutPage() {
   };
 
   const handlePayment = async () => {
+    // Validate required fields
+    if (!formData.fullName || !formData.phone || !formData.addressLine1 || 
+        !formData.city || !formData.state || !formData.pincode) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate phone number (should be 10 digits)
+    if (!/^\d{10}$/.test(formData.phone)) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid 10-digit phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Create order in database
-      const orderRes = await fetch("/api/orders", {
+      // Check if cart contains custom frames
+      const hasCustomFrames = items.some(item => item.isCustom);
+      
+      let orderData;
+
+      if (hasCustomFrames && items.length === 1 && items[0].isCustom) {
+        // Custom frame order
+        const customItem = items[0];
+        const orderRes = await fetch("/api/custom-frame-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            imageUrl: customItem.customFrame?.uploadedImageUrl,
+            frameStyle: customItem.customFrame?.frameStyle,
+            frameSize: customItem.customFrame?.frameSize,
+            customerNotes: customItem.customFrame?.customerNotes || "",
+            totalAmount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
+            address: formData,
+          }),
+        });
+
+        orderData = await orderRes.json();
+        if (!orderData.success) throw new Error("Order creation failed");
+      } else {
+        // Regular order
+        const orderRes = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: items.map((item) => ({
+              productId: item._id,
+              title: item.title,
+              price: item.price,
+              quantity: item.quantity,
+              imageUrl: item.imageUrl,
+            })),
+            totalAmount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
+            address: formData,
+          }),
+        });
+
+        orderData = await orderRes.json();
+        if (!orderData.success) throw new Error("Order creation failed");
+      }
+
+      // Create Cashfree order
+      const cashfreePayload = {
+        amount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
+        customerPhone: formData.phone,
+        customerEmail: user.primaryEmailAddress?.emailAddress || "",
+        customerName: formData.fullName,
+        orderId: orderData.data._id,
+      };
+
+      console.log("Creating Cashfree order with payload:", cashfreePayload);
+
+      const cashfreeRes = await fetch("/api/cashfree/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map((item) => ({
-            productId: item._id,
-            title: item.title,
-            price: item.price,
-            quantity: item.quantity,
-            imageUrl: item.imageUrl,
-          })),
-          totalAmount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
-          address: formData,
-        }),
+        body: JSON.stringify(cashfreePayload),
       });
 
-      const orderData = await orderRes.json();
-      if (!orderData.success) throw new Error("Order creation failed");
+      const cashfreeData = await cashfreeRes.json();
+      
+      if (!cashfreeData.success) {
+        console.error("Cashfree order creation failed:", cashfreeData);
+        throw new Error(cashfreeData.error || cashfreeData.details || "Cashfree order creation failed");
+      }
 
-      // Create Razorpay order
-      const razorpayRes = await fetch("/api/razorpay/order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
-        }),
-      });
-
-      const razorpayData = await razorpayRes.json();
-      if (!razorpayData.success) throw new Error("Razorpay order creation failed");
-
-      // Load Razorpay script
+      // Load Cashfree script
       const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
       document.body.appendChild(script);
 
-      script.onload = () => {
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: razorpayData.data.amount,
-          currency: "INR",
-          name: "FrameKart",
-          description: "Frame Purchase",
-          order_id: razorpayData.data.id,
-          handler: async function (response: any) {
-            // Verify payment
-            const verifyRes = await fetch("/api/razorpay/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                orderId: orderData.data._id,
-              }),
-            });
+      script.onload = async () => {
+        try {
+          const cashfreeMode = "sandbox"; // Use sandbox for testing
+          
+          const cashfree = await window.Cashfree({
+            mode: cashfreeMode,
+          });
 
-            const verifyData = await verifyRes.json();
+          const checkoutOptions = {
+            paymentSessionId: cashfreeData.data.payment_session_id,
+            redirectTarget: "_self",
+          };
 
-            if (verifyData.success) {
-              clearCart();
-              toast({
-                title: "Payment Successful!",
-                description: "Your order has been placed successfully.",
-              });
-              router.push(`/orders/${orderData.data._id}`);
-            } else {
-              toast({
-                title: "Payment Verification Failed",
-                description: "Please contact support.",
-                variant: "destructive",
-              });
-            }
-          },
-          prefill: {
-            name: formData.fullName,
-            contact: formData.phone,
-          },
-          theme: {
-            color: "#3b82f6",
-          },
-        };
+          await cashfree.checkout(checkoutOptions);
+          console.log("Payment initiated");
+        } catch (err: any) {
+          console.error("Cashfree checkout error:", err);
+          toast({
+            title: "Payment Error",
+            description: err.message || "Failed to open payment page",
+            variant: "destructive",
+          });
+          setLoading(false);
+        }
+      };
 
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
+      script.onerror = () => {
+        toast({
+          title: "Script Load Error",
+          description: "Failed to load Cashfree payment script",
+          variant: "destructive",
+        });
+        setLoading(false);
       };
     } catch (error: any) {
       toast({

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, ShoppingCart, Users, DollarSign } from "lucide-react";
+import { Package, ShoppingCart, Users, DollarSign, Palette, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -100,7 +102,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div className="mt-6 sm:mt-8">
+      <div className="mt-6 sm:mt-8 grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg sm:text-xl">Recent Activity</CardTitle>
@@ -109,6 +111,26 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground">
               Recent activity will be displayed here
             </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <Palette className="w-5 h-5 text-blue-600" />
+              Custom Frame Orders
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              Manage custom frame orders with uploaded images, frame preferences, and delivery status.
+            </p>
+            <Link href="/admin/custom-orders">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                View Custom Orders
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
