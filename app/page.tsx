@@ -447,7 +447,7 @@ export default function HomePage() {
                       Create Your Own <span className="text-primary">Custom Frame</span>
                     </h2>
                     <p className="text-muted-foreground mb-6 text-sm sm:text-base">
-                      Upload your photo, choose your size and style, and we'll create a stunning custom frame just for you. Perfect for special memories, gifts, and unique home decor.
+                      Upload your photo, choose your size and style, and we&apos;ll create a stunning custom frame just for you. Perfect for special memories, gifts, and unique home decor.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <Link href="/custom-frame">

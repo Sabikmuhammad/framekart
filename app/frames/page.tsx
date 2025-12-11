@@ -275,7 +275,7 @@ export default function FramesPage() {
               </div>
               <h3 className="text-xl sm:text-2xl font-semibold mb-2">No frames found</h3>
               <p className="text-muted-foreground mb-6">
-                Try adjusting your search or filters to find what you're looking for
+                Try adjusting your search or filters to find what you&apos;re looking for
               </p>
               <Button 
                 onClick={() => {

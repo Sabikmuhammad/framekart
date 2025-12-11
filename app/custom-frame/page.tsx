@@ -220,7 +220,7 @@ export default function CustomFramePage() {
               Design Your Perfect Frame
             </h1>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-              Upload your image, customize your frame with real-time preview, and we'll bring it to life with premium quality printing.
+              Upload your image, customize your frame with real-time preview, and we&apos;ll bring it to life with premium quality printing.
             </p>
           </motion.div>
 
