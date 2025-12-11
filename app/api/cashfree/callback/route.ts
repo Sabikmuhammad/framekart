@@ -6,19 +6,24 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
+    // Get the host dynamically from request headers
+    const host = req.headers.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+
     const { searchParams } = new URL(req.url);
     const orderId = searchParams.get("order_id");
     const cashfreeOrderId = searchParams.get("cf_order_id");
 
     if (!orderId) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/checkout?error=missing_order_id`
+        `${baseUrl}/checkout?error=missing_order_id`
       );
     }
 
     if (!cashfreeOrderId) {
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/checkout?error=payment_failed`
+        `${baseUrl}/checkout?error=payment_failed`
       );
     }
 
@@ -54,19 +59,25 @@ export async function GET(req: NextRequest) {
 
         // Redirect to success page
         return NextResponse.redirect(
-          `${process.env.NEXT_PUBLIC_APP_URL}/orders/${orderId}?payment=success`
+          `${baseUrl}/orders/${orderId}?payment=success`
         );
       }
     }
 
     // Payment failed or pending
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/checkout?error=payment_failed`
+      `${baseUrl}/checkout?error=payment_failed`
     );
   } catch (error: any) {
     console.error("Cashfree callback error:", error);
+    
+    // Get baseUrl for error redirect
+    const host = req.headers.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+    
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/checkout?error=verification_failed`
+      `${baseUrl}/checkout?error=verification_failed`
     );
   }
 }

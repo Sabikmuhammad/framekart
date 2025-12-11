@@ -16,6 +16,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Get the host dynamically from request headers
+    const host = req.headers.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+
     const orderData = {
       order_amount: amount,
       order_currency: "INR",
@@ -27,7 +32,7 @@ export async function POST(req: NextRequest) {
         customer_phone: customerPhone,
       },
       order_meta: {
-        return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/cashfree/callback?order_id=${orderId}`,
+        return_url: `${baseUrl}/api/cashfree/callback?order_id=${orderId}`,
       },
     };
 
