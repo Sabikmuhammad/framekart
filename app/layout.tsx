@@ -12,8 +12,22 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://framekart.co.in'),
   title: "FrameKart - Modern Online Frame Store",
   description: "Your destination for premium wall frames. Transform your space with our curated collection.",
+  openGraph: {
+    title: "FrameKart - Modern Online Frame Store",
+    description: "Your destination for premium wall frames. Transform your space with our curated collection.",
+    url: "https://framekart.co.in",
+    siteName: "FrameKart",
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FrameKart - Modern Online Frame Store",
+    description: "Your destination for premium wall frames",
+  },
 };
 
 export default function RootLayout({

@@ -119,7 +119,13 @@ export default function CheckoutPage() {
         });
 
         orderData = await orderRes.json();
-        if (!orderData.success) throw new Error("Order creation failed");
+        if (!orderData.success) {
+          console.error("Order creation failed:", orderData);
+          const errorMsg = orderData.validationErrors 
+            ? `Validation error: ${orderData.validationErrors.map((e: any) => e.message).join(', ')}`
+            : orderData.error || "Order creation failed";
+          throw new Error(errorMsg);
+        }
       }
 
       // Create Cashfree order

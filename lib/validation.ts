@@ -12,19 +12,19 @@ export const OrderSchema = z.object({
   totalAmount: z.number().positive().max(10000000),
   address: z.object({
     fullName: z.string().min(2).max(100),
-    phone: z.string().regex(/^\d{10}$/, 'Phone must be 10 digits'),
-    addressLine1: z.string().min(5).max(200),
-    addressLine2: z.string().max(200).optional(),
+    phone: z.string().min(10).max(15), // Allow flexible phone formats
+    addressLine1: z.string().min(3).max(200),
+    addressLine2: z.string().max(200).optional().or(z.literal('')),
     city: z.string().min(2).max(100),
     state: z.string().min(2).max(100),
-    pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
+    pincode: z.string().min(4).max(10), // Allow flexible pincode formats
   }),
 });
 
 // Cashfree order validation
 export const CashfreeOrderSchema = z.object({
   amount: z.number().positive().max(10000000),
-  customerPhone: z.string().regex(/^\d{10}$/),
+  customerPhone: z.string().min(10).max(15),
   customerEmail: z.string().email(),
   customerName: z.string().min(2).max(100),
   orderId: z.string().min(1),
@@ -39,12 +39,12 @@ export const CustomFrameOrderSchema = z.object({
   totalAmount: z.number().positive().max(10000000),
   address: z.object({
     fullName: z.string().min(2).max(100),
-    phone: z.string().regex(/^\d{10}$/),
-    addressLine1: z.string().min(5).max(200),
-    addressLine2: z.string().max(200).optional(),
+    phone: z.string().min(10).max(15),
+    addressLine1: z.string().min(3).max(200),
+    addressLine2: z.string().max(200).optional().or(z.literal('')),
     city: z.string().min(2).max(100),
     state: z.string().min(2).max(100),
-    pincode: z.string().regex(/^\d{6}$/),
+    pincode: z.string().min(4).max(10),
   }),
 });
 

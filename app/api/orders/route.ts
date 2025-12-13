@@ -70,12 +70,19 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: order }, { status: 201 });
   } catch (error: any) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Order creation error:', error);
+    }
+    
     if (error instanceof ZodError) {
       return NextResponse.json(
         { 
           success: false, 
           error: "Invalid input data",
-          details: process.env.NODE_ENV === 'development' ? error.errors : undefined
+          validationErrors: error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
         },
         { status: 400 }
       );
