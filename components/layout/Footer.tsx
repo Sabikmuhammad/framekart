@@ -205,10 +205,15 @@ export default function Footer() {
           className="pt-8 border-t border-gray-200 dark:border-gray-800"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center md:text-left">
-              &copy; {currentYear} FrameKart. All rights reserved. Made with{" "}
-              <Heart className="inline h-4 w-4 text-red-500 fill-red-500" /> in India
-            </p>
+            <div className="text-center md:text-left">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                &copy; {currentYear} FrameKart. All rights reserved. Made with{" "}
+                <Heart className="inline h-4 w-4 text-red-500 fill-red-500" /> in India
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                Legal Business Name: DASARABETTU ABDUL RAHIMAN
+              </p>
+            </div>
             <div className="flex items-center gap-6 text-xs text-gray-500 dark:text-gray-500">
               <Link href="/terms" className="hover:text-primary transition-colors">Terms</Link>
               <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />

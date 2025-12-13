@@ -66,6 +66,12 @@ export default function AboutPage() {
           <p className="mt-4 text-lg text-muted-foreground">
             FrameKart brings together craftsmanship and contemporary design to help you display what matters most. We create frames that elevate interiors and preserve memories for generations.
           </p>
+          
+          <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              <span className="font-semibold">Legal Business Name:</span> DASARABETTU ABDUL RAHIMAN
+            </p>
+          </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/frames" className="inline-flex items-center rounded-lg bg-primary px-5 py-3 text-white shadow hover:opacity-95 transition">
