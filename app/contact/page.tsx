@@ -29,15 +29,37 @@ export default function ContactPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate form submission
-    setTimeout(() => {
-      toast({
-        title: "Message Sent!",
-        description: "We'll get back to you within 24 hours.",
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
-      setFormData({ name: "", email: "", subject: "", message: "" });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Message Sent!",
+          description: "We'll get back to you within 24 hours.",
+        });
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to send message. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -122,7 +144,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold">Email</h3>
                     <p className="text-sm text-muted-foreground">
-                      info@framekart.com
+                      info@framekart.co.in
                     </p>
                   </div>
                 </div>
@@ -132,7 +154,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold">Phone</h3>
                     <p className="text-sm text-muted-foreground">
-                      +91 123 456 7890
+                      +91 7259788138
                     </p>
                   </div>
                 </div>
@@ -142,11 +164,11 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold">Address</h3>
                     <p className="text-sm text-muted-foreground">
-                      123 Frame Street
+                      Mangaluru
                       <br />
-                      Mumbai, Maharashtra
+                      Karnataka
                       <br />
-                      India - 400001
+                      India
                     </p>
                   </div>
                 </div>

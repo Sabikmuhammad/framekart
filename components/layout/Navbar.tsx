@@ -18,7 +18,7 @@ export default function Navbar() {
   }, []);
   
   useEffect(() => {
-    if (user) {
+    if (user && process.env.NODE_ENV === 'development') {
       console.log("Navbar - User role:", user.publicMetadata?.role);
     }
   }, [user]);

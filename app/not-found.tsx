@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+export const metadata = {
+  title: 'Page Not Found | FrameKart',
+  description: 'The page you are looking for does not exist.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default function NotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">

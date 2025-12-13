@@ -189,10 +189,10 @@ export default function AboutPage() {
         <h2 className="text-2xl md:text-3xl font-bold mb-6">Meet the Team</h2>
         <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
           {[
-            { name: "Aisha Khan", role: "Founder & CEO", img: "/p3.jpeg" },
-            { name: "Ravi Menon", role: "Head of Design", img: "/p4.jpeg" },
-            { name: "Neha Patel", role: "Operations Lead", img: "/p1_gzwl6t.png" },
-            { name: "Siddharth Rao", role: "Customer Experience", img: "/p2.png" },
+            { name: "Muhammed Sabik", role: "Founder & CEO", img: "/p3.jpeg" },
+            // { name: "Ravi Menon", role: "Head of Design", img: "/p4.jpeg" },
+            // { name: "Neha Patel", role: "Operations Lead", img: "/p1_gzwl6t.png" },
+            // { name: "Siddharth Rao", role: "Customer Experience", img: "/p2.png" },
           ].map((m, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="rounded-lg bg-white shadow-sm overflow-hidden">
               <div className="relative h-44 w-full">

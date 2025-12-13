@@ -3,6 +3,8 @@ import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import User from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
+import { OrderSchema } from "@/lib/validation";
+import { ZodError } from "zod";
 
 export async function GET(req: NextRequest) {
   try {
@@ -53,7 +55,10 @@ export async function POST(req: NextRequest) {
     await dbConnect();
 
     const body = await req.json();
-    const { items, totalAmount, address } = body;
+    
+    // Validate input
+    const validatedData = OrderSchema.parse(body);
+    const { items, totalAmount, address } = validatedData;
 
     const order = await Order.create({
       userId,
@@ -65,8 +70,23 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: order }, { status: 201 });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Invalid input data",
+          details: process.env.NODE_ENV === 'development' ? error.errors : undefined
+        },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
-      { success: false, error: error.message },
+      { 
+        success: false, 
+        error: "Failed to create order",
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     );
   }

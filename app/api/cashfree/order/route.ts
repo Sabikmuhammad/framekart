@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { CashfreeOrderSchema } from "@/lib/validation";
+import { ZodError } from "zod";
 
 export async function POST(req: NextRequest) {
   try {
-    const { amount, customerPhone, customerEmail, customerName, orderId } = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validatedData = CashfreeOrderSchema.parse(body);
+    const { amount, customerPhone, customerEmail, customerName, orderId } = validatedData;
 
     // Check if environment variables are set
     if (!process.env.CASHFREE_APP_ID || !process.env.CASHFREE_SECRET_KEY) {
@@ -36,7 +42,9 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    console.log("Creating Cashfree order:", { order_id: orderData.order_id, amount: orderData.order_amount });
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Creating Cashfree order:", { order_id: orderData.order_id, amount: orderData.order_amount });
+    }
 
     const apiUrl = process.env.CASHFREE_ENVIRONMENT === "production"
       ? "https://api.cashfree.com/pg/orders"
@@ -56,11 +64,15 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Cashfree API error response:", data);
-      throw new Error(`Cashfree API error: ${data.message || JSON.stringify(data)}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Cashfree API error response:", data);
+      }
+      throw new Error(`Cashfree API error: ${data.message || 'Payment gateway error'}`);
     }
 
-    console.log("Cashfree order created successfully:", data.order_id);
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Cashfree order created successfully:", data.order_id);
+    }
 
     return NextResponse.json({ 
       success: true, 
@@ -70,13 +82,28 @@ export async function POST(req: NextRequest) {
       }
     });
   } catch (error: any) {
-    console.error("Cashfree order creation error:", error.message);
-    console.error("Full error:", error);
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Cashfree order creation error:", error.message);
+      console.error("Full error:", error);
+    }
+    
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Invalid payment data",
+          details: process.env.NODE_ENV === "development" ? error.errors : undefined
+        },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
       { 
         success: false, 
-        error: error.message || "Failed to create Cashfree order. Please check server logs.",
-        details: process.env.NODE_ENV === "development" ? error.toString() : undefined
+        error: "Failed to create payment order. Please try again.",
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
       },
       { status: 500 }
     );

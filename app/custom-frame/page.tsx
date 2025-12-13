@@ -119,7 +119,9 @@ export default function CustomFramePage() {
         throw new Error(data.error || "Upload failed");
       }
     } catch (error: any) {
-      console.error("Upload error:", error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Upload error:", error);
+      }
       toast({
         title: "Upload failed",
         description: error.message || "Please try again.",

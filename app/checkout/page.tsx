@@ -131,8 +131,6 @@ export default function CheckoutPage() {
         orderId: orderData.data._id,
       };
 
-      console.log("Creating Cashfree order with payload:", cashfreePayload);
-
       const cashfreeRes = await fetch("/api/cashfree/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -142,7 +140,9 @@ export default function CheckoutPage() {
       const cashfreeData = await cashfreeRes.json();
       
       if (!cashfreeData.success) {
-        console.error("Cashfree order creation failed:", cashfreeData);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Cashfree order creation failed:", cashfreeData);
+        }
         throw new Error(cashfreeData.error || cashfreeData.details || "Cashfree order creation failed");
       }
 
@@ -165,9 +165,10 @@ export default function CheckoutPage() {
           };
 
           await cashfree.checkout(checkoutOptions);
-          console.log("Payment initiated");
         } catch (err: any) {
-          console.error("Cashfree checkout error:", err);
+          if (process.env.NODE_ENV === 'development') {
+            console.error("Cashfree checkout error:", err);
+          }
           toast({
             title: "Payment Error",
             description: err.message || "Failed to open payment page",
