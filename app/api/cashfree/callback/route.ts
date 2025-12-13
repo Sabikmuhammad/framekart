@@ -69,6 +69,8 @@ export async function GET(req: NextRequest) {
                                  data.customer_details?.customer_email ||
                                  'customer@example.com';
             
+            console.log('Sending emails to:', customerEmail, 'for order:', updatedOrder._id.toString());
+            
             const emailPayload = {
               customerEmail,
               customerName: updatedOrder.address.fullName,
@@ -83,7 +85,7 @@ export async function GET(req: NextRequest) {
             };
 
             // Send customer confirmation email
-            await fetch(`${baseUrl}/api/email/send`, {
+            const customerEmailResponse = await fetch(`${baseUrl}/api/email/send`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -91,9 +93,12 @@ export async function GET(req: NextRequest) {
                 type: "order-confirmation",
               }),
             });
+            
+            const customerEmailResult = await customerEmailResponse.json();
+            console.log('Customer email result:', customerEmailResult);
 
             // Send admin notification email
-            await fetch(`${baseUrl}/api/email/send`, {
+            const adminEmailResponse = await fetch(`${baseUrl}/api/email/send`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -101,6 +106,9 @@ export async function GET(req: NextRequest) {
                 type: "admin-notification",
               }),
             });
+            
+            const adminEmailResult = await adminEmailResponse.json();
+            console.log('Admin email result:', adminEmailResult);
           } catch (emailError) {
             console.error('Failed to send order emails:', emailError);
             // Don't fail the order if email fails

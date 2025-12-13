@@ -60,6 +60,8 @@ export async function POST(req: NextRequest) {
     }
 
     const payload: OrderEmailPayload = await req.json();
+    
+    console.log('Email API received request:', { type: payload.type, customerEmail: payload.customerEmail, orderId: payload.orderId });
 
     const {
       type,
@@ -73,6 +75,7 @@ export async function POST(req: NextRequest) {
 
     // Validate required fields
     if (!type || !customerEmail || !customerName || !orderId || !totalAmount) {
+      console.error('Missing required fields:', { type, customerEmail, customerName, orderId, totalAmount });
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }
