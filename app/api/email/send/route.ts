@@ -1,19 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
 import {
-  generateOrderConfirmationEmail,
-  generateAdminOrderNotificationEmail,
-} from "../../../../lib/email-templates";
-
-// Lazy-load Resend client to avoid build-time initialization
-let resendClient: Resend | null = null;
-
-function getResendClient(): Resend {
-  if (!resendClient) {
-    resendClient = new Resend(process.env.RESEND_API_KEY);
-  }
-  return resendClient;
-}
+  sendOrderConfirmationEmail,
+  sendAdminNotificationEmail,
+  verifyEmailConfig,
+} from "@/lib/email-service";
 
 export const dynamic = "force-dynamic";
 
@@ -42,26 +32,28 @@ interface OrderEmailPayload {
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify environment variables
-    if (!process.env.RESEND_API_KEY) {
-      console.error("RESEND_API_KEY is not configured");
+    // Verify configuration first
+    const configCheck = verifyEmailConfig();
+    if (!configCheck.configured) {
+      console.error("❌ Email configuration issues:", configCheck.issues);
       return NextResponse.json(
-        { success: false, error: "Email service not configured" },
-        { status: 500 }
-      );
-    }
-
-    if (!process.env.EMAIL_FROM) {
-      console.error("EMAIL_FROM is not configured");
-      return NextResponse.json(
-        { success: false, error: "Email sender not configured" },
+        {
+          success: false,
+          error: "Email service not properly configured",
+          issues: configCheck.issues,
+        },
         { status: 500 }
       );
     }
 
     const payload: OrderEmailPayload = await req.json();
-    
-    console.log('Email API received request:', { type: payload.type, customerEmail: payload.customerEmail, orderId: payload.orderId });
+
+    console.log("📧 Email API received request:", {
+      type: payload.type,
+      customerEmail: payload.customerEmail,
+      orderId: payload.orderId,
+      timestamp: new Date().toISOString(),
+    });
 
     const {
       type,
@@ -75,7 +67,13 @@ export async function POST(req: NextRequest) {
 
     // Validate required fields
     if (!type || !customerEmail || !customerName || !orderId || !totalAmount) {
-      console.error('Missing required fields:', { type, customerEmail, customerName, orderId, totalAmount });
+      console.error("❌ Missing required fields:", {
+        type,
+        customerEmail,
+        customerName,
+        orderId,
+        totalAmount,
+      });
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }
@@ -86,66 +84,66 @@ export async function POST(req: NextRequest) {
 
     // Send customer order confirmation email
     if (type === "order-confirmation") {
-      try {
-        const customerEmailResult = await getResendClient().emails.send({
-          from: process.env.EMAIL_FROM,
-          to: customerEmail,
-          subject: `Order Confirmation - ${orderId}`,
-          html: generateOrderConfirmationEmail({
-            customerName,
-            orderId,
-            totalAmount,
-            orderItems,
-            address,
-          }),
-        });
+      console.log("📨 Sending customer order confirmation...");
+      const customerResult = await sendOrderConfirmationEmail(customerEmail, {
+        customerName,
+        orderId,
+        totalAmount,
+        orderItems,
+        address: address || {
+          fullName: customerName,
+          phone: "",
+          addressLine1: "",
+          city: "",
+          state: "",
+          pincode: "",
+        },
+      });
 
-        console.log("Customer email sent successfully:", customerEmailResult.data?.id);
-        results.push({
-          type: "customer",
-          success: true,
-          emailId: customerEmailResult.data?.id,
-        });
-      } catch (error: any) {
-        console.error("Failed to send customer email:", error);
-        results.push({
-          type: "customer",
-          success: false,
-          error: error.message,
-        });
+      results.push({
+        type: "customer",
+        success: customerResult.success,
+        emailId: customerResult.emailId,
+        error: customerResult.error,
+      });
+
+      if (customerResult.success) {
+        console.log("✅ Customer email sent:", customerResult.emailId);
+      } else {
+        console.error("❌ Customer email failed:", customerResult.error);
       }
     }
 
     // Send admin notification email
-    if (type === "admin-notification" && process.env.ADMIN_EMAIL) {
-      try {
-        const adminEmailResult = await getResendClient().emails.send({
-          from: process.env.EMAIL_FROM,
-          to: process.env.ADMIN_EMAIL,
-          subject: `New Order Received - ${orderId}`,
-          html: generateAdminOrderNotificationEmail({
-            customerName,
-            customerEmail,
-            orderId,
-            totalAmount,
-            orderItems,
-            address,
-          }),
-        });
+    if (type === "admin-notification") {
+      console.log("📨 Sending admin notification...");
+      const adminResult = await sendAdminNotificationEmail({
+        customerName,
+        customerEmail,
+        orderId,
+        totalAmount,
+        orderItems,
+        address: address || {
+          fullName: customerName,
+          phone: "",
+          addressLine1: "",
+          city: "",
+          state: "",
+          pincode: "",
+        },
+      });
 
-        console.log("Admin email sent successfully:", adminEmailResult.data?.id);
-        results.push({
-          type: "admin",
-          success: true,
-          emailId: adminEmailResult.data?.id,
-        });
-      } catch (error: any) {
-        console.error("Failed to send admin email:", error);
-        results.push({
-          type: "admin",
-          success: false,
-          error: error.message,
-        });
+      results.push({
+        type: "admin",
+        success: adminResult.success,
+        emailId: adminResult.emailId,
+        error: adminResult.error,
+      });
+
+      if (adminResult.success) {
+        console.log("✅ Admin email sent:", adminResult.emailId);
+      } else {
+        console.error("❌ Admin email failed:", adminResult.error);
       }
     }
 
@@ -157,9 +155,10 @@ export async function POST(req: NextRequest) {
       success: hasSuccess,
       allSuccess,
       results,
+      timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error("Email API error:", error);
+    console.error("❌ Email API error:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to send email" },
       { status: 500 }
