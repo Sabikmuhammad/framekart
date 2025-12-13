@@ -5,8 +5,15 @@ import {
   generateAdminOrderNotificationEmail,
 } from "../../../../lib/email-templates";
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-load Resend client to avoid build-time initialization
+let resendClient: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +84,7 @@ export async function POST(req: NextRequest) {
     // Send customer order confirmation email
     if (type === "order-confirmation") {
       try {
-        const customerEmailResult = await resend.emails.send({
+        const customerEmailResult = await getResendClient().emails.send({
           from: process.env.EMAIL_FROM,
           to: customerEmail,
           subject: `Order Confirmation - ${orderId}`,
@@ -109,7 +116,7 @@ export async function POST(req: NextRequest) {
     // Send admin notification email
     if (type === "admin-notification" && process.env.ADMIN_EMAIL) {
       try {
-        const adminEmailResult = await resend.emails.send({
+        const adminEmailResult = await getResendClient().emails.send({
           from: process.env.EMAIL_FROM,
           to: process.env.ADMIN_EMAIL,
           subject: `New Order Received - ${orderId}`,
