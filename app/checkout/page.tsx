@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
@@ -34,13 +34,17 @@ export default function CheckoutPage() {
     pincode: "",
   });
 
-  if (!isSignedIn) {
-    router.push("/sign-in");
-    return null;
-  }
+  // Handle redirects in useEffect to avoid SSR issues
+  React.useEffect(() => {
+    if (!isSignedIn) {
+      router.push("/sign-in");
+    } else if (items.length === 0) {
+      router.push("/cart");
+    }
+  }, [isSignedIn, items.length, router]);
 
-  if (items.length === 0) {
-    router.push("/cart");
+  // Show loading state while checking authentication/cart
+  if (!isSignedIn || items.length === 0) {
     return null;
   }
 
