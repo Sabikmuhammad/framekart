@@ -61,60 +61,6 @@ export async function GET(req: NextRequest) {
           { new: true }
         );
 
-        // Send order confirmation and admin notification emails
-        if (updatedOrder && process.env.RESEND_API_KEY) {
-          try {
-            // Get customer email from Cashfree payment data
-            const customerEmail = payment.customer_details?.customer_email || 
-                                 data.customer_details?.customer_email ||
-                                 'customer@example.com';
-            
-            console.log('Sending emails to:', customerEmail, 'for order:', updatedOrder._id.toString());
-            
-            const emailPayload = {
-              customerEmail,
-              customerName: updatedOrder.address.fullName,
-              orderId: updatedOrder._id.toString(),
-              totalAmount: updatedOrder.totalAmount,
-              orderItems: updatedOrder.items.map((item: any) => ({
-                title: item.title,
-                quantity: item.quantity,
-                price: item.price,
-              })),
-              address: updatedOrder.address,
-            };
-
-            // Send customer confirmation email
-            const customerEmailResponse = await fetch(`${baseUrl}/api/email/send`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...emailPayload,
-                type: "order-confirmation",
-              }),
-            });
-            
-            const customerEmailResult = await customerEmailResponse.json();
-            console.log('Customer email result:', customerEmailResult);
-
-            // Send admin notification email
-            const adminEmailResponse = await fetch(`${baseUrl}/api/email/send`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...emailPayload,
-                type: "admin-notification",
-              }),
-            });
-            
-            const adminEmailResult = await adminEmailResponse.json();
-            console.log('Admin email result:', adminEmailResult);
-          } catch (emailError) {
-            console.error('Failed to send order emails:', emailError);
-            // Don't fail the order if email fails
-          }
-        }
-
         // Redirect to success page
         return NextResponse.redirect(
           `${baseUrl}/orders/${orderId}?payment=success`
