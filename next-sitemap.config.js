@@ -1,8 +1,9 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: process.env.SITE_URL || 'https://framekart.co.in',
+  siteUrl: 'https://framekart.co.in',
   generateRobotsTxt: true,
   generateIndexSitemap: false,
+  outDir: './public',
   exclude: [
     '/admin/*',
     '/sign-in',
