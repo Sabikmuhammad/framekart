@@ -91,7 +91,7 @@ export default function CheckoutSuccessPage() {
       <div className="container mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-bold mb-4">Order Not Found</h2>
         <p className="text-muted-foreground mb-6">
-          We couldn't find your order. Please check your email for confirmation.
+          We couldn&apos;t find your order. Please check your email for confirmation.
         </p>
         <Link href="/">
           <Button>Go Home</Button>
