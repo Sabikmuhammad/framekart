@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 // Order validation schema
 export const OrderSchema = z.object({
+  customerEmail: z.string().email('Please enter a valid email address'),
   items: z.array(z.object({
     productId: z.string().min(1),
     title: z.string().min(1).max(200),
@@ -32,6 +33,7 @@ export const CashfreeOrderSchema = z.object({
 
 // Custom frame order validation
 export const CustomFrameOrderSchema = z.object({
+  customerEmail: z.string().email('Please enter a valid email address'),
   imageUrl: z.string().url(),
   frameStyle: z.enum(['Black', 'White', 'Wooden']),
   frameSize: z.enum(['A4', '12x18', '18x24', '24x36']),

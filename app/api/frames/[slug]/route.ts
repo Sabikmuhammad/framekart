@@ -4,12 +4,13 @@ import Frame from "@/models/Frame";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await dbConnect();
 
-    const frame = await Frame.findOne({ slug: params.slug });
+    const { slug } = await params;
+    const frame = await Frame.findOne({ slug });
 
     if (!frame) {
       return NextResponse.json(

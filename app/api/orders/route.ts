@@ -58,13 +58,14 @@ export async function POST(req: NextRequest) {
     
     // Validate input
     const validatedData = OrderSchema.parse(body);
-    const { items, totalAmount, address } = validatedData;
+    const { items, totalAmount, address, customerEmail } = validatedData;
 
     const order = await Order.create({
       userId,
       items,
       totalAmount,
       address,
+      customerEmail,
       paymentStatus: "pending",
     });
 

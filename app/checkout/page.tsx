@@ -24,7 +24,10 @@ export default function CheckoutPage() {
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentInitiated, setPaymentInitiated] = useState(false);
   const [formData, setFormData] = useState({
+    email: user?.primaryEmailAddress?.emailAddress || "",
     fullName: user?.fullName || "",
     phone: "",
     addressLine1: "",
@@ -34,17 +37,52 @@ export default function CheckoutPage() {
     pincode: "",
   });
 
-  // Handle redirects in useEffect to avoid SSR issues
+  // Handle redirects and payment errors
   React.useEffect(() => {
     if (!isSignedIn) {
       router.push("/sign-in");
-    } else if (items.length === 0) {
-      router.push("/cart");
+      return;
     }
-  }, [isSignedIn, items.length, router]);
+    
+    if (items.length === 0 && !paymentInitiated) {
+      // Only redirect if payment hasn't been initiated
+      router.push("/cart");
+      return;
+    }
+
+    // Check for payment error from callback redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get("error");
+    
+    if (error) {
+      let errorMessage = "Payment failed. Please try again.";
+      
+      if (error === "payment_failed") {
+        errorMessage = "Payment was not completed. Please try again.";
+      } else if (error === "verification_failed") {
+        errorMessage = "Payment verification failed. Please contact support if amount was deducted.";
+      } else if (error === "missing_order_id") {
+        errorMessage = "Invalid order. Please try again.";
+      }
+      
+      toast({
+        title: "Payment Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      // Reset states to allow retry
+      setPaymentInitiated(false);
+      setProcessingPayment(false);
+      setLoading(false);
+      
+      // Clean URL
+      window.history.replaceState({}, "", "/checkout");
+    }
+  }, [isSignedIn, items.length, router, paymentInitiated, toast]);
 
   // Show loading state while checking authentication/cart
-  if (!isSignedIn || items.length === 0) {
+  if (!isSignedIn || (items.length === 0 && !paymentInitiated)) {
     return null;
   }
 
@@ -53,28 +91,46 @@ export default function CheckoutPage() {
   };
 
   const handlePayment = async () => {
+    // Prevent double submission
+    if (loading || processingPayment || paymentInitiated) {
+      return;
+    }
+
     // Validate required fields
-    if (!formData.fullName || !formData.phone || !formData.addressLine1 || 
+    if (!formData.email || !formData.fullName || !formData.phone || !formData.addressLine1 || 
         !formData.city || !formData.state || !formData.pincode) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields including email",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate phone number (should be 10 digits)
-    if (!/^\d{10}$/.test(formData.phone)) {
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate phone number
+    if (formData.phone.length < 10) {
       toast({
         title: "Invalid Phone Number",
-        description: "Please enter a valid 10-digit phone number",
+        description: "Please enter a valid phone number",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
+    setProcessingPayment(true);
+    setPaymentInitiated(true);
 
     try {
       // Check if cart contains custom frames
@@ -89,12 +145,21 @@ export default function CheckoutPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            customerEmail: formData.email,
             imageUrl: customItem.customFrame?.uploadedImageUrl,
             frameStyle: customItem.customFrame?.frameStyle,
             frameSize: customItem.customFrame?.frameSize,
             customerNotes: customItem.customFrame?.customerNotes || "",
             totalAmount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
-            address: formData,
+            address: {
+              fullName: formData.fullName,
+              phone: formData.phone,
+              addressLine1: formData.addressLine1,
+              addressLine2: formData.addressLine2,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+            },
           }),
         });
 
@@ -106,6 +171,7 @@ export default function CheckoutPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            customerEmail: formData.email,
             items: items.map((item) => ({
               productId: item._id,
               title: item.title,
@@ -114,7 +180,15 @@ export default function CheckoutPage() {
               imageUrl: item.imageUrl,
             })),
             totalAmount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
-            address: formData,
+            address: {
+              fullName: formData.fullName,
+              phone: formData.phone,
+              addressLine1: formData.addressLine1,
+              addressLine2: formData.addressLine2,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+            },
           }),
         });
 
@@ -129,13 +203,15 @@ export default function CheckoutPage() {
       }
 
       // Create Cashfree order
+      console.log('💳 Creating Cashfree payment session...');
       const cashfreePayload = {
         amount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
         customerPhone: formData.phone,
-        customerEmail: user.primaryEmailAddress?.emailAddress || "",
+        customerEmail: user.primaryEmailAddress?.emailAddress || formData.email,
         customerName: formData.fullName,
         orderId: orderData.data._id,
       };
+      console.log('📦 Cashfree payload:', cashfreePayload);
 
       const cashfreeRes = await fetch("/api/cashfree/order", {
         method: "POST",
@@ -144,13 +220,14 @@ export default function CheckoutPage() {
       });
 
       const cashfreeData = await cashfreeRes.json();
+      console.log('📡 Cashfree response:', cashfreeData);
       
       if (!cashfreeData.success) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Cashfree order creation failed:", cashfreeData);
-        }
+        console.error("❌ Cashfree order creation failed:", cashfreeData);
         throw new Error(cashfreeData.error || cashfreeData.details || "Cashfree order creation failed");
       }
+      
+      console.log('✅ Cashfree session created:', cashfreeData.data.payment_session_id);
 
       // Load Cashfree script
       const script = document.createElement("script");
@@ -159,8 +236,10 @@ export default function CheckoutPage() {
 
       script.onload = async () => {
         try {
+          console.log('📜 Cashfree script loaded');
           const cashfreeMode = "sandbox"; // Use sandbox for testing
           
+          console.log('🔧 Initializing Cashfree with mode:', cashfreeMode);
           const cashfree = await window.Cashfree({
             mode: cashfreeMode,
           });
@@ -169,8 +248,16 @@ export default function CheckoutPage() {
             paymentSessionId: cashfreeData.data.payment_session_id,
             redirectTarget: "_self",
           };
+          
+          console.log('🚀 Opening Cashfree checkout with session:', cashfreeData.data.payment_session_id);
+          console.log('📌 Order ID stored for callback:', orderData.data._id);
 
+          // Payment gateway will redirect after completion
+          // Do NOT clear cart here - only clear on success page
           await cashfree.checkout(checkoutOptions);
+          // If we reach here, user is being redirected to Cashfree
+          console.log('✅ Cashfree checkout initiated, user will be redirected...');
+          // Keep loading state active
         } catch (err: any) {
           if (process.env.NODE_ENV === 'development') {
             console.error("Cashfree checkout error:", err);
@@ -181,6 +268,8 @@ export default function CheckoutPage() {
             variant: "destructive",
           });
           setLoading(false);
+          setProcessingPayment(false);
+          setPaymentInitiated(false);
         }
       };
 
@@ -191,6 +280,8 @@ export default function CheckoutPage() {
           variant: "destructive",
         });
         setLoading(false);
+        setProcessingPayment(false);
+        setPaymentInitiated(false);
       };
     } catch (error: any) {
       toast({
@@ -198,8 +289,9 @@ export default function CheckoutPage() {
         description: error.message,
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
+      setProcessingPayment(false);
+      setPaymentInitiated(false);
     }
   };
 
@@ -216,25 +308,46 @@ export default function CheckoutPage() {
             <CardContent>
               <div className="grid gap-3 sm:gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="email">Email Address *</Label>
                   <Input
-                    id="fullName"
-                    name="fullName"
-                    value={formData.fullName}
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={formData.email}
                     onChange={handleInputChange}
                     required
+                    disabled={!!user?.primaryEmailAddress?.emailAddress}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Order confirmation will be sent to this email
+                  </p>
                 </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    required
-                  />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="fullName">Full Name *</Label>
+                    <Input
+                      id="fullName"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      placeholder="10-digit mobile number"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="grid gap-2">
@@ -303,6 +416,27 @@ export default function CheckoutPage() {
               <CardTitle className="text-lg sm:text-xl">Order Summary</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Cart Items */}
+              <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                {items.map((item) => (
+                  <div key={item.id} className="flex gap-3 pb-3 border-b last:border-b-0">
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{item.title}</p>
+                      <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                      <p className="text-sm font-semibold">{formatPrice(item.price * item.quantity)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Order Summary */}
               <div className="space-y-2 text-sm sm:text-base">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
@@ -330,12 +464,28 @@ export default function CheckoutPage() {
 
               <Button
                 onClick={handlePayment}
-                disabled={loading}
+                disabled={loading || processingPayment || paymentInitiated}
                 className="mt-4 sm:mt-6 w-full"
                 size="lg"
               >
-                {loading ? "Processing..." : "Pay Now"}
+                {processingPayment || paymentInitiated ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin">⏳</span>
+                    {paymentInitiated ? "Redirecting to payment..." : "Processing Payment..."}
+                  </span>
+                ) : loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin">⏳</span>
+                    Please wait...
+                  </span>
+                ) : (
+                  "Proceed to Payment"
+                )}
               </Button>
+              
+              <p className="mt-3 text-xs text-center text-muted-foreground">
+                {paymentInitiated ? "Redirecting you to secure payment gateway..." : "You'll be redirected to our secure payment gateway"}
+              </p>
             </CardContent>
           </Card>
         </div>

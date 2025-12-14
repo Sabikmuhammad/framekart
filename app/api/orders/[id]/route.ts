@@ -6,7 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = auth();
@@ -20,7 +20,8 @@ export async function GET(
 
     await dbConnect();
 
-    const order = await Order.findById(params.id);
+    const { id } = await params;
+    const order = await Order.findById(id);
 
     if (!order) {
       return NextResponse.json(
@@ -49,7 +50,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = auth();
@@ -75,8 +76,9 @@ export async function PUT(
     const body = await req.json();
     const { paymentStatus } = body;
 
+    const { id } = await params;
     const order = await Order.findByIdAndUpdate(
-      params.id,
+      id,
       { paymentStatus },
       { new: true }
     );

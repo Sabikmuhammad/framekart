@@ -10,6 +10,7 @@ export interface IOrderItem {
 
 export interface IOrder {
   userId: string;
+  customerEmail: string; // Customer email for order confirmation
   items: IOrderItem[];
   totalAmount: number;
   paymentStatus: "pending" | "completed" | "failed";
@@ -42,6 +43,10 @@ export interface IOrder {
 const OrderSchema = new Schema<IOrder>(
   {
     userId: {
+      type: String,
+      required: true,
+    },
+    customerEmail: {
       type: String,
       required: true,
     },

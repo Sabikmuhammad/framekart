@@ -55,7 +55,11 @@ export const useCartStore = create<CartStore>()(
             item._id === id ? { ...item, quantity } : item
           ),
         })),
-      clearCart: () => set({ items: [] }),
+      clearCart: () => {
+        console.log('🧹 clearCart() called - clearing items');
+        set({ items: [] });
+        console.log('✅ Cart state set to empty array');
+      },
       getTotalPrice: () => {
         const { items } = get();
         return items.reduce((total, item) => total + item.price * item.quantity, 0);

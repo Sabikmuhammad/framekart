@@ -23,11 +23,12 @@ export async function POST(req: NextRequest) {
       frameSize, 
       customerNotes, 
       totalAmount, 
-      address 
+      address,
+      customerEmail 
     } = body;
 
     // Validate required fields
-    if (!imageUrl || !frameStyle || !frameSize || !totalAmount || !address) {
+    if (!imageUrl || !frameStyle || !frameSize || !totalAmount || !address || !customerEmail) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
       }],
       totalAmount,
       address,
+      customerEmail,
       paymentStatus: "pending",
       customFrame: {
         imageUrl,

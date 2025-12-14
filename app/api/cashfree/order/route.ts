@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
         customer_phone: customerPhone,
       },
       order_meta: {
-        return_url: `${baseUrl}/api/cashfree/callback?order_id=${orderId}`,
+        return_url: `${baseUrl}/api/cashfree/callback?db_order_id=${orderId}`,
+        notify_url: `${baseUrl}/api/cashfree/callback?db_order_id=${orderId}`,
       },
     };
 
@@ -72,6 +73,22 @@ export async function POST(req: NextRequest) {
 
     if (process.env.NODE_ENV === 'development') {
       console.log("Cashfree order created successfully:", data.order_id);
+    }
+
+    // Update our order with Cashfree order ID for tracking
+    try {
+      const dbConnect = (await import("@/lib/db")).default;
+      const Order = (await import("@/models/Order")).default;
+      
+      await dbConnect();
+      await Order.findByIdAndUpdate(orderId, {
+        cashfreeOrderId: data.order_id,
+      });
+      
+      console.log("✅ Order updated with Cashfree order ID:", data.order_id);
+    } catch (dbError) {
+      console.error("⚠️ Failed to update order with Cashfree ID, but continuing:", dbError);
+      // Don't fail the payment flow if this fails
     }
 
     return NextResponse.json({ 
