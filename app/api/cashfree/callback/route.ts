@@ -84,12 +84,25 @@ export async function GET(req: NextRequest) {
         // Update order in database
         await dbConnect();
         
+        // Check if order is already processed
+        const existingOrder = await Order.findById(orderId);
+        if (!existingOrder) {
+          console.error('❌ Order not found:', orderId);
+          return NextResponse.redirect(`${baseUrl}/checkout?error=missing_order_id`);
+        }
+        
+        if (existingOrder.paymentStatus === "completed") {
+          console.log('⚠️ Order already processed, redirecting to success');
+          return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}`);
+        }
+        
         const updatedOrder = await Order.findByIdAndUpdate(
           orderId,
           {
             paymentStatus: "completed",
             paymentId: payment.cf_payment_id,
             cashfreeOrderId: cashfreeOrderId,
+            status: "Processing",
           },
           { new: true }
         );

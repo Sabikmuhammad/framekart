@@ -50,10 +50,20 @@ export async function POST(req: NextRequest) {
       await dbConnect();
 
       if (payment.payment_status === "SUCCESS") {
+        // Check if order is already processed
+        const existingOrder = await Order.findById(orderId);
+        if (existingOrder && existingOrder.paymentStatus === "completed") {
+          return NextResponse.json({
+            success: true,
+            message: "Payment already verified",
+          });
+        }
+        
         await Order.findByIdAndUpdate(orderId, {
           paymentStatus: "completed",
           paymentId: payment.cf_payment_id,
           cashfreeOrderId: cashfreeOrderId,
+          status: "Processing",
         });
 
         return NextResponse.json({

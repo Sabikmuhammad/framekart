@@ -45,11 +45,44 @@ export default function OrderDetailPage() {
     );
   }
 
-  const statusIcon = {
-    completed: <CheckCircle2 className="h-6 w-6 text-green-600" />,
-    pending: <Clock className="h-6 w-6 text-yellow-600" />,
-    failed: <XCircle className="h-6 w-6 text-red-600" />,
+  const getOrderStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { color: string; icon: JSX.Element }> = {
+      Delivered: { color: "text-green-600", icon: <CheckCircle2 className="h-6 w-6 text-green-600" /> },
+      Shipped: { color: "text-blue-600", icon: <CheckCircle2 className="h-6 w-6 text-blue-600" /> },
+      Processing: { color: "text-yellow-600", icon: <Clock className="h-6 w-6 text-yellow-600" /> },
+      Printed: { color: "text-yellow-600", icon: <Clock className="h-6 w-6 text-yellow-600" /> },
+      Pending: { color: "text-gray-600", icon: <Clock className="h-6 w-6 text-gray-600" /> },
+    };
+    return statusConfig[status] || statusConfig.Pending;
   };
+
+  const getStatusTimeline = () => {
+    const statuses = ["Pending", "Processing", "Printed", "Shipped", "Delivered"];
+    const currentStatus = order.status || "Pending";
+    const currentIndex = statuses.indexOf(currentStatus);
+
+    return statuses.map((status, index) => {
+      const isCompleted = index <= currentIndex;
+      const isCurrent = index === currentIndex;
+      
+      return {
+        status,
+        isCompleted,
+        isCurrent,
+        icon: isCompleted ? CheckCircle2 : Clock,
+      };
+    });
+  };
+
+  const paymentStatusIcon = {
+    completed: <CheckCircle2 className="h-5 w-5 text-green-600" />,
+    pending: <Clock className="h-5 w-5 text-yellow-600" />,
+    failed: <XCircle className="h-5 w-5 text-red-600" />,
+  };
+
+  const orderStatus = order.status || "Pending";
+  const statusInfo = getOrderStatusBadge(orderStatus);
+  const timeline = getStatusTimeline();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -65,16 +98,71 @@ export default function OrderDetailPage() {
               <CardTitle>Order Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-3">
-                {statusIcon[order.paymentStatus as keyof typeof statusIcon]}
-                <div>
-                  <p className="font-semibold capitalize">
-                    {order.paymentStatus}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Ordered on{" "}
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </p>
+              <div className="space-y-6">
+                {/* Current Status Display */}
+                <div className="flex items-center gap-3">
+                  {statusInfo.icon}
+                  <div>
+                    <p className="font-semibold text-lg">
+                      {orderStatus}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Ordered on{" "}
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Timeline */}
+                <div className="pt-4 border-t">
+                  <h3 className="text-sm font-semibold mb-4 text-muted-foreground">Order Progress</h3>
+                  <div className="space-y-4">
+                    {timeline.map((item, index) => (
+                      <div key={item.status} className="flex items-start gap-3">
+                        {/* Icon and Line */}
+                        <div className="flex flex-col items-center">
+                          <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+                            item.isCompleted 
+                              ? "bg-green-100 border-green-600 text-green-600" 
+                              : "bg-gray-100 border-gray-300 text-gray-400"
+                          }`}>
+                            <item.icon className="h-4 w-4" />
+                          </div>
+                          {index < timeline.length - 1 && (
+                            <div className={`w-0.5 h-12 ${
+                              item.isCompleted ? "bg-green-600" : "bg-gray-300"
+                            }`} />
+                          )}
+                        </div>
+
+                        {/* Status Text */}
+                        <div className="flex-1 pt-1">
+                          <p className={`font-medium ${
+                            item.isCurrent 
+                              ? "text-green-600" 
+                              : item.isCompleted 
+                              ? "text-gray-900" 
+                              : "text-gray-400"
+                          }`}>
+                            {item.status}
+                          </p>
+                          {item.isCurrent && (
+                            <p className="text-xs text-muted-foreground mt-0.5">Current status</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Payment Status */}
+                <div className="pt-3 border-t">
+                  <div className="flex items-center gap-2">
+                    {paymentStatusIcon[order.paymentStatus as keyof typeof paymentStatusIcon]}
+                    <span className="text-sm">
+                      Payment: <span className="font-medium capitalize">{order.paymentStatus}</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </CardContent>

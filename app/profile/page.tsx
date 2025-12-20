@@ -16,9 +16,16 @@ export default function ProfilePage() {
     fetch("/api/orders/user")
       .then((res) => res.json())
       .then((data) => {
+        console.log("Orders API response:", data);
         if (data.success) {
           setOrders(data.data);
+          console.log("Orders loaded:", data.data.length);
+        } else {
+          console.error("Failed to fetch orders:", data.error);
         }
+      })
+      .catch((error) => {
+        console.error("Error fetching orders:", error);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -176,15 +183,22 @@ export default function ProfilePage() {
                                 </p>
                                 <span
                                   className={`rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold ${
-                                    order.paymentStatus === "completed"
+                                    (order.status === "Delivered" || order.status === "Shipped")
                                       ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                      : order.paymentStatus === "pending"
+                                      : (order.status === "Processing" || order.status === "Printed")
+                                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                      : order.status === "Pending"
                                       ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                      : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                      : "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400"
                                   }`}
                                 >
-                                  {order.paymentStatus}
+                                  {order.status || "Pending"}
                                 </span>
+                                {order.paymentStatus === "completed" && (
+                                  <span className="rounded-full px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                    Paid
+                                  </span>
+                                )}
                               </div>
                               <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                                 <span className="flex items-center gap-1">

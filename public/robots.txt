@@ -24,3 +24,4 @@ Host: https://framekart.co.in
 
 # Sitemaps
 Sitemap: https://framekart.co.in/sitemap.xml
+Sitemap: https://framekart.co.in/server-sitemap.xml

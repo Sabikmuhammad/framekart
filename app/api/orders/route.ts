@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
       address,
       customerEmail,
       paymentStatus: "pending",
+      status: "Pending",
     });
 
     return NextResponse.json({ success: true, data: order }, { status: 201 });

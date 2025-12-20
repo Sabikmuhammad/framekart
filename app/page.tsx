@@ -637,7 +637,7 @@ export default function HomePage() {
                       <div className="text-center bg-white/10 backdrop-blur-md rounded-3xl p-8 border-2 border-white/20">
                         <div className="text-6xl font-bold mb-2">30%</div>
                         <div className="text-2xl font-semibold">OFF</div>
-                        <div className="mt-4 text-sm opacity-90">Use code: FRAME30</div>
+                        <div className="mt-4 text-sm opacity-90"></div>
                       </div>
                       <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full font-bold text-sm rotate-12 shadow-lg">
                         SAVE BIG!
@@ -697,9 +697,9 @@ export default function HomePage() {
                             #1 SELLER
                           </div>
                         )}
-                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        {/* <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                           {Math.floor(Math.random() * 30) + 20}% OFF
-                        </div>
+                        </div> */}
                       </div>
                       <div className="p-3 sm:p-4">
                         <h3 className="font-semibold text-sm sm:text-base mb-2 line-clamp-1 group-hover:text-primary transition-colors">
@@ -755,7 +755,7 @@ export default function HomePage() {
             <Button 
               size="lg" 
               className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 gap-2"
-              onClick={() => window.open('https://instagram.com/framekart', '_blank')}
+              onClick={() => window.open('https://instagram.com/framekartofficial', '_blank')}
             >
               <Instagram className="h-5 w-5" />
               Follow Us @framekart
