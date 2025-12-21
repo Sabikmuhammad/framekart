@@ -15,6 +15,11 @@ export default function FrameDetailPage() {
   const slug = params?.slug as string;
   const [frame, setFrame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [eligibility, setEligibility] = useState({
+    eligible: true,
+    discountValue: 15,
+    offerActive: true,
+  });
   const addItem = useCartStore((state) => state.addItem);
   const { toast } = useToast();
 
@@ -29,6 +34,24 @@ export default function FrameDetailPage() {
         })
         .finally(() => setLoading(false));
     }
+
+    // Fetch eligibility
+    fetch("/api/offers/eligibility")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Frame detail eligibility data:", data);
+        if (data.success) {
+          setEligibility({
+            eligible: data.eligible ?? true,
+            discountValue: data.discountValue ?? 15,
+            offerActive: data.offerActive ?? true,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching eligibility:", error);
+        // Keep default values (show offer)
+      });
   }, [slug]);
 
   const handleAddToCart = () => {
@@ -102,9 +125,28 @@ export default function FrameDetailPage() {
               </div>
               <span className="text-sm text-muted-foreground">(4.9/5)</span>
             </div>
-            <p className="text-3xl font-bold text-primary">
-              {formatPrice(frame.price)}
-            </p>
+            {eligibility.offerActive && eligibility.eligible && eligibility.discountValue > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <p className="text-2xl font-bold text-muted-foreground line-through">
+                    {formatPrice(frame.price)}
+                  </p>
+                  <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                    {eligibility.discountValue}% OFF
+                  </span>
+                </div>
+                <p className="text-3xl font-bold text-primary">
+                  {formatPrice(frame.price - Math.round((frame.price * eligibility.discountValue) / 100))}
+                </p>
+                <p className="text-sm text-green-600 font-medium">
+                  You save {formatPrice(Math.round((frame.price * eligibility.discountValue) / 100))}! 🎉
+                </p>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-primary">
+                {formatPrice(frame.price)}
+              </p>
+            )}
           </div>
 
           <Card className="mb-6">

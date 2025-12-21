@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: "Please sign in to upload images" },
         { status: 401 }
       );
     }

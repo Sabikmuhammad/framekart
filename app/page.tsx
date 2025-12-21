@@ -13,6 +13,11 @@ import { formatPrice } from "@/lib/utils";
 export default function HomePage() {
   const [frames, setFrames] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [eligibility, setEligibility] = useState({
+    eligible: true,
+    discountValue: 15,
+    offerActive: true,
+  });
 
   useEffect(() => {
     fetch("/api/frames")
@@ -23,10 +28,72 @@ export default function HomePage() {
         }
       })
       .finally(() => setLoading(false));
+
+    // Fetch eligibility
+    fetch("/api/offers/eligibility")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Eligibility data:", data);
+        if (data.success) {
+          setEligibility({
+            eligible: data.eligible ?? true,
+            discountValue: data.discountValue ?? 15,
+            offerActive: data.offerActive ?? true,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching eligibility:", error);
+        // Keep default values (show offer for guests)
+      });
   }, []);
+
+  // Category images configuration - Local paths from public folder
+  const categoryImages = {
+    photoFrames: "/images/categories/p2.png",
+    wallFrames: "/images/categories/p3.png",
+    birthday: "/images/categories/birthday-frames.jpg",
+    calligraphy: "/images/categories/p9.png",
+    homeDecor: "/images/categories/p7.png",
+    customFrames: "/images/categories/custom-frames.jpg",
+    offerBanner: "/images/banners/offer-banner.jpg",
+  };
 
   return (
     <div className="flex flex-col">
+      {/* Launch Offer Banner */}
+      {eligibility.offerActive && eligibility.eligible && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground py-3 px-4"
+        >
+          <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
+            <span className="text-lg sm:text-xl font-bold flex items-center gap-2">
+              🎉 Launch Offer: Flat {eligibility.discountValue}% OFF
+            </span>
+            <span className="text-sm sm:text-base opacity-90">
+              Auto Applied at Checkout
+            </span>
+            <Link href="/frames" className="mt-1 sm:mt-0">
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow"
+              >
+                Shop Now & Save {eligibility.discountValue}%
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+      )}
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-12 sm:py-20 md:py-32">
         <div className="container mx-auto px-4">
@@ -93,7 +160,7 @@ export default function HomePage() {
                     <CardContent className="p-0">
                       <div className="relative aspect-square overflow-hidden">
                         <Image
-                          src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v1/framekart/categories/custom-frames.jpg`}
+                          src={categoryImages.customFrames}
                           alt="Custom Frames"
                           fill
                           className="object-cover"
@@ -130,9 +197,16 @@ export default function HomePage() {
                 >
                   <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 w-32">
                     <CardContent className="p-0">
-                      <div className="relative aspect-square bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-950 dark:to-blue-900">
+                      <div className="relative aspect-square">
+                        <Image
+                          src={categoryImages.photoFrames}
+                          alt="Photo Frames"
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" />
+                          <ImageIcon className="h-8 w-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                         </div>
                       </div>
                       <div className="p-2 text-center">
@@ -156,9 +230,16 @@ export default function HomePage() {
                 >
                   <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 w-32">
                     <CardContent className="p-0">
-                      <div className="relative aspect-square bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-950 dark:to-purple-900">
+                      <div className="relative aspect-square">
+                        <Image
+                          src={categoryImages.wallFrames}
+                          alt="Wall Frames"
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Frame className="h-8 w-8 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+                          <Frame className="h-8 w-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                         </div>
                       </div>
                       <div className="p-2 text-center">
@@ -182,9 +263,16 @@ export default function HomePage() {
                 >
                   <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 w-32">
                     <CardContent className="p-0">
-                      <div className="relative aspect-square bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-950 dark:to-pink-900">
+                      <div className="relative aspect-square">
+                        <Image
+                          src={categoryImages.birthday}
+                          alt="Birthday Frames"
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Gift className="h-8 w-8 text-pink-600 dark:text-pink-400 group-hover:scale-110 transition-transform" />
+                          <Gift className="h-8 w-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                         </div>
                       </div>
                       <div className="p-2 text-center">
@@ -208,9 +296,16 @@ export default function HomePage() {
                 >
                   <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 w-32">
                     <CardContent className="p-0">
-                      <div className="relative aspect-square bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-950 dark:to-amber-900">
+                      <div className="relative aspect-square">
+                        <Image
+                          src={categoryImages.calligraphy}
+                          alt="Calligraphy Frames"
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Palette className="h-8 w-8 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+                          <Palette className="h-8 w-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                         </div>
                       </div>
                       <div className="p-2 text-center">
@@ -234,9 +329,16 @@ export default function HomePage() {
                 >
                   <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 w-32">
                     <CardContent className="p-0">
-                      <div className="relative aspect-square bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-950 dark:to-emerald-900">
+                      <div className="relative aspect-square">
+                        <Image
+                          src={categoryImages.homeDecor}
+                          alt="Home Decor"
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Home className="h-8 w-8 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                          <Home className="h-8 w-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                         </div>
                       </div>
                       <div className="p-2 text-center">
@@ -266,7 +368,7 @@ export default function HomePage() {
                   <CardContent className="p-0">
                     <div className="relative aspect-square overflow-hidden">
                       <Image
-                        src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/v1/framekart/categories/custom-frames.jpg`}
+                        src={categoryImages.customFrames}
                         alt="Custom Frames"
                         fill
                         className="object-cover"
@@ -304,9 +406,16 @@ export default function HomePage() {
               >
                 <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 h-full">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-950 dark:to-blue-900">
+                    <div className="relative aspect-square">
+                      <Image
+                        src={categoryImages.photoFrames}
+                        alt="Photo Frames"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <ImageIcon className="h-10 w-10 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" />
+                        <ImageIcon className="h-10 w-10 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                       </div>
                     </div>
                     <div className="p-3 text-center">
@@ -330,9 +439,16 @@ export default function HomePage() {
               >
                 <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 h-full">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-950 dark:to-purple-900">
+                    <div className="relative aspect-square">
+                      <Image
+                        src={categoryImages.wallFrames}
+                        alt="Wall Frames"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Frame className="h-10 w-10 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+                        <Frame className="h-10 w-10 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                       </div>
                     </div>
                     <div className="p-3 text-center">
@@ -356,9 +472,16 @@ export default function HomePage() {
               >
                 <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 h-full">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-950 dark:to-pink-900">
+                    <div className="relative aspect-square">
+                      <Image
+                        src={categoryImages.birthday}
+                        alt="Birthday Frames"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Gift className="h-10 w-10 text-pink-600 dark:text-pink-400 group-hover:scale-110 transition-transform" />
+                        <Gift className="h-10 w-10 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                       </div>
                     </div>
                     <div className="p-3 text-center">
@@ -382,9 +505,16 @@ export default function HomePage() {
               >
                 <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 h-full">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-950 dark:to-amber-900">
+                    <div className="relative aspect-square">
+                      <Image
+                        src={categoryImages.calligraphy}
+                        alt="Calligraphy Frames"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Palette className="h-10 w-10 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+                        <Palette className="h-10 w-10 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                       </div>
                     </div>
                     <div className="p-3 text-center">
@@ -408,9 +538,16 @@ export default function HomePage() {
               >
                 <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 h-full">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-950 dark:to-emerald-900">
+                    <div className="relative aspect-square">
+                      <Image
+                        src={categoryImages.homeDecor}
+                        alt="Home Decor"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Home className="h-10 w-10 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                        <Home className="h-10 w-10 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                       </div>
                     </div>
                     <div className="p-3 text-center">
@@ -426,61 +563,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Custom Frame Promotion Banner */}
-      <section className="py-8 sm:py-12 bg-gradient-to-r from-primary/10 via-primary/5 to-background">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <Card className="border-2 border-primary/20 overflow-hidden">
-              <CardContent className="p-6 sm:p-8 md:p-12">
-                <div className="grid md:grid-cols-2 gap-6 items-center">
-                  <div>
-                    <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold mb-4">
-                      <Sparkles className="h-4 w-4" />
-                      NEW FEATURE
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                      Create Your Own <span className="text-primary">Custom Frame</span>
-                    </h2>
-                    <p className="text-muted-foreground mb-6 text-sm sm:text-base">
-                      Upload your photo, choose your size and style, and we&apos;ll create a stunning custom frame just for you. Perfect for special memories, gifts, and unique home decor.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Link href="/custom-frame">
-                        <Button size="lg" className="gap-2 w-full sm:w-auto">
-                          <Palette className="h-5 w-5" />
-                          Start Creating
-                        </Button>
-                      </Link>
-                      <Link href="/frames">
-                        <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                          Browse Ready Frames
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-3">
-                        <div className="aspect-square rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border-4 border-white dark:border-gray-800 shadow-lg transform rotate-2"></div>
-                        <div className="aspect-square rounded-lg bg-gradient-to-br from-blue-200 to-blue-100 dark:from-blue-900 dark:to-blue-800 border-4 border-white dark:border-gray-800 shadow-lg transform -rotate-3"></div>
-                      </div>
-                      <div className="space-y-3 pt-6">
-                        <div className="aspect-square rounded-lg bg-gradient-to-br from-purple-200 to-purple-100 dark:from-purple-900 dark:to-purple-800 border-4 border-white dark:border-gray-800 shadow-lg transform -rotate-2"></div>
-                        <div className="aspect-square rounded-lg bg-gradient-to-br from-pink-200 to-pink-100 dark:from-pink-900 dark:to-pink-800 border-4 border-white dark:border-gray-800 shadow-lg transform rotate-3"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </section>
+      
 
       {/* Featured Frames */}
       <section className="py-12 sm:py-16 bg-background">
@@ -521,7 +604,11 @@ export default function HomePage() {
                   transition={{ duration: 0.5, delay: index * 0.05 }}
                   viewport={{ once: true }}
                 >
-                  <FrameCard frame={frame} />
+                  <FrameCard 
+                    frame={frame} 
+                    showDiscountBadge={eligibility.eligible && eligibility.offerActive}
+                    discountValue={eligibility.discountValue}
+                  />
                 </motion.div>
               ))}
             </motion.div>
@@ -537,8 +624,95 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      {/* Custom Frame Promotion Banner */}
+      <section className="py-8 sm:py-12 bg-gradient-to-r from-primary/10 via-primary/5 to-background">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <Card className="border-2 border-primary/20 overflow-hidden">
+              <CardContent className="p-6 sm:p-8 md:p-12">
+                <div className="grid md:grid-cols-2 gap-6 items-center">
+                  <div>
+                    <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold mb-4">
+                      <Sparkles className="h-4 w-4" />
+                      NEW FEATURE
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+                      Create Your Own <span className="text-primary">Custom Frame</span>
+                    </h2>
+                    <p className="text-muted-foreground mb-6 text-sm sm:text-base">
+                      Upload your photo, choose your size and style, and we&apos;ll create a stunning custom frame just for you. Perfect for special memories, gifts, and unique home decor.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Link href="/custom-frame">
+                        <Button size="lg" className="gap-2 w-full sm:w-auto">
+                          <Palette className="h-5 w-5" />
+                          Start Creating
+                        </Button>
+                      </Link>
+                      <Link href="/frames">
+                        <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                          Browse Ready Frames
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-3">
+                        <div className="aspect-square rounded-lg overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg transform rotate-2">
+                          <Image
+                            src="/images/custom-banner/frame-1.jpg"
+                            alt="Custom Frame Example 1"
+                            width={300}
+                            height={300}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                        <div className="aspect-square rounded-lg overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg transform -rotate-3">
+                          <Image
+                            src="/images/custom-banner/frame-2.jpg"
+                            alt="Custom Frame Example 2"
+                            width={300}
+                            height={300}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-3 pt-6">
+                        <div className="aspect-square rounded-lg overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg transform -rotate-2">
+                          <Image
+                            src="/images/custom-banner/frame-3.jpg"
+                            alt="Custom Frame Example 3"
+                            width={300}
+                            height={300}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                        <div className="aspect-square rounded-lg overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg transform rotate-3">
+                          <Image
+                            src="/images/custom-banner/frame-4.jpg"
+                            alt="Custom Frame Example 4"
+                            width={300}
+                            height={300}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </section>
 
-      {/* Why Choose Us */}
+      {/* Why Choose Us
       <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <div className="mb-8 sm:mb-12 text-center">
@@ -591,7 +765,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Limited Time Offer Banner */}
       <section className="py-8 sm:py-12 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950 dark:via-orange-950 dark:to-red-950">
@@ -603,6 +777,15 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             <Card className="border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-500 to-orange-500 text-white overflow-hidden relative">
+              {/* Background Image with Overlay */}
+              <div className="absolute inset-0 z-0">
+                <Image
+                  src={categoryImages.offerBanner}
+                  alt="Special Offer Background"
+                  fill
+                  className="object-cover opacity-20"
+                />
+              </div>
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
               
@@ -611,13 +794,13 @@ export default function HomePage() {
                   <div className="text-center md:text-left">
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-4">
                       <Zap className="h-5 w-5" />
-                      <span className="font-bold text-sm">LIMITED TIME OFFER</span>
+                      <span className="font-bold text-sm">LAUNCH OFFER</span>
                     </div>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-                      FLAT 30% OFF
+                      FLAT 15% OFF
                     </h2>
                     <p className="text-lg sm:text-xl mb-6 text-white/90">
-                      On All Photo Frames & Wall Art
+                      On All Frames & Wall Art
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                       <Link href="/frames">
@@ -626,10 +809,10 @@ export default function HomePage() {
                           <ArrowRight className="h-5 w-5" />
                         </Button>
                       </Link>
-                      <div className="flex items-center gap-2 text-sm">
+                      {/* <div className="flex items-center gap-2 text-sm">
                         <Clock className="h-5 w-5" />
                         <span className="font-semibold">Ends in 3 days!</span>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="hidden md:flex justify-center items-center">
@@ -674,7 +857,7 @@ export default function HomePage() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-            {frames.slice(0, 4).map((frame: any, index) => (
+            {frames.slice(4, 8).map((frame: any, index) => (
               <motion.div
                 key={frame._id}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -693,13 +876,15 @@ export default function HomePage() {
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         {index === 0 && (
-                          <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                            #1 SELLER
+                          <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            BESTSELLER
                           </div>
                         )}
-                        {/* <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                          {Math.floor(Math.random() * 30) + 20}% OFF
-                        </div> */}
+                        {eligibility.offerActive && eligibility.eligible && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                            {eligibility.discountValue}% OFF
+                          </div>
+                        )}
                       </div>
                       <div className="p-3 sm:p-4">
                         <h3 className="font-semibold text-sm sm:text-base mb-2 line-clamp-1 group-hover:text-primary transition-colors">
@@ -708,7 +893,7 @@ export default function HomePage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1">
                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-semibold">4.8</span>
+                            <span className="text-sm font-semibold">4.9</span>
                           </div>
                           <div className="text-right">
                             <p className="font-bold text-primary text-base sm:text-lg">

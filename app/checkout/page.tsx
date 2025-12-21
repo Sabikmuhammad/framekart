@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect as reactUseEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { calculateOrderTotalClient } from "@/lib/launchOfferClient";
+import { Tag } from "lucide-react";
 
 declare global {
   interface Window {
@@ -26,6 +28,11 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentInitiated, setPaymentInitiated] = useState(false);
+  const [eligibility, setEligibility] = useState({
+    eligible: true,
+    discountValue: 15,
+    offerActive: true,
+  });
   const [formData, setFormData] = useState({
     email: user?.primaryEmailAddress?.emailAddress || "",
     fullName: user?.fullName || "",
@@ -37,8 +44,44 @@ export default function CheckoutPage() {
     pincode: "",
   });
 
+  // Fetch eligibility on mount
+  reactUseEffect(() => {
+    const fetchEligibility = async () => {
+      try {
+        const response = await fetch("/api/offers/eligibility");
+        const data = await response.json();
+        console.log("Checkout eligibility data:", data);
+        if (data.success) {
+          setEligibility({
+            eligible: data.eligible || true,
+            discountValue: data.discountValue || 15,
+            offerActive: data.offerActive || true,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching eligibility:", error);
+        // Default to showing offer
+        setEligibility({
+          eligible: true,
+          discountValue: 15,
+          offerActive: true,
+        });
+      }
+    };
+    
+    fetchEligibility();
+  }, [isSignedIn]);
+
+  // Calculate pricing with discount (client-side for display only)
+  const subtotal = getTotalPrice();
+  const { discount, shipping, total } = calculateOrderTotalClient(
+    subtotal,
+    eligibility.discountValue,
+    eligibility.eligible && eligibility.offerActive
+  );
+
   // Handle redirects and payment errors
-  React.useEffect(() => {
+  reactUseEffect(() => {
     if (!isSignedIn) {
       router.push("/sign-in");
       return;
@@ -150,7 +193,17 @@ export default function CheckoutPage() {
             frameStyle: customItem.customFrame?.frameStyle,
             frameSize: customItem.customFrame?.frameSize,
             customerNotes: customItem.customFrame?.customerNotes || "",
-            totalAmount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
+            totalAmount: total,
+            subtotal,
+            shipping,
+            ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
+              discount: {
+                name: "Launch Offer",
+                type: "PERCENT",
+                value: eligibility.discountValue,
+                amount: discount,
+              },
+            }),
             address: {
               fullName: formData.fullName,
               phone: formData.phone,
@@ -179,7 +232,17 @@ export default function CheckoutPage() {
               quantity: item.quantity,
               imageUrl: item.imageUrl,
             })),
-            totalAmount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
+            totalAmount: total,
+            subtotal,
+            shipping,
+            ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
+              discount: {
+                name: "Launch Offer",
+                type: "PERCENT",
+                value: eligibility.discountValue,
+                amount: discount,
+              },
+            }),
             address: {
               fullName: formData.fullName,
               phone: formData.phone,
@@ -202,12 +265,12 @@ export default function CheckoutPage() {
         }
       }
 
-      // Create Cashfree order
+      // ===== Create Cashfree Payment Session =====
       console.log('💳 Creating Cashfree payment session...');
       const cashfreePayload = {
-        amount: getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99),
+        amount: total,
         customerPhone: formData.phone,
-        customerEmail: user.primaryEmailAddress?.emailAddress || formData.email,
+        customerEmail: formData.email,
         customerName: formData.fullName,
         orderId: orderData.data._id,
       };
@@ -220,70 +283,80 @@ export default function CheckoutPage() {
       });
 
       const cashfreeData = await cashfreeRes.json();
-      console.log('📡 Cashfree response:', cashfreeData);
+      console.log('📡 Cashfree API response:', cashfreeData);
       
       if (!cashfreeData.success) {
         console.error("❌ Cashfree order creation failed:", cashfreeData);
-        throw new Error(cashfreeData.error || cashfreeData.details || "Cashfree order creation failed");
+        throw new Error(cashfreeData.error || "Failed to initialize payment");
       }
       
-      console.log('✅ Cashfree session created:', cashfreeData.data.payment_session_id);
+      const paymentSessionId = cashfreeData.data.payment_session_id;
+      
+      if (!paymentSessionId) {
+        console.error("❌ No payment_session_id in response");
+        throw new Error("Invalid payment session");
+      }
+      
+      console.log('✅ Payment session ID received:', paymentSessionId);
 
-      // Load Cashfree script
-      const script = document.createElement("script");
-      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
-      document.body.appendChild(script);
-
-      script.onload = async () => {
-        try {
-          console.log('📜 Cashfree script loaded');
-          const cashfreeMode = "sandbox"; // Use sandbox for testing
-          
-          console.log('🔧 Initializing Cashfree with mode:', cashfreeMode);
-          const cashfree = await window.Cashfree({
-            mode: cashfreeMode,
-          });
-
-          const checkoutOptions = {
-            paymentSessionId: cashfreeData.data.payment_session_id,
-            redirectTarget: "_self",
-          };
-          
-          console.log('🚀 Opening Cashfree checkout with session:', cashfreeData.data.payment_session_id);
-          console.log('📌 Order ID stored for callback:', orderData.data._id);
-
-          // Payment gateway will redirect after completion
-          // Do NOT clear cart here - only clear on success page
-          await cashfree.checkout(checkoutOptions);
-          // If we reach here, user is being redirected to Cashfree
-          console.log('✅ Cashfree checkout initiated, user will be redirected...');
-          // Keep loading state active
-        } catch (err: any) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error("Cashfree checkout error:", err);
-          }
-          toast({
-            title: "Payment Error",
-            description: err.message || "Failed to open payment page",
-            variant: "destructive",
-          });
-          setLoading(false);
-          setProcessingPayment(false);
-          setPaymentInitiated(false);
-        }
-      };
-
-      script.onerror = () => {
-        toast({
-          title: "Script Load Error",
-          description: "Failed to load Cashfree payment script",
-          variant: "destructive",
+      // ===== Load and Initialize Cashfree SDK =====
+      // Check if script is already loaded
+      if (!window.Cashfree) {
+        console.log('📜 Loading Cashfree SDK...');
+        const script = document.createElement("script");
+        script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+        
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("Failed to load Cashfree SDK"));
+          document.body.appendChild(script);
         });
-        setLoading(false);
-        setProcessingPayment(false);
-        setPaymentInitiated(false);
+        
+        console.log('✅ Cashfree SDK loaded');
+      }
+
+      // ===== Initialize Cashfree with Environment Mode =====
+      // IMPORTANT: SDK mode must match backend environment
+      const cashfreeMode = process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox";
+      console.log('🔧 Initializing Cashfree SDK with mode:', cashfreeMode);
+      
+      const cashfree = await window.Cashfree({
+        mode: cashfreeMode, // "sandbox" or "production"
+      });
+
+      // ===== Open Checkout Modal =====
+      const checkoutOptions = {
+        paymentSessionId: paymentSessionId,
+        returnUrl: `${window.location.origin}/api/cashfree/callback?db_order_id=${orderData.data._id}`,
       };
+      
+      console.log('🚀 Opening Cashfree checkout...');
+      console.log('📋 Order ID:', orderData.data._id);
+      console.log('🔑 Session ID:', paymentSessionId);
+      
+      // Open checkout - this returns a promise that resolves/rejects based on user action
+      const result = await cashfree.checkout(checkoutOptions);
+      
+      console.log('💳 Checkout result:', result);
+      
+      // Handle the result
+      if (result.error) {
+        // Payment failed or was cancelled by user
+        console.error('❌ Checkout error:', result.error);
+        throw new Error(result.error.message || "Payment failed");
+      }
+      
+      if (result.redirect) {
+        // User will be redirected - keep loading state
+        console.log('🔄 Redirecting to callback...');
+        // Don't reset loading state - user is being redirected
+        return;
+      }
+      
+      // Payment completed - user will be redirected by return_url
+      console.log('✅ Payment flow completed');
     } catch (error: any) {
+      console.error("❌ Payment error:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -442,23 +515,36 @@ export default function CheckoutPage() {
                   <span className="text-muted-foreground">
                     Subtotal ({items.length} items)
                   </span>
-                  <span>{formatPrice(getTotalPrice())}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
+                
+                {eligibility.offerActive && eligibility.eligible && discount > 0 && (
+                  <div className="flex justify-between text-green-600 dark:text-green-400 text-sm">
+                    <span className="flex items-center gap-1 font-medium">
+                      <Tag className="h-4 w-4" />
+                      Launch Offer ({eligibility.discountValue}% OFF)
+                    </span>
+                    <span className="font-semibold">-{formatPrice(discount)}</span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>
-                    {getTotalPrice() > 2000 ? "Free" : formatPrice(99)}
-                  </span>
+                  <span className="text-green-600 font-medium">FREE</span>
                 </div>
+                
                 <div className="border-t pt-2">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
                     <span className="text-primary">
-                      {formatPrice(
-                        getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99)
-                      )}
+                      {formatPrice(total)}
                     </span>
                   </div>
+                  {eligibility.offerActive && eligibility.eligible && discount > 0 && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
+                      🎉 You're saving {formatPrice(discount)}!
+                    </p>
+                  )}
                 </div>
               </div>
 

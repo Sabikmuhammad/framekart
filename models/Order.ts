@@ -27,6 +27,15 @@ export interface IOrder {
     state: string;
     pincode: string;
   };
+  // Discount/Offer fields
+  discount?: {
+    name: string; // e.g., "Launch Offer"
+    type: "PERCENT" | "FIXED";
+    value: number; // e.g., 15 for 15%
+    amount: number; // Actual discount amount in rupees
+  };
+  subtotal?: number; // Original subtotal before discount
+  shipping?: number; // Shipping cost
   // Custom Frame fields
   type?: "regular" | "custom";
   customFrame?: {
@@ -76,6 +85,17 @@ const OrderSchema = new Schema<IOrder>(
     cashfreeOrderId: String,
     razorpayOrderId: String, // Keep for backward compatibility
     razorpaySignature: String, // Keep for backward compatibility
+    discount: {
+      name: String,
+      type: {
+        type: String,
+        enum: ["PERCENT", "FIXED"],
+      },
+      value: Number,
+      amount: Number,
+    },
+    subtotal: Number,
+    shipping: Number,
     address: {
       fullName: String,
       phone: String,

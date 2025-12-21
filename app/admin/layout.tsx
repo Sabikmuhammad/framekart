@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { LayoutDashboard, Package, ShoppingCart, Users, Upload } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, Upload, Tag } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import dbConnect from "@/lib/db";
@@ -26,6 +26,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/uploads", label: "Uploads", icon: Upload },
+    { href: "/admin/offers", label: "Offers", icon: Tag },
   ];
 
   return (

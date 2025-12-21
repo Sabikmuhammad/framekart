@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/store/cart";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 
 type FrameSize = "A4" | "12x18" | "18x24" | "24x36";
@@ -60,12 +61,23 @@ export default function CustomFramePage() {
   const { toast } = useToast();
   const { addItem } = useCartStore();
   const router = useRouter();
+  const { isSignedIn } = useAuth();
 
   const currentPrice = FRAME_PRICES[frameSize];
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Check authentication before upload
+    if (!isSignedIn) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to upload your image.",
+      });
+      router.push("/sign-in?redirect=/custom-frame");
+      return;
+    }
 
     // Validate file type
     const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
@@ -224,6 +236,26 @@ export default function CustomFramePage() {
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
               Upload your image, customize your frame with real-time preview, and we&apos;ll bring it to life with premium quality printing.
             </p>
+            
+            {/* Guest User Notice */}
+            {!isSignedIn && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-6 mx-auto max-w-lg"
+              >
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-800 dark:text-blue-300 text-left">
+                      <p className="font-semibold mb-1">Browse freely!</p>
+                      <p>You can explore all options. Sign in required only when you&apos;re ready to upload your image.</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">

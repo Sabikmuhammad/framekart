@@ -1,14 +1,18 @@
 "use client";
 
-import { useUser, UserProfile } from "@clerk/nextjs";
+import { useUser, UserProfile, useClerk } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
-import { Package, FileText, Truck, RotateCcw, Shield, Lock, ChevronRight, User, Settings } from "lucide-react";
+import { Package, FileText, Truck, RotateCcw, Shield, Lock, ChevronRight, User, Settings, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const { user } = useUser();
+  const { signOut } = useClerk();
+  const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -83,6 +87,16 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
+                
+                {/* Logout Button */}
+                <Button
+                  onClick={() => signOut(() => router.push("/"))}
+                  variant="outline"
+                  className="w-full justify-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-800"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
               </CardContent>
             </Card>
 

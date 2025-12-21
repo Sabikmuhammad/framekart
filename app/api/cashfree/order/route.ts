@@ -1,125 +1,200 @@
+/**
+ * Cashfree Payment Gateway - Order Creation API
+ * 
+ * This endpoint creates a payment order with Cashfree PG v2 API
+ * and returns a payment_session_id required for SDK checkout.
+ * 
+ * Flow:
+ * 1. Validate input data (amount, customer details, orderId)
+ * 2. Create order in Cashfree with proper configuration
+ * 3. Return payment_session_id to frontend
+ * 4. Frontend uses SDK to open checkout modal
+ * 
+ * Environment Variables Required:
+ * - CASHFREE_CLIENT_ID: App ID from Cashfree dashboard
+ * - CASHFREE_CLIENT_SECRET: Secret key from Cashfree dashboard
+ * - CASHFREE_ENV: "sandbox" or "production"
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { CashfreeOrderSchema } from "@/lib/validation";
 import { ZodError } from "zod";
 
 export async function POST(req: NextRequest) {
   try {
+    // Parse and validate request body
     const body = await req.json();
-    
-    // Validate input
     const validatedData = CashfreeOrderSchema.parse(body);
     const { amount, customerPhone, customerEmail, customerName, orderId } = validatedData;
 
-    // Check if environment variables are set
-    if (!process.env.CASHFREE_APP_ID || !process.env.CASHFREE_SECRET_KEY) {
-      console.error("Cashfree credentials not configured");
+    console.log("📦 Creating Cashfree order for:", { orderId, amount, customerEmail });
+
+    // ===== Environment Configuration =====
+    const clientId = process.env.CASHFREE_CLIENT_ID;
+    const clientSecret = process.env.CASHFREE_CLIENT_SECRET;
+    const environment = process.env.CASHFREE_ENV || "sandbox";
+
+    // Validate credentials
+    if (!clientId || !clientSecret) {
+      console.error("❌ Cashfree credentials not configured");
       return NextResponse.json(
         { 
           success: false, 
-          error: "Cashfree credentials not configured. Please add CASHFREE_APP_ID and CASHFREE_SECRET_KEY to your .env.local file" 
+          error: "Payment gateway not configured. Please contact support.",
+          details: process.env.NODE_ENV === "development" 
+            ? "Missing CASHFREE_CLIENT_ID or CASHFREE_CLIENT_SECRET in environment variables"
+            : undefined
         },
         { status: 500 }
       );
     }
 
-    // Get the host dynamically from request headers
-    const host = req.headers.get('host') || 'localhost:3000';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    const baseUrl = `${protocol}://${host}`;
+    // Determine API URL based on environment
+    const apiUrl = environment === "production"
+      ? "https://api.cashfree.com/pg/orders"
+      : "https://sandbox.cashfree.com/pg/orders";
 
-    const orderData = {
-      order_amount: amount,
+    console.log("🔧 Using Cashfree environment:", environment);
+
+    // ===== Construct Return/Callback URLs =====
+    // Use NEXT_PUBLIC_APP_URL if set (production), otherwise construct from host
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const baseUrl = appUrl || `https://${req.headers.get('host') || 'localhost:3000'}`;
+    
+    const returnUrl = `${baseUrl}/api/cashfree/callback?db_order_id=${orderId}`;
+    const notifyUrl = `${baseUrl}/api/cashfree/webhook`;
+
+    // ===== Create Cashfree Order Payload =====
+    // Generate unique order ID (Cashfree requires alphanumeric + underscore/hyphen only)
+    const cashfreeOrderId = `order_${orderId}_${Date.now()}`;
+    
+    const orderPayload = {
+      order_id: cashfreeOrderId,
+      order_amount: parseFloat(amount.toFixed(2)), // Ensure 2 decimal places
       order_currency: "INR",
-      order_id: `order_${orderId}_${Date.now()}`,
       customer_details: {
-        customer_id: `customer_${Date.now()}`,
+        customer_id: `cust_${Date.now()}`,
         customer_name: customerName,
         customer_email: customerEmail,
         customer_phone: customerPhone,
       },
       order_meta: {
-        return_url: `${baseUrl}/api/cashfree/callback?db_order_id=${orderId}`,
-        notify_url: `${baseUrl}/api/cashfree/callback?db_order_id=${orderId}`,
+        return_url: returnUrl,
+        notify_url: notifyUrl,
       },
+      order_note: `FrameKart Order ${orderId}`,
     };
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Creating Cashfree order:", { order_id: orderData.order_id, amount: orderData.order_amount });
-    }
+    console.log("📤 Sending to Cashfree:", {
+      order_id: orderPayload.order_id,
+      amount: orderPayload.order_amount,
+      currency: orderPayload.order_currency,
+      customer: orderPayload.customer_details.customer_email,
+    });
 
-    const apiUrl = process.env.CASHFREE_ENVIRONMENT === "production"
-      ? "https://api.cashfree.com/pg/orders"
-      : "https://sandbox.cashfree.com/pg/orders";
-
+    // ===== Call Cashfree API =====
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-client-id": process.env.CASHFREE_APP_ID,
-        "x-client-secret": process.env.CASHFREE_SECRET_KEY,
+        "x-client-id": clientId,
+        "x-client-secret": clientSecret,
         "x-api-version": "2023-08-01",
       },
-      body: JSON.stringify(orderData),
+      body: JSON.stringify(orderPayload),
     });
 
-    const data = await response.json();
+    const responseData = await response.json();
 
+    // ===== Handle API Response =====
     if (!response.ok) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error("Cashfree API error response:", data);
-      }
-      throw new Error(`Cashfree API error: ${data.message || 'Payment gateway error'}`);
+      console.error("❌ Cashfree API error:", {
+        status: response.status,
+        message: responseData.message,
+        type: responseData.type,
+        code: responseData.code,
+      });
+
+      // Return detailed error in development, generic in production
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Failed to initialize payment. Please try again.",
+          details: process.env.NODE_ENV === "development" 
+            ? `Cashfree error: ${responseData.message || responseData.type || 'Unknown error'}`
+            : undefined
+        },
+        { status: 400 }
+      );
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Cashfree order created successfully:", data.order_id);
+    // ===== Validate Response Data =====
+    if (!responseData.payment_session_id) {
+      console.error("❌ No payment_session_id in response:", responseData);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Payment initialization failed. Invalid response from payment gateway.",
+          details: process.env.NODE_ENV === "development" 
+            ? "Missing payment_session_id in Cashfree response"
+            : undefined
+        },
+        { status: 500 }
+      );
     }
 
-    // Update our order with Cashfree order ID for tracking
+    console.log("✅ Cashfree order created successfully");
+    console.log("📋 Order ID:", responseData.order_id);
+    console.log("🔑 Session ID:", responseData.payment_session_id);
+
+    // ===== Update Database with Cashfree Order ID =====
     try {
       const dbConnect = (await import("@/lib/db")).default;
       const Order = (await import("@/models/Order")).default;
       
       await dbConnect();
       await Order.findByIdAndUpdate(orderId, {
-        cashfreeOrderId: data.order_id,
+        cashfreeOrderId: responseData.order_id,
+        paymentStatus: "pending",
       });
       
-      console.log("✅ Order updated with Cashfree order ID:", data.order_id);
+      console.log("✅ Database updated with Cashfree order ID");
     } catch (dbError) {
-      console.error("⚠️ Failed to update order with Cashfree ID, but continuing:", dbError);
-      // Don't fail the payment flow if this fails
+      console.error("⚠️ Failed to update database (non-fatal):", dbError);
+      // Continue - payment can still proceed
     }
 
+    // ===== Return Success Response =====
     return NextResponse.json({ 
       success: true, 
       data: {
-        payment_session_id: data.payment_session_id,
-        order_id: data.order_id,
+        payment_session_id: responseData.payment_session_id,
+        order_id: responseData.order_id,
       }
     });
+
   } catch (error: any) {
-    // Only log in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error("Cashfree order creation error:", error.message);
-      console.error("Full error:", error);
-    }
-    
+    console.error("❌ Cashfree order creation failed:", error);
+
+    // Handle validation errors
     if (error instanceof ZodError) {
       return NextResponse.json(
         { 
           success: false, 
-          error: "Invalid payment data",
-          details: process.env.NODE_ENV === "development" ? error.errors : undefined
+          error: "Invalid payment data provided",
+          details: process.env.NODE_ENV === "development" 
+            ? error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+            : undefined
         },
         { status: 400 }
       );
     }
-    
+
+    // Generic error response
     return NextResponse.json(
       { 
         success: false, 
-        error: "Failed to create payment order. Please try again.",
+        error: "Payment initialization failed. Please try again.",
         details: process.env.NODE_ENV === "development" ? error.message : undefined
       },
       { status: 500 }

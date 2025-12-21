@@ -5,6 +5,7 @@ import User from "@/models/User";
 import { auth } from "@clerk/nextjs/server";
 import { OrderSchema } from "@/lib/validation";
 import { ZodError } from "zod";
+import { calculateOrderTotal } from "@/lib/launchOffer";
 
 export async function GET(req: NextRequest) {
   try {
@@ -58,12 +59,27 @@ export async function POST(req: NextRequest) {
     
     // Validate input
     const validatedData = OrderSchema.parse(body);
-    const { items, totalAmount, address, customerEmail } = validatedData;
+    const { items, address, customerEmail, subtotal, discount } = validatedData;
+
+    // Calculate order total server-side with eligibility check
+    const calculatedTotal = await calculateOrderTotal(
+      subtotal || items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+      userId,
+      false // userId, not email
+    );
+
+    // Use server-calculated total, not frontend total
+    const finalAmount = calculatedTotal.total;
 
     const order = await Order.create({
       userId,
       items,
-      totalAmount,
+      totalAmount: finalAmount,
+      subtotal: calculatedTotal.subtotal,
+      shipping: calculatedTotal.shipping,
+      ...(calculatedTotal.eligible && calculatedTotal.discount > 0 && discount && {
+        discount,
+      }),
       address,
       customerEmail,
       paymentStatus: "pending",

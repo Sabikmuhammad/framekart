@@ -21,11 +21,19 @@ interface FrameCardProps {
     frame_material: string;
     category: string;
   };
+  showDiscountBadge?: boolean;
+  discountValue?: number;
 }
 
-export default function FrameCard({ frame }: FrameCardProps) {
+export default function FrameCard({ frame, showDiscountBadge = false, discountValue = 0 }: FrameCardProps) {
   const addItem = useCartStore((state) => state.addItem);
   const { toast } = useToast();
+
+  // Calculate discounted price
+  const hasDiscount = showDiscountBadge && discountValue > 0;
+  const discountedPrice = hasDiscount
+    ? frame.price - Math.round((frame.price * discountValue) / 100)
+    : frame.price;
 
   const handleAddToCart = () => {
     addItem({
@@ -53,6 +61,12 @@ export default function FrameCard({ frame }: FrameCardProps) {
       <Card className="overflow-hidden transition-shadow hover:shadow-lg h-full flex flex-col">
         <Link href={`/frames/${frame.slug}`}>
           <div className="relative aspect-square overflow-hidden bg-muted">
+            {/* Discount Badge */}
+            {showDiscountBadge && discountValue > 0 && (
+              <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-md shadow-lg">
+                {discountValue}% OFF
+              </div>
+            )}
             <Image
               src={frame.imageUrl}
               alt={frame.title}
@@ -71,9 +85,22 @@ export default function FrameCard({ frame }: FrameCardProps) {
           <p className="text-[9px] sm:text-xs text-muted-foreground">
             {frame.frame_size}
           </p>
-          <p className="mt-auto text-xs sm:text-base font-bold text-primary">
-            {formatPrice(frame.price)}
-          </p>
+          <div className="mt-auto">
+            {hasDiscount ? (
+              <div className="flex flex-col gap-0.5">
+                <p className="text-[10px] sm:text-xs text-muted-foreground line-through">
+                  {formatPrice(frame.price)}
+                </p>
+                <p className="text-xs sm:text-base font-bold text-primary">
+                  {formatPrice(discountedPrice)}
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs sm:text-base font-bold text-primary">
+                {formatPrice(frame.price)}
+              </p>
+            )}
+          </div>
         </CardContent>
         <CardFooter className="p-2 sm:p-3 pt-0">
           <Button

@@ -16,11 +16,35 @@ export default function FramesPage() {
   const [sortBy, setSortBy] = useState("featured");
   const [viewMode, setViewMode] = useState<"grid" | "large">("grid");
   const [showFilters, setShowFilters] = useState(false);
+  const [eligibility, setEligibility] = useState({
+    eligible: true,
+    discountValue: 15,
+    offerActive: true,
+  });
 
   useEffect(() => {
     fetchFrames();
+    fetchEligibility();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
+
+  const fetchEligibility = async () => {
+    try {
+      const response = await fetch("/api/offers/eligibility");
+      const data = await response.json();
+      console.log("Frames page eligibility data:", data);
+      if (data.success) {
+        setEligibility({
+          eligible: data.eligible ?? true,
+          discountValue: data.discountValue ?? 15,
+          offerActive: data.offerActive ?? true,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching eligibility:", error);
+      // Keep default values (show offer)
+    }
+  };
 
   const fetchFrames = async () => {
     setLoading(true);
@@ -258,7 +282,11 @@ export default function FramesPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
               >
-                <FrameCard frame={frame} />
+                <FrameCard 
+                  frame={frame} 
+                  showDiscountBadge={eligibility.eligible && eligibility.offerActive}
+                  discountValue={eligibility.discountValue}
+                />
               </motion.div>
             ))}
           </motion.div>

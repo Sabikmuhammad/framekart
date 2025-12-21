@@ -6,10 +6,51 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Tag } from "lucide-react";
+import { calculateOrderTotalClient } from "@/lib/launchOfferClient";
+import { useState, useEffect } from "react";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore();
+  const [eligibility, setEligibility] = useState({
+    eligible: true,
+    discountValue: 15,
+    offerActive: true,
+  });
+
+  useEffect(() => {
+    const fetchEligibility = async () => {
+      try {
+        const response = await fetch("/api/offers/eligibility");
+        const data = await response.json();
+        console.log("Cart eligibility data:", data);
+        if (data.success) {
+          setEligibility({
+            eligible: data.eligible || true,
+            discountValue: data.discountValue || 15,
+            offerActive: data.offerActive || true,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching eligibility:", error);
+        // Default to showing offer for guests
+        setEligibility({
+          eligible: true,
+          discountValue: 15,
+          offerActive: true,
+        });
+      }
+    };
+    
+    fetchEligibility();
+  }, []);
+
+  const subtotal = getTotalPrice();
+  const { discount, shipping, total } = calculateOrderTotalClient(
+    subtotal,
+    eligibility.discountValue,
+    eligibility.eligible && eligibility.offerActive
+  );
 
   if (items.length === 0) {
     return (
@@ -112,23 +153,35 @@ export default function CartPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatPrice(getTotalPrice())}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
+                
+                {eligibility.offerActive && eligibility.eligible && discount > 0 && (
+                  <div className="flex justify-between text-green-600 dark:text-green-400">
+                    <span className="flex items-center gap-1">
+                      <Tag className="h-4 w-4" />
+                      Launch Offer ({eligibility.discountValue}% OFF)
+                    </span>
+                    <span className="font-semibold">-{formatPrice(discount)}</span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>
-                    {getTotalPrice() > 2000 ? "Free" : formatPrice(99)}
-                  </span>
+                  <span className="text-green-600 font-medium">FREE</span>
                 </div>
                 <div className="border-t pt-2">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
                     <span className="text-primary">
-                      {formatPrice(
-                        getTotalPrice() + (getTotalPrice() > 2000 ? 0 : 99)
-                      )}
+                      {formatPrice(total)}
                     </span>
                   </div>
+                  {eligibility.offerActive && eligibility.eligible && discount > 0 && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                      You're saving {formatPrice(discount)}! 🎉
+                    </p>
+                  )}
                 </div>
               </div>
 

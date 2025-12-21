@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     if (signature && timestamp) {
       const signedPayload = timestamp + JSON.stringify(body);
       const expectedSignature = crypto
-        .createHmac("sha256", process.env.CASHFREE_SECRET_KEY!)
+        .createHmac("sha256", process.env.CASHFREE_CLIENT_SECRET!)
         .update(signedPayload)
         .digest("base64");
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch payment details from Cashfree
-    const apiUrl = process.env.CASHFREE_ENVIRONMENT === "production"
+    const apiUrl = process.env.CASHFREE_ENV === "production"
       ? "https://api.cashfree.com/pg/orders"
       : "https://sandbox.cashfree.com/pg/orders";
 
@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-client-id": process.env.CASHFREE_APP_ID!,
-        "x-client-secret": process.env.CASHFREE_SECRET_KEY!,
+        "x-client-id": process.env.CASHFREE_CLIENT_ID!,
+        "x-client-secret": process.env.CASHFREE_CLIENT_SECRET!,
         "x-api-version": "2023-08-01",
       },
     });

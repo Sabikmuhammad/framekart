@@ -11,6 +11,14 @@ export const OrderSchema = z.object({
     imageUrl: z.string().url(),
   })).min(1).max(50),
   totalAmount: z.number().positive().max(10000000),
+  subtotal: z.number().positive().max(10000000).optional(),
+  shipping: z.number().min(0).max(10000).optional(),
+  discount: z.object({
+    name: z.string(),
+    type: z.enum(['PERCENT', 'FIXED']),
+    value: z.number().positive(),
+    amount: z.number().positive(),
+  }).optional(),
   address: z.object({
     fullName: z.string().min(2).max(100),
     phone: z.string().min(10).max(15), // Allow flexible phone formats
@@ -39,6 +47,14 @@ export const CustomFrameOrderSchema = z.object({
   frameSize: z.enum(['A4', '12x18', '18x24', '24x36']),
   customerNotes: z.string().max(500).optional(),
   totalAmount: z.number().positive().max(10000000),
+  subtotal: z.number().positive().max(10000000).optional(),
+  shipping: z.number().min(0).max(10000).optional(),
+  discount: z.object({
+    name: z.string(),
+    type: z.enum(['PERCENT', 'FIXED']),
+    value: z.number().positive(),
+    amount: z.number().positive(),
+  }).optional(),
   address: z.object({
     fullName: z.string().min(2).max(100),
     phone: z.string().min(10).max(15),
