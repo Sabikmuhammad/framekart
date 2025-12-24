@@ -176,12 +176,52 @@ export default function CheckoutPage() {
     setPaymentInitiated(true);
 
     try {
-      // Check if cart contains custom frames
+      // Check if cart contains custom frames or template frames
       const hasCustomFrames = items.some(item => item.isCustom);
+      const hasTemplateFrames = items.some(item => item.isTemplate);
       
       let orderData;
 
-      if (hasCustomFrames && items.length === 1 && items[0].isCustom) {
+      if (hasTemplateFrames && items.length === 1 && items[0].isTemplate) {
+        // Template frame order (Birthday/Wedding)
+        const templateItem = items[0];
+        const orderRes = await fetch("/api/template-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerEmail: formData.email,
+            occasion: templateItem.templateFrame?.occasion,
+            templateImage: templateItem.templateFrame?.templateImage,
+            uploadedPhoto: templateItem.templateFrame?.uploadedPhoto || "",
+            frameStyle: templateItem.templateFrame?.frameStyle,
+            metadata: templateItem.templateFrame?.metadata,
+            price: templateItem.price,
+            totalAmount: total,
+            subtotal,
+            shipping,
+            ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
+              discount: {
+                name: "Launch Offer",
+                type: "PERCENT",
+                value: eligibility.discountValue,
+                amount: discount,
+              },
+            }),
+            address: {
+              fullName: formData.fullName,
+              phone: formData.phone,
+              addressLine1: formData.addressLine1,
+              addressLine2: formData.addressLine2,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+            },
+          }),
+        });
+
+        orderData = await orderRes.json();
+        if (!orderData.success) throw new Error("Order creation failed");
+      } else if (hasCustomFrames && items.length === 1 && items[0].isCustom) {
         // Custom frame order
         const customItem = items[0];
         const orderRes = await fetch("/api/custom-frame-order", {
@@ -193,6 +233,8 @@ export default function CheckoutPage() {
             frameStyle: customItem.customFrame?.frameStyle,
             frameSize: customItem.customFrame?.frameSize,
             customerNotes: customItem.customFrame?.customerNotes || "",
+            occasion: customItem.customFrame?.occasion || "custom",
+            occasionMetadata: customItem.customFrame?.occasionMetadata || {},
             totalAmount: total,
             subtotal,
             shipping,

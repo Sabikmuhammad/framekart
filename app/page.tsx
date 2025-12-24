@@ -4,15 +4,59 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Star, Shield, Truck, Heart, Sparkles, Frame, Image as ImageIcon, Gift, Home, Palette, Zap, Clock, TrendingUp, Instagram, Users, Package, MessageCircle, Mail, Send } from "lucide-react";
+import { ArrowRight, Star, Shield, Truck, Heart, Sparkles, Frame, Image as ImageIcon, Gift, Home, Palette, Zap, Clock, TrendingUp, Instagram, Users, Package, MessageCircle, Mail, Send, Cake } from "lucide-react";
 import { useEffect, useState } from "react";
 import FrameCard from "@/components/FrameCard";
 import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
 
+const HERO_SLIDES = [
+  {
+    title: "Frame Your Memories,",
+    highlight: "Beautifully",
+    description: "Discover our curated collection of premium wall frames. Perfect for every space, every style.",
+    buttons: [
+      { label: "Shop Now", href: "/frames", variant: "default" as const, icon: ArrowRight },
+      { label: "Create Custom Frame", href: "/custom-frame", variant: "outline" as const, icon: Sparkles },
+    ],
+    gradient: "from-primary/10 via-background to-secondary/10",
+  },
+  {
+    title: "Create Your Own",
+    highlight: "Custom Frame",
+    description: "Design a personalized frame with your choice of size, style, and uploaded image. Bring your vision to life.",
+    buttons: [
+      { label: "Start Creating", href: "/custom-frame", variant: "default" as const, icon: Sparkles },
+      { label: "View Gallery", href: "/frames", variant: "outline" as const, icon: ArrowRight },
+    ],
+    gradient: "from-purple-50 via-background to-blue-50 dark:from-purple-950/20 dark:via-background dark:to-blue-950/20",
+  },
+  {
+    title: "Celebrate Forever,",
+    highlight: "Wedding Frames",
+    description: "Preserve your special day with our beautiful wedding frame templates. Our design team will create a romantic masterpiece.",
+    buttons: [
+      { label: "Explore Wedding Frames", href: "/frames/wedding", variant: "default" as const, icon: Heart },
+      { label: "Shop All Frames", href: "/frames", variant: "outline" as const, icon: ArrowRight },
+    ],
+    gradient: "from-rose-50 via-background to-amber-50 dark:from-rose-950/20 dark:via-background dark:to-amber-950/20",
+  },
+  {
+    title: "Make It Special,",
+    highlight: "Birthday Frames",
+    description: "Create unforgettable birthday memories with personalized frame designs. Perfect for celebrating every milestone.",
+    buttons: [
+      { label: "Explore Birthday Frames", href: "/frames/birthday", variant: "default" as const, icon: Cake },
+      { label: "Shop All Frames", href: "/frames", variant: "outline" as const, icon: ArrowRight },
+    ],
+    gradient: "from-pink-50 via-background to-purple-50 dark:from-pink-950/20 dark:via-background dark:to-purple-950/20",
+  },
+];
+
 export default function HomePage() {
   const [frames, setFrames] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [eligibility, setEligibility] = useState({
     eligible: true,
     discountValue: 15,
@@ -53,11 +97,31 @@ export default function HomePage() {
       });
   }, []);
 
+  // Auto-rotate hero slides
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+  };
+
+  const currentHero = HERO_SLIDES[currentSlide];
+
   // Category images configuration - Local paths from public folder
   const categoryImages = {
     photoFrames: "/images/categories/p2.png",
     wallFrames: "/images/categories/p3.png",
-    birthday: "/images/categories/birthday-frames.jpg",
+    birthday: "/images/categories/p2.png", // Using existing image for now
+    wedding: "/images/categories/p3.png", // Using existing image for now
     calligraphy: "/images/categories/p9.png",
     homeDecor: "/images/categories/p7.png",
     customFrames: "/images/categories/custom-frames.jpg",
@@ -95,35 +159,52 @@ export default function HomePage() {
       )}
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-12 sm:py-20 md:py-32">
+      <section className={`relative overflow-hidden bg-gradient-to-br ${currentHero.gradient} py-12 sm:py-20 md:py-32 transition-all duration-700`}>
         <div className="container mx-auto px-4">
           <motion.div
+            key={currentSlide}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.6 }}
             className="mx-auto max-w-3xl text-center"
           >
             <h1 className="mb-4 sm:mb-6 text-3xl sm:text-4xl font-bold tracking-tight md:text-6xl">
-              Frame Your Memories,{" "}
-              <span className="text-primary">Beautifully</span>
+              {currentHero.title}{" "}
+              <span className="text-primary">{currentHero.highlight}</span>
             </h1>
             <p className="mb-6 sm:mb-8 text-base sm:text-lg text-muted-foreground md:text-xl">
-              Discover our curated collection of premium wall frames. Perfect for every space, every style.
+              {currentHero.description}
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link href="/frames">
-                <Button size="lg" className="gap-2">
-                  Shop Now <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/custom-frame">
-                <Button size="lg" variant="outline" className="gap-2 border-2">
-                  <Sparkles className="h-4 w-4" />
-                  Create Custom Frame
-                </Button>
-              </Link>
+              {currentHero.buttons.map((button, index) => {
+                const Icon = button.icon;
+                return (
+                  <Link key={index} href={button.href}>
+                    <Button size="lg" variant={button.variant} className={`gap-2 ${button.variant === "outline" ? "border-2" : ""}`}>
+                      {button.variant === "default" && <Icon className="h-4 w-4" />}
+                      {button.label}
+                      {button.variant === "outline" && <Icon className="h-4 w-4" />}
+                    </Button>
+                  </Link>
+                );
+              })}
             </div>
           </motion.div>
+
+          {/* Slide Indicators */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+            {HERO_SLIDES.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`h-2 rounded-full transition-all ${
+                  index === currentSlide ? "w-8 bg-primary" : "w-2 bg-gray-400 hover:bg-gray-600"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -178,6 +259,77 @@ export default function HomePage() {
                           </div>
                         </div>
                         <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                          NEW
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Link>
+{/* Birthday Frames */}
+              <Link href="/frames/birthday">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  viewport={{ once: true }}
+                  className="group relative"
+                >
+                  <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 cursor-pointer w-32">
+                    <CardContent className="p-0">
+                      <div className="relative aspect-square overflow-hidden">
+                        <Image
+                          src={categoryImages.birthday}
+                          alt="Birthday Frames"
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
+                        <div className="absolute inset-0 flex items-center justify-center p-2">
+                          <div className="text-center">
+                            <Cake className="h-8 w-8 text-primary mx-auto mb-1 group-hover:scale-110 transition-transform drop-shadow-lg" />
+                            <h3 className="text-xs font-bold group-hover:text-primary transition-colors line-clamp-2 drop-shadow text-white">
+                              Birthday Frames
+                            </h3>
+                          </div>
+                        </div>
+                        <div className="absolute top-1 right-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                          NEW
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Link>
+
+              {/* Wedding Frames */}
+              <Link href="/frames/wedding">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.35 }}
+                  viewport={{ once: true }}
+                  className="group relative"
+                >
+                  <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 cursor-pointer w-32">
+                    <CardContent className="p-0">
+                      <div className="relative aspect-square overflow-hidden">
+                        <Image
+                          src={categoryImages.wedding}
+                          alt="Wedding Frames"
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
+                        <div className="absolute inset-0 flex items-center justify-center p-2">
+                          <div className="text-center">
+                            <Heart className="h-8 w-8 text-primary mx-auto mb-1 group-hover:scale-110 transition-transform drop-shadow-lg" />
+                            <h3 className="text-xs font-bold group-hover:text-primary transition-colors line-clamp-2 drop-shadow text-white">
+                              Wedding Frames
+                            </h3>
+                          </div>
+                        </div>
+                        <div className="absolute top-1 right-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                           NEW
                         </div>
                       </div>
@@ -252,38 +404,7 @@ export default function HomePage() {
                 </motion.div>
               </Link>
 
-              {/* Birthday Frames */}
-              <Link href="/frames?category=Birthday Frames">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  viewport={{ once: true }}
-                  className="group"
-                >
-                  <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 w-32">
-                    <CardContent className="p-0">
-                      <div className="relative aspect-square">
-                        <Image
-                          src={categoryImages.birthday}
-                          alt="Birthday Frames"
-                          fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Gift className="h-8 w-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
-                        </div>
-                      </div>
-                      <div className="p-2 text-center">
-                        <h3 className="font-semibold text-xs group-hover:text-primary transition-colors line-clamp-2">
-                          Birthday Frames
-                        </h3>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </Link>
+              
 
               {/* Calligraphy Frames */}
               <Link href="/frames?category=Calligraphy Frames">
@@ -394,7 +515,79 @@ export default function HomePage() {
                 </Card>
               </motion.div>
             </Link>
+{/* Birthday Frames */}
+            <Link href="/frames/birthday">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                viewport={{ once: true }}
+                className="group relative"
+              >
+                <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 hover:shadow-xl cursor-pointer h-full">
+                  <CardContent className="p-0">
+                    <div className="relative aspect-square overflow-hidden">
+                      <Image
+                        src={categoryImages.birthday}
+                        alt="Birthday Frames"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
+                      <div className="absolute inset-0 flex items-center justify-center p-4">
+                        <div className="text-center">
+                          <Cake className="h-10 w-10 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform drop-shadow-lg" />
+                          <h3 className="text-sm font-bold group-hover:text-primary transition-colors drop-shadow text-white">
+                            Birthday Frames
+                          </h3>
+                          <p className="text-[10px] text-white/80 drop-shadow">Personalize It</p>
+                        </div>
+                      </div>
+                      <div className="absolute top-2 right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        NEW
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Link>
 
+            {/* Wedding Frames */}
+            <Link href="/frames/wedding">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.35 }}
+                viewport={{ once: true }}
+                className="group relative"
+              >
+                <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 hover:shadow-xl cursor-pointer h-full">
+                  <CardContent className="p-0">
+                    <div className="relative aspect-square overflow-hidden">
+                      <Image
+                        src={categoryImages.wedding}
+                        alt="Wedding Frames"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
+                      <div className="absolute inset-0 flex items-center justify-center p-4">
+                        <div className="text-center">
+                          <Heart className="h-10 w-10 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform drop-shadow-lg" />
+                          <h3 className="text-sm font-bold group-hover:text-primary transition-colors drop-shadow text-white">
+                            Wedding Frames
+                          </h3>
+                          <p className="text-[10px] text-white/80 drop-shadow">Celebrate Love</p>
+                        </div>
+                      </div>
+                      <div className="absolute top-2 right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        NEW
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Link>
             {/* Photo Frames */}
             <Link href="/frames?category=Photo Frames">
               <motion.div
@@ -461,45 +654,14 @@ export default function HomePage() {
               </motion.div>
             </Link>
 
-            {/* Birthday Frames */}
-            <Link href="/frames?category=Birthday Frames">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                viewport={{ once: true }}
-                className="group"
-              >
-                <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 h-full">
-                  <CardContent className="p-0">
-                    <div className="relative aspect-square">
-                      <Image
-                        src={categoryImages.birthday}
-                        alt="Birthday Frames"
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Gift className="h-10 w-10 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
-                      </div>
-                    </div>
-                    <div className="p-3 text-center">
-                      <h3 className="font-semibold text-sm group-hover:text-primary transition-colors">
-                        Birthday
-                      </h3>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </Link>
+            
 
             {/* Calligraphy Frames */}
             <Link href="/frames?category=Calligraphy Frames">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
                 viewport={{ once: true }}
                 className="group"
               >
@@ -852,7 +1014,7 @@ export default function HomePage() {
               Best Selling Frames
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
-              Join thousands of happy customers who chose these popular frames
+              {/* Join thousands of happy customers who chose these popular frames */}
             </p>
           </motion.div>
 
@@ -920,8 +1082,160 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Wedding & Birthday Frames Promotion */}
+      <section className="py-8 sm:py-12 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-8"
+          >
+            <div className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full mb-4">
+              <Heart className="h-5 w-5" />
+              <span className="font-semibold text-sm">CELEBRATE SPECIAL MOMENTS</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+              Personalized <span className="text-primary">Template Frames</span>
+            </h2>
+            <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
+              Upload your photo, add your personal message, and let our design team create a beautiful custom frame for your special occasion
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Wedding Frame Promotion */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <Card className="border-2 border-primary/20 overflow-hidden hover:shadow-2xl transition-all duration-300 h-full">
+                <CardContent className="p-0">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
+                    <Image
+                      src="/images/templates/wedding-template.jpg"
+                      alt="Wedding Frame Template"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                      NEW
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Heart className="h-6 w-6 text-primary" />
+                        <h3 className="text-2xl font-bold text-white">Wedding Frames</h3>
+                      </div>
+                      <p className="text-white/90 text-sm mb-4">
+                        Celebrate your love story with elegant wedding frames. Perfect for anniversaries and special memories.
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
+                          ✨ Custom Design
+                        </span>
+                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
+                          🎨 Professional Team
+                        </span>
+                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
+                          💝 A4 Size
+                        </span>
+                      </div>
+                      <Link href="/frames/wedding">
+                        <Button size="lg" className="w-full gap-2">
+                          Create Wedding Frame
+                          <ArrowRight className="h-5 w-5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Birthday Frame Promotion */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <Card className="border-2 border-primary/20 overflow-hidden hover:shadow-2xl transition-all duration-300 h-full">
+                <CardContent className="p-0">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
+                    <Image
+                      src="/images/templates/birthday-template.jpg"
+                      alt="Birthday Frame Template"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                      NEW
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Cake className="h-6 w-6 text-primary" />
+                        <h3 className="text-2xl font-bold text-white">Birthday Frames</h3>
+                      </div>
+                      <p className="text-white/90 text-sm mb-4">
+                        Make birthdays extra special with personalized frames. Perfect gifts for loved ones!
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
+                          🎉 Fun Designs
+                        </span>
+                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
+                          🎨 Custom Message
+                        </span>
+                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
+                          🎁 A4 Size
+                        </span>
+                      </div>
+                      <Link href="/frames/birthday">
+                        <Button size="lg" className="w-full gap-2">
+                          Create Birthday Frame
+                          <ArrowRight className="h-5 w-5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+
+          {/* Features Row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
+            {[
+              { icon: Sparkles, text: "Design Team", description: "Expert designers" },
+              { icon: ImageIcon, text: "Your Photo", description: "Upload easily" },
+              { icon: Palette, text: "Custom Style", description: "3 frame options" },
+              { icon: Package, text: "Fast Delivery", description: "Premium quality" },
+            ].map((feature, index) => (
+              <Card key={index} className="text-center">
+                <CardContent className="pt-4 pb-4 px-3">
+                  <feature.icon className="h-8 w-8 mx-auto mb-2 text-primary" />
+                  <p className="font-semibold text-sm mb-1">{feature.text}</p>
+                  <p className="text-xs text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
       {/* Instagram Follow Section */}
-      <section className="py-12 sm:py-16 bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+      <section className="py-12 sm:py-16 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -930,16 +1244,16 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center"
           >
-            <Instagram className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-6 text-pink-600" />
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              Follow Us on Instagram
+            <Instagram className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-6 text-primary" />
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+              Follow Us on <span className="text-primary">Instagram</span>
             </h2>
-            <p className="text-lg sm:text-xl text-gray-600 mb-8">
+            <p className="text-lg sm:text-xl text-muted-foreground mb-8">
               Stay updated with our latest designs and exclusive offers
             </p>
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 gap-2"
+              className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 gap-2"
               onClick={() => window.open('https://instagram.com/framekartofficial', '_blank')}
             >
               <Instagram className="h-5 w-5" />
@@ -979,7 +1293,7 @@ export default function HomePage() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-12 sm:py-16 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950">
+      <section className="py-12 sm:py-16 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

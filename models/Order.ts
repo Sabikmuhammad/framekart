@@ -43,6 +43,41 @@ export interface IOrder {
     frameStyle: "Black" | "White" | "Wooden";
     frameSize: "A4" | "12x18" | "18x24" | "24x36";
     customerNotes?: string;
+    occasion?: "custom" | "birthday" | "wedding";
+    occasionMetadata?: {
+      // Birthday-specific
+      name?: string;
+      age?: string;
+      date?: string;
+      message?: string;
+      // Wedding-specific
+      brideName?: string;
+      groomName?: string;
+      weddingDate?: string;
+      quote?: string;
+    };
+  };
+  // Template Frame fields (NEW)
+  productType?: "REGULAR" | "CUSTOM" | "TEMPLATE";
+  templateFrame?: {
+    occasion: "birthday" | "wedding";
+    templateImage: string; // Fixed template image URL
+    uploadedPhoto?: string; // Optional customer photo
+    frameSize: "A4";
+    frameStyle: "Black" | "White" | "Wooden";
+    metadata: {
+      // Birthday fields
+      name?: string;
+      age?: string;
+      date?: string;
+      message?: string;
+      // Wedding fields
+      brideName?: string;
+      groomName?: string;
+      weddingDate?: string;
+      quote?: string;
+    };
+    designStatus: "PENDING" | "COMPLETED";
   };
   status?: "Pending" | "Processing" | "Printed" | "Shipped" | "Delivered";
   createdAt: Date;
@@ -121,6 +156,63 @@ const OrderSchema = new Schema<IOrder>(
         enum: ["A4", "12x18", "18x24", "24x36"],
       },
       customerNotes: String,
+      occasion: {
+        type: String,
+        enum: ["custom", "birthday", "wedding"],
+        default: "custom",
+      },
+      occasionMetadata: {
+        // Birthday fields
+        name: String,
+        age: String,
+        date: String,
+        message: String,
+        // Wedding fields
+        brideName: String,
+        groomName: String,
+        weddingDate: String,
+        quote: String,
+      },
+    },
+    productType: {
+      type: String,
+      enum: ["REGULAR", "CUSTOM", "TEMPLATE"],
+      default: "REGULAR",
+    },
+    templateFrame: {
+      occasion: {
+        type: String,
+        enum: ["birthday", "wedding"],
+      },
+      templateImage: String,
+      uploadedPhoto: String,
+      frameSize: {
+        type: String,
+        enum: ["A4"],
+        default: "A4",
+      },
+      frameStyle: {
+        type: String,
+        enum: ["Black", "White", "Wooden"],
+        default: "Black",
+      },
+      metadata: {
+        // Birthday fields
+        name: String,
+        age: String,
+        date: String,
+        message: String,
+        // Wedding fields
+        brideName: String,
+        groomName: String,
+        weddingDate: String,
+        quote: String,
+      },
+      designStatus: {
+        type: String,
+        enum: ["PENDING", "COMPLETED"],
+        default: "PENDING",
+      },
     },
     status: {
       type: String,

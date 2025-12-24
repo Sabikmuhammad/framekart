@@ -6,9 +6,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
-import { Minus, Plus, Trash2, ShoppingBag, Tag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Tag, Cake, Heart, Sparkles } from "lucide-react";
 import { calculateOrderTotalClient } from "@/lib/launchOfferClient";
 import { useState, useEffect } from "react";
+import { getOccasionBadgeColor } from "@/lib/occasions";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore();
@@ -79,20 +80,88 @@ export default function CartPage() {
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex gap-3 sm:gap-4">
                     <div className="relative h-20 w-20 sm:h-24 sm:w-24 flex-shrink-0 overflow-hidden rounded">
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                      />
+                      {item.isCustom && !item.customFrame?.uploadedImageUrl ? (
+                        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
+                          <div className="text-center p-2">
+                            <Sparkles className="w-6 h-6 mx-auto mb-1 text-gray-400" />
+                            <p className="text-[10px] text-gray-500">Design Pending</p>
+                          </div>
+                        </div>
+                      ) : item.isTemplate && !item.templateFrame?.uploadedPhoto ? (
+                        <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
+                          <div className="text-center p-2">
+                            {item.templateFrame?.occasion === "birthday" && <Cake className="w-6 h-6 mx-auto mb-1 text-pink-600" />}
+                            {item.templateFrame?.occasion === "wedding" && <Heart className="w-6 h-6 mx-auto mb-1 text-rose-600" />}
+                            <p className="text-[10px] text-gray-600 dark:text-gray-300 font-medium">Template</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                        />
+                      )}
                     </div>
 
                     <div className="flex flex-1 flex-col justify-between min-w-0">
                       <div>
-                        <h3 className="font-semibold text-sm sm:text-base truncate">{item.title}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-sm sm:text-base truncate">{item.title}</h3>
+                          {item.isCustom && item.customFrame?.occasion && (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${getOccasionBadgeColor(item.customFrame.occasion as any)}`}>
+                              {item.customFrame.occasion === "birthday" && <Cake className="h-3 w-3" />}
+                              {item.customFrame.occasion === "wedding" && <Heart className="h-3 w-3" />}
+                              {item.customFrame.occasion === "custom" && <Sparkles className="h-3 w-3" />}
+                              {item.customFrame.occasion.charAt(0).toUpperCase() + item.customFrame.occasion.slice(1)}
+                            </span>
+                          )}
+                          {item.isTemplate && (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${
+                              item.templateFrame?.occasion === "birthday" 
+                                ? "bg-pink-100 text-pink-800 dark:bg-pink-950/30 dark:text-pink-400"
+                                : "bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-400"
+                            }`}>
+                              {item.templateFrame?.occasion === "birthday" && <Cake className="h-3 w-3" />}
+                              {item.templateFrame?.occasion === "wedding" && <Heart className="h-3 w-3" />}
+                              {item.templateFrame?.occasion === "birthday" ? "Birthday" : "Wedding"}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs sm:text-sm text-muted-foreground">
                           {item.frame_size} • {item.frame_material}
                         </p>
+                        {item.isCustom && !item.customFrame?.uploadedImageUrl && (
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
+                            🎨 Design to be finalized by FrameKart team
+                          </p>
+                        )}
+                        {item.isTemplate && (
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
+                            🎨 Design will be handled by FrameKart&apos;s design team
+                          </p>
+                        )}
+                        {item.isCustom && item.customFrame?.occasionMetadata && (
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {item.customFrame.occasion === "birthday" && item.customFrame.occasionMetadata.name && (
+                              <p>For: {item.customFrame.occasionMetadata.name} ({item.customFrame.occasionMetadata.age})</p>
+                            )}
+                            {item.customFrame.occasion === "wedding" && item.customFrame.occasionMetadata.brideName && (
+                              <p>{item.customFrame.occasionMetadata.brideName} & {item.customFrame.occasionMetadata.groomName}</p>
+                            )}
+                          </div>
+                        )}
+                        {item.isTemplate && item.templateFrame?.metadata && (
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {item.templateFrame.occasion === "birthday" && item.templateFrame.metadata.name && (
+                              <p>For: {item.templateFrame.metadata.name} ({item.templateFrame.metadata.age})</p>
+                            )}
+                            {item.templateFrame.occasion === "wedding" && item.templateFrame.metadata.brideName && (
+                              <p>{item.templateFrame.metadata.brideName} & {item.templateFrame.metadata.groomName}</p>
+                            )}
+                          </div>
+                        )}
                         <p className="mt-1 font-semibold text-primary text-sm sm:text-base">
                           {formatPrice(item.price)}
                         </p>

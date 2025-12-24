@@ -15,6 +15,11 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://framekart.co.in'),
   title: "FrameKart - Modern Online Frame Store",
   description: "Your destination for premium wall frames. Transform your space with our curated collection.",
+  verification: {
+    other: {
+      'facebook-domain-verification': 'xlmvd20edmx635vxijoxln2sntiqdi',
+    },
+  },
   openGraph: {
     title: "FrameKart - Modern Online Frame Store",
     description: "Your destination for premium wall frames. Transform your space with our curated collection.",

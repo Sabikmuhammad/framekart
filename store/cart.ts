@@ -16,6 +16,38 @@ export interface CartItem {
     frameStyle: "Black" | "White" | "Wooden";
     frameSize: "A4" | "12x18" | "18x24" | "24x36";
     customerNotes?: string;
+    occasion?: "custom" | "birthday" | "wedding";
+    occasionMetadata?: {
+      // Birthday fields
+      name?: string;
+      age?: string;
+      date?: string;
+      message?: string;
+      // Wedding fields
+      brideName?: string;
+      groomName?: string;
+      weddingDate?: string;
+      quote?: string;
+    };
+  };
+  // Template frame fields (NEW)
+  isTemplate?: boolean;
+  templateFrame?: {
+    occasion: "birthday" | "wedding";
+    templateImage: string;
+    uploadedPhoto?: string;
+    frameSize: "A4";
+    frameStyle: "Black" | "White" | "Wooden";
+    metadata: {
+      name?: string;
+      age?: string;
+      date?: string;
+      message?: string;
+      brideName?: string;
+      groomName?: string;
+      weddingDate?: string;
+      quote?: string;
+    };
   };
 }
 
