@@ -8,10 +8,51 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { calculateOrderTotalClient } from "@/lib/launchOfferClient";
-import { Tag } from "lucide-react";
+import { Tag, MapPin, Building2, Home } from "lucide-react";
+
+const INDIAN_STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+];
 
 declare global {
   interface Window {
@@ -39,6 +80,7 @@ export default function CheckoutPage() {
     phone: "",
     addressLine1: "",
     addressLine2: "",
+    landmark: "",
     city: "",
     state: "",
     pincode: "",
@@ -422,8 +464,12 @@ export default function CheckoutPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 sm:gap-4">
+                {/* Email */}
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email Address *</Label>
+                  <Label htmlFor="email" className="flex items-center gap-2">
+                    <span>Email Address</span>
+                    <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="email"
                     name="email"
@@ -439,12 +485,17 @@ export default function CheckoutPage() {
                   </p>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                {/* Full Name & Phone */}
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="fullName">Full Name *</Label>
+                    <Label htmlFor="fullName" className="flex items-center gap-2">
+                      <span>Full Name</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="fullName"
                       name="fullName"
+                      placeholder="Enter your full name"
                       value={formData.fullName}
                       onChange={handleInputChange}
                       required
@@ -452,7 +503,10 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Label htmlFor="phone" className="flex items-center gap-2">
+                      <span>Phone Number</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="phone"
                       name="phone"
@@ -460,38 +514,75 @@ export default function CheckoutPage() {
                       placeholder="10-digit mobile number"
                       value={formData.phone}
                       onChange={handleInputChange}
+                      maxLength={10}
                       required
                     />
                   </div>
                 </div>
 
+                {/* Address Line 1 */}
                 <div className="grid gap-2">
-                  <Label htmlFor="addressLine1">Address Line 1</Label>
+                  <Label htmlFor="addressLine1" className="flex items-center gap-2">
+                    <Home className="h-4 w-4" />
+                    <span>House/Flat No., Building Name</span>
+                    <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="addressLine1"
                     name="addressLine1"
+                    placeholder="e.g., Flat 101, Sunshine Apartments"
                     value={formData.addressLine1}
                     onChange={handleInputChange}
                     required
                   />
                 </div>
 
+                {/* Address Line 2 */}
                 <div className="grid gap-2">
-                  <Label htmlFor="addressLine2">Address Line 2</Label>
+                  <Label htmlFor="addressLine2" className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span>Road/Street, Area, Colony</span>
+                    <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="addressLine2"
                     name="addressLine2"
+                    placeholder="e.g., MG Road, Koramangala"
                     value={formData.addressLine2}
                     onChange={handleInputChange}
+                    required
                   />
                 </div>
 
+                {/* Landmark */}
+                <div className="grid gap-2">
+                  <Label htmlFor="landmark" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    <span>Landmark (Optional)</span>
+                  </Label>
+                  <Input
+                    id="landmark"
+                    name="landmark"
+                    placeholder="e.g., Near City Mall, Behind Post Office"
+                    value={formData.landmark}
+                    onChange={handleInputChange}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Help delivery partner locate you easily
+                  </p>
+                </div>
+
+                {/* City, State, Pincode */}
                 <div className="grid gap-3 sm:gap-4 sm:grid-cols-3">
                   <div className="grid gap-2">
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city" className="flex items-center gap-2">
+                      <span>City</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="city"
                       name="city"
+                      placeholder="Your city"
                       value={formData.city}
                       onChange={handleInputChange}
                       required
@@ -499,26 +590,61 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      name="state"
+                    <Label htmlFor="state" className="flex items-center gap-2">
+                      <span>State</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
                       value={formData.state}
-                      onChange={handleInputChange}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({ ...prev, state: value }))
+                      }
                       required
-                    />
+                    >
+                      <SelectTrigger id="state">
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {INDIAN_STATES.map((state) => (
+                          <SelectItem key={state} value={state}>
+                            {state}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="pincode">Pincode</Label>
+                    <Label htmlFor="pincode" className="flex items-center gap-2">
+                      <span>Pincode</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="pincode"
                       name="pincode"
+                      type="text"
+                      placeholder="6-digit code"
                       value={formData.pincode}
                       onChange={handleInputChange}
+                      maxLength={6}
+                      pattern="[0-9]{6}"
                       required
                     />
                   </div>
+                </div>
+
+                {/* Delivery Instructions */}
+                <div className="grid gap-2">
+                  <Label htmlFor="deliveryNotes" className="text-sm">
+                    Delivery Instructions (Optional)
+                  </Label>
+                  <Textarea
+                    id="deliveryNotes"
+                    name="deliveryNotes"
+                    placeholder="Any special instructions for delivery..."
+                    className="min-h-[80px] resize-none"
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
             </CardContent>

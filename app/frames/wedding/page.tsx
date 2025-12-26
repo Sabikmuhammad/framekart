@@ -14,7 +14,7 @@ import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 
-const WEDDING_TEMPLATE = "/images/templates/wedding-template.jpg"; // Fixed template
+const WEDDING_TEMPLATE = "/images/templates/wedding-template.jpeg"; // Fixed template
 const FIXED_PRICE = 999; // A4 size price
 
 type FrameStyle = "Black" | "White" | "Wooden";

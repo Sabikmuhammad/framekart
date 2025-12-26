@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Instagram, Heart } from "lucide-react";
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -245,6 +246,41 @@ export default function OrderDetailPage() {
                   <br />
                   {order.address.pincode}
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Instagram Follow Section */}
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-pink-50 via-purple-50 to-orange-50 dark:from-pink-950/20 dark:via-purple-950/20 dark:to-orange-950/20">
+            <CardContent className="pt-6 text-center">
+              <div className="mb-4 flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-500 rounded-full blur-lg opacity-50"></div>
+                  <div className="relative bg-white dark:bg-gray-900 rounded-full p-3">
+                    <Instagram className="h-8 w-8 text-pink-600" />
+                  </div>
+                </div>
+              </div>
+              
+              <h3 className="text-lg font-bold mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
+                Follow Us on Instagram!
+              </h3>
+              
+              <p className="text-sm text-muted-foreground mb-4">
+                Get inspired by our latest designs, exclusive offers, and customer frames. Join our community!
+              </p>
+              
+              <Button 
+                className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600 text-white border-0"
+                onClick={() => window.open('https://www.instagram.com/framekart.co.in', '_blank')}
+              >
+                <Instagram className="mr-2 h-4 w-4" />
+                Follow @framekart.co.in
+              </Button>
+              
+              <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <Heart className="h-3 w-3 fill-pink-500 text-pink-500" />
+                <span>Join 10,000+ happy customers</span>
               </div>
             </CardContent>
           </Card>

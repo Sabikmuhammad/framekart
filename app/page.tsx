@@ -828,7 +828,7 @@ export default function HomePage() {
                       <div className="space-y-3">
                         <div className="aspect-square rounded-lg overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg transform rotate-2">
                           <Image
-                            src="/images/custom-banner/frame-1.jpg"
+                            src="/images/custom-banner/p4.png"
                             alt="Custom Frame Example 1"
                             width={300}
                             height={300}
@@ -837,7 +837,7 @@ export default function HomePage() {
                         </div>
                         <div className="aspect-square rounded-lg overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg transform -rotate-3">
                           <Image
-                            src="/images/custom-banner/frame-2.jpg"
+                            src="/images/custom-banner/p3.png"
                             alt="Custom Frame Example 2"
                             width={300}
                             height={300}
@@ -848,7 +848,7 @@ export default function HomePage() {
                       <div className="space-y-3 pt-6">
                         <div className="aspect-square rounded-lg overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg transform -rotate-2">
                           <Image
-                            src="/images/custom-banner/frame-3.jpg"
+                            src="/images/custom-banner/p7.png"
                             alt="Custom Frame Example 3"
                             width={300}
                             height={300}
@@ -857,7 +857,7 @@ export default function HomePage() {
                         </div>
                         <div className="aspect-square rounded-lg overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg transform rotate-3">
                           <Image
-                            src="/images/custom-banner/frame-4.jpg"
+                            src="/images/custom-banner/p9.png"
                             alt="Custom Frame Example 4"
                             width={300}
                             height={300}

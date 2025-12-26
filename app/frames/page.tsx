@@ -99,18 +99,18 @@ export default function FramesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
         {/* Hero Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-8 sm:mb-12 text-center"
+          className="mb-6 sm:mb-8 lg:mb-12 text-center"
         >
-          <h1 className="mb-3 sm:mb-4 text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="mb-2 sm:mb-3 lg:mb-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent px-2">
             Our Premium Collection
           </h1>
-          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-sm sm:text-base lg:text-lg max-w-2xl mx-auto px-4">
             Discover 100+ handcrafted frames to transform your space
           </p>
         </motion.div>
@@ -120,15 +120,15 @@ export default function FramesPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-6"
+          className="mb-4 sm:mb-6"
         >
           <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 sm:left-4 top-1/2 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by name, category, or description..."
+              placeholder="Search frames..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 h-12 sm:h-14 text-base shadow-lg border-2"
+              className="pl-10 sm:pl-12 pr-3 sm:pr-4 h-11 sm:h-12 lg:h-14 text-sm sm:text-base shadow-lg border-2"
             />
           </div>
         </motion.div>
@@ -138,34 +138,37 @@ export default function FramesPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-6 sm:mb-8"
+          className="mb-4 sm:mb-6 lg:mb-8"
         >
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-4">
+          <div className="flex flex-row gap-2 sm:gap-4 items-center justify-between mb-3 sm:mb-4">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="gap-2"
+              className="gap-1.5 sm:gap-2 text-xs sm:text-sm"
             >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters & Sort
+              <SlidersHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Filters & Sort</span>
+              <span className="xs:hidden">Filters</span>
             </Button>
 
-            <div className="flex items-center gap-2 ml-auto">
-              <span className="text-sm text-muted-foreground hidden sm:inline">View:</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">View:</span>
               <Button
                 variant={viewMode === "grid" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("grid")}
+                className="h-8 w-8 sm:h-9 sm:w-9 p-0"
               >
-                <Grid3x3 className="h-4 w-4" />
+                <Grid3x3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant={viewMode === "large" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("large")}
+                className="h-8 w-8 sm:h-9 sm:w-9 p-0"
               >
-                <LayoutGrid className="h-4 w-4" />
+                <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
@@ -179,14 +182,14 @@ export default function FramesPage() {
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <Card className="p-4 sm:p-6 space-y-6">
+                <Card className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
                   {/* Categories */}
                   <div>
-                    <h3 className="font-semibold mb-3 flex items-center gap-2">
-                      <LayoutGrid className="h-4 w-4" />
+                    <h3 className="font-semibold text-sm sm:text-base mb-2 sm:mb-3 flex items-center gap-2">
+                      <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       Categories
                     </h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {categories.map((category) => {
                         const Icon = category.icon;
                         const isActive = 
@@ -201,9 +204,9 @@ export default function FramesPage() {
                             onClick={() =>
                               setSelectedCategory(category.name === "All" ? "" : category.name)
                             }
-                            className="gap-2"
+                            className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
                           >
-                            <Icon className="h-3 w-3" />
+                            <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                             {category.name}
                           </Button>
                         );
@@ -213,11 +216,11 @@ export default function FramesPage() {
 
                   {/* Sort Options */}
                   <div>
-                    <h3 className="font-semibold mb-3 flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4" />
+                    <h3 className="font-semibold text-sm sm:text-base mb-2 sm:mb-3 flex items-center gap-2">
+                      <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       Sort By
                     </h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {sortOptions.map((option) => {
                         const Icon = option.icon;
                         return (
@@ -226,9 +229,9 @@ export default function FramesPage() {
                             variant={sortBy === option.value ? "default" : "outline"}
                             size="sm"
                             onClick={() => setSortBy(option.value)}
-                            className="gap-2"
+                            className="gap-1.5 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
                           >
-                            <Icon className="h-3 w-3" />
+                            <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                             {option.label}
                           </Button>
                         );
@@ -246,22 +249,22 @@ export default function FramesPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mb-4 flex items-center justify-between"
+          className="mb-3 sm:mb-4 flex items-center justify-between"
         >
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Showing <span className="font-semibold text-foreground">{filteredFrames.length}</span> {filteredFrames.length === 1 ? 'frame' : 'frames'}
           </p>
         </motion.div>
 
         {/* Frames Grid */}
         {loading ? (
-          <div className={`grid gap-4 sm:gap-6 ${
+          <div className={`grid gap-3 sm:gap-4 lg:gap-6 ${
             viewMode === "grid" 
               ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" 
               : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
           }`}>
             {[...Array(8)].map((_, i) => (
-              <Card key={i} className="h-72 sm:h-96 animate-pulse bg-muted" />
+              <Card key={i} className="h-64 sm:h-72 lg:h-96 animate-pulse bg-muted" />
             ))}
           </div>
         ) : filteredFrames.length > 0 ? (
@@ -269,7 +272,7 @@ export default function FramesPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className={`grid gap-4 sm:gap-6 ${
+            className={`grid gap-3 sm:gap-4 lg:gap-6 ${
               viewMode === "grid" 
                 ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" 
                 : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
@@ -295,14 +298,14 @@ export default function FramesPage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
-            className="py-16 sm:py-24 text-center"
+            className="py-12 sm:py-16 lg:py-24 text-center px-4"
           >
             <div className="max-w-md mx-auto">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-                <Search className="h-10 w-10 text-muted-foreground" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-full bg-muted flex items-center justify-center">
+                <Search className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
               </div>
-              <h3 className="text-xl sm:text-2xl font-semibold mb-2">No frames found</h3>
-              <p className="text-muted-foreground mb-6">
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold mb-2">No frames found</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
                 Try adjusting your search or filters to find what you&apos;re looking for
               </p>
               <Button 
@@ -312,6 +315,8 @@ export default function FramesPage() {
                   setSortBy("featured");
                 }}
                 variant="outline"
+                size="sm"
+                className="sm:size-default"
               >
                 Clear All Filters
               </Button>
