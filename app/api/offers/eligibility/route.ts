@@ -18,6 +18,7 @@ export async function GET() {
           orderCount: 0,
           offerActive: offerSettings?.active || false,
           discountValue: offerSettings?.discountValue || 15,
+          offerName: offerSettings?.name || "Launch Offer",
         });
       } catch (dbError) {
         console.error("Database error for guest user:", dbError);
@@ -28,6 +29,7 @@ export async function GET() {
           orderCount: 0,
           offerActive: true, // Default to active
           discountValue: 15, // Default discount
+          offerName: "Launch Offer",
         });
       }
     }
@@ -40,6 +42,7 @@ export async function GET() {
       orderCount: eligibility.orderCount,
       offerActive: eligibility.offerActive,
       discountValue: eligibility.discountValue,
+      offerName: eligibility.offerName,
     });
   } catch (error: any) {
     console.error("Error checking eligibility:", error);

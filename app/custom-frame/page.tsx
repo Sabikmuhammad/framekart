@@ -22,9 +22,9 @@ const FRAME_PRICES: Record<FrameSize, number> = {
 
 const FRAME_SIZES = [
   { value: "A4" as FrameSize, label: "A4 (8.3 × 11.7 inches)", price: 999 },
-  { value: "12x18" as FrameSize, label: "12 × 18 inches", price: 1499 },
-  { value: "18x24" as FrameSize, label: "18 × 24 inches", price: 1999 },
-  { value: "24x36" as FrameSize, label: "24 × 36 inches", price: 2999 },
+  // { value: "12x18" as FrameSize, label: "12 × 18 inches", price: 1499 },
+  // { value: "18x24" as FrameSize, label: "18 × 24 inches", price: 1999 },
+  // { value: "24x36" as FrameSize, label: "24 × 36 inches", price: 2999 },
 ];
 
 const FRAME_STYLES = [
@@ -533,7 +533,7 @@ export default function CustomFramePage() {
                         <div className="flex-1">
                           <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">{size.label}</p>
                           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                            Perfect for {size.value === "A4" ? "desks" : size.value === "12x18" ? "rooms" : size.value === "18x24" ? "walls" : "large walls"}
+                            Perfect for {size.value === "A4" ? "desks/walls" : size.value === "12x18" ? "rooms" : size.value === "18x24" ? "walls" : "large walls"}
                           </p>
                         </div>
                         <div className="text-right ml-4">

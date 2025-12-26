@@ -9,7 +9,8 @@ export async function GET() {
   try {
     await connectDB();
     
-    let offer = await OfferSetting.findOne({ name: "Launch Offer" }).lean();
+    // Fetch any active offer (first one found)
+    let offer = await OfferSetting.findOne().sort({ createdAt: -1 }).lean();
     
     // If no offer exists, create default one
     if (!offer) {
@@ -56,20 +57,34 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { active, discountValue, maxOrdersPerUser, minOrderValue, validUntil } = body;
+    const { name, active, discountValue, maxOrdersPerUser, minOrderValue, validUntil, _id } = body;
 
-    // Update or create offer
-    const offer = await OfferSetting.findOneAndUpdate(
-      { name: "Launch Offer" },
-      {
+    // Update existing offer by ID or create new one
+    let offer;
+    if (_id) {
+      offer = await OfferSetting.findByIdAndUpdate(
+        _id,
+        {
+          name: name || "Launch Offer",
+          active: active ?? true,
+          discountValue: discountValue ?? 15,
+          maxOrdersPerUser: maxOrdersPerUser ?? 3,
+          minOrderValue: minOrderValue ?? 0,
+          ...(validUntil && { validUntil: new Date(validUntil) }),
+        },
+        { new: true }
+      );
+    } else {
+      // Create new offer if none exists
+      offer = await OfferSetting.create({
+        name: name || "Launch Offer",
         active: active ?? true,
         discountValue: discountValue ?? 15,
         maxOrdersPerUser: maxOrdersPerUser ?? 3,
         minOrderValue: minOrderValue ?? 0,
         ...(validUntil && { validUntil: new Date(validUntil) }),
-      },
-      { upsert: true, new: true }
-    );
+      });
+    }
 
     return NextResponse.json({ success: true, offer });
   } catch (error: any) {

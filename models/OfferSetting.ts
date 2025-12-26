@@ -17,7 +17,6 @@ const OfferSettingSchema = new Schema<IOfferSetting>(
     name: {
       type: String,
       required: true,
-      unique: true,
     },
     active: {
       type: Boolean,

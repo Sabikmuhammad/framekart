@@ -19,7 +19,8 @@ export interface LaunchOffer {
 export async function getLaunchOfferSettings(): Promise<LaunchOffer | null> {
   try {
     await connectDB();
-    const settings = await OfferSetting.findOne({ name: "Launch Offer" }).lean() as any;
+    // Fetch any active offer (not hardcoded to "Launch Offer" name)
+    const settings = await OfferSetting.findOne({ active: true }).lean() as any;
     
     if (!settings) {
       return null;
@@ -77,12 +78,13 @@ export async function getCurrentUserEligibility(userId: string): Promise<{
   orderCount: number;
   offerActive: boolean;
   discountValue: number;
+  offerName: string;
 }> {
   try {
     const offerSettings = await getLaunchOfferSettings();
 
     if (!offerSettings || !offerSettings.active) {
-      return { eligible: false, orderCount: 0, offerActive: false, discountValue: 0 };
+      return { eligible: false, orderCount: 0, offerActive: false, discountValue: 0, offerName: "Launch Offer" };
     }
 
     if (!userId) {
@@ -92,6 +94,7 @@ export async function getCurrentUserEligibility(userId: string): Promise<{
         orderCount: 0,
         offerActive: true,
         discountValue: offerSettings.discountValue,
+        offerName: offerSettings.name,
       };
     }
 
@@ -102,10 +105,11 @@ export async function getCurrentUserEligibility(userId: string): Promise<{
       orderCount,
       offerActive: true,
       discountValue: offerSettings.discountValue,
+      offerName: offerSettings.name,
     };
   } catch (error) {
     console.error("Error getting current user eligibility:", error);
-    return { eligible: false, orderCount: 0, offerActive: false, discountValue: 0 };
+    return { eligible: false, orderCount: 0, offerActive: false, discountValue: 0, offerName: "Launch Offer" };
   }
 }
 

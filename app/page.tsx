@@ -61,6 +61,7 @@ export default function HomePage() {
     eligible: true,
     discountValue: 15,
     offerActive: true,
+    offerName: "Launch Offer",
   });
 
   useEffect(() => {
@@ -88,6 +89,7 @@ export default function HomePage() {
             eligible: data.eligible ?? true,
             discountValue: data.discountValue ?? 15,
             offerActive: data.offerActive ?? true,
+            offerName: data.offerName ?? "Launch Offer",
           });
         }
       })
@@ -139,7 +141,7 @@ export default function HomePage() {
         >
           <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
             <span className="text-lg sm:text-xl font-bold flex items-center gap-2">
-              🎉 Launch Offer: Flat {eligibility.discountValue}% OFF
+              🎉 {eligibility.offerName}: Flat {eligibility.discountValue}% OFF
             </span>
             <span className="text-sm sm:text-base opacity-90">
               Auto Applied at Checkout
@@ -956,10 +958,10 @@ export default function HomePage() {
                   <div className="text-center md:text-left">
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-4">
                       <Zap className="h-5 w-5" />
-                      <span className="font-bold text-sm">LAUNCH OFFER</span>
+                      <span className="font-bold text-sm">{eligibility.offerName.toUpperCase()}</span>
                     </div>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-                      FLAT 15% OFF
+                      FLAT {eligibility.discountValue}% OFF
                     </h2>
                     <p className="text-lg sm:text-xl mb-6 text-white/90">
                       On All Frames & Wall Art

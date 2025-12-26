@@ -127,6 +127,24 @@ export default function OffersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Offer Name */}
+          <div className="space-y-2">
+            <Label htmlFor="offerName">Offer Name</Label>
+            <Input
+              id="offerName"
+              type="text"
+              value={offer.name}
+              onChange={(e) =>
+                setOffer({ ...offer, name: e.target.value })
+              }
+              placeholder="e.g., Launch Offer, New Year Sale"
+              className="max-w-md"
+            />
+            <p className="text-sm text-muted-foreground">
+              The name of your promotional offer (displayed to customers)
+            </p>
+          </div>
+
           {/* Active Toggle */}
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div>

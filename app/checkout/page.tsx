@@ -80,6 +80,7 @@ export default function CheckoutPage() {
     eligible: true,
     discountValue: 15,
     offerActive: true,
+    offerName: "Launch Offer",
   });
   const [formData, setFormData] = useState({
     email: user?.primaryEmailAddress?.emailAddress || "",
@@ -105,6 +106,7 @@ export default function CheckoutPage() {
             eligible: data.eligible || true,
             discountValue: data.discountValue || 15,
             offerActive: data.offerActive || true,
+            offerName: data.offerName || "Launch Offer",
           });
         }
       } catch (error) {
@@ -114,6 +116,7 @@ export default function CheckoutPage() {
           eligible: true,
           discountValue: 15,
           offerActive: true,
+          offerName: "Launch Offer",
         });
       }
     };
@@ -443,7 +446,7 @@ export default function CheckoutPage() {
             shipping,
             ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
               discount: {
-                name: "Launch Offer",
+                name: eligibility.offerName,
                 type: "PERCENT",
                 value: eligibility.discountValue,
                 amount: discount,
@@ -482,7 +485,7 @@ export default function CheckoutPage() {
             shipping,
             ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
               discount: {
-                name: "Launch Offer",
+                name: eligibility.offerName,
                 type: "PERCENT",
                 value: eligibility.discountValue,
                 amount: discount,
@@ -521,7 +524,7 @@ export default function CheckoutPage() {
             shipping,
             ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
               discount: {
-                name: "Launch Offer",
+                name: eligibility.offerName,
                 type: "PERCENT",
                 value: eligibility.discountValue,
                 amount: discount,
@@ -1056,7 +1059,7 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-green-600 dark:text-green-400 text-sm">
                     <span className="flex items-center gap-1 font-medium">
                       <Tag className="h-4 w-4" />
-                      Launch Offer ({eligibility.discountValue}% OFF)
+                      {eligibility.offerName} ({eligibility.discountValue}% OFF)
                     </span>
                     <span className="font-semibold">-{formatPrice(discount)}</span>
                   </div>
