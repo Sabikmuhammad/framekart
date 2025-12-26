@@ -102,7 +102,7 @@ export function getOrderConfirmationEmail(order: any) {
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
   <table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 10px;">
     <tr>
       <td align="center">
@@ -110,7 +110,7 @@ export function getOrderConfirmationEmail(order: any) {
           
           <!-- Header with Gradient -->
           <tr>
-            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center;">
+            <td style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 30px 20px; text-align: center;">
               <h1 class="header-title" style="margin: 0; font-size: 32px; font-weight: bold; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">🎨 FrameKart</h1>
               <p style="margin: 8px 0 0; font-size: 14px; color: rgba(255,255,255,0.95); letter-spacing: 1px;">PREMIUM PHOTO FRAMES</p>
             </td>
@@ -128,7 +128,7 @@ export function getOrderConfirmationEmail(order: any) {
                   </tr>
                 </table>
               </div>
-              <h2 class="success-title" style="margin: 0 0 12px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: #667eea;">Order Confirmed!</h2>
+              <h2 class="success-title" style="margin: 0 0 12px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: #3b82f6;">Order Confirmed!</h2>
               <p style="margin: 0; font-size: 15px; color: #6b7280; line-height: 1.6;">Thank you for choosing FrameKart 🙏<br/>Your order is being processed with care</p>
             </td>
           </tr>
