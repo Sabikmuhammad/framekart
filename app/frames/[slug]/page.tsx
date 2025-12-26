@@ -369,7 +369,7 @@ export default function FrameDetailPage() {
           className="mt-8 sm:mt-12 lg:mt-16 mb-6 sm:mb-8"
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">Similar Frames You'll Love</h2>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">Similar Frames You&apos;ll Love</h2>
             <Button 
               variant="outline"
               size="sm"
