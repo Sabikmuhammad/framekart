@@ -63,64 +63,100 @@ export function getOrderConfirmationEmail(order: any) {
   <title>Order Confirmation - FrameKart</title>
   <style>
     @media only screen and (max-width: 600px) {
-      .container { width: 100% !important; }
-      .padding { padding: 20px !important; }
-      .mobile-hide { display: none !important; }
+      .container { 
+        width: 100% !important; 
+        max-width: 100% !important;
+      }
+      .padding { 
+        padding: 16px !important; 
+      }
+      .mobile-stack {
+        display: block !important;
+        width: 100% !important;
+      }
+      .mobile-text-small {
+        font-size: 14px !important;
+      }
+      .mobile-text-medium {
+        font-size: 16px !important;
+      }
+      .mobile-hide { 
+        display: none !important; 
+      }
+      .mobile-full-width {
+        width: 100% !important;
+        padding: 0 !important;
+      }
+      .header-title {
+        font-size: 24px !important;
+      }
+      .success-title {
+        font-size: 22px !important;
+      }
+      .order-id-text {
+        font-size: 16px !important;
+      }
+      .total-amount {
+        font-size: 24px !important;
+      }
     }
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 10px;">
     <tr>
       <td align="center">
-        <table class="container" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden;">
+        <table class="container" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden;">
           
           <!-- Header with Gradient -->
           <tr>
-            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center;">
-              <h1 style="margin: 0; font-size: 32px; font-weight: bold; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">🎨 FrameKart</h1>
-              <p style="margin: 8px 0 0; font-size: 15px; color: rgba(255,255,255,0.95); letter-spacing: 1px;">PREMIUM PHOTO FRAMES</p>
+            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center;">
+              <h1 class="header-title" style="margin: 0; font-size: 32px; font-weight: bold; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">🎨 FrameKart</h1>
+              <p style="margin: 8px 0 0; font-size: 14px; color: rgba(255,255,255,0.95); letter-spacing: 1px;">PREMIUM PHOTO FRAMES</p>
             </td>
           </tr>
 
           <!-- Success Badge -->
           <tr>
-            <td style="padding: 40px 40px 20px; text-align: center;">
-              <div style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 80px; height: 80px; border-radius: 50%; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);">
+            <td class="padding" style="padding: 30px 20px 20px; text-align: center;">
+              <div style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 70px; height: 70px; border-radius: 50%; margin-bottom: 16px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);">
                 <table width="100%" height="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td align="center" valign="middle">
-                      <span style="font-size: 40px; color: #ffffff;">✓</span>
+                      <span style="font-size: 36px; color: #ffffff;">✓</span>
                     </td>
                   </tr>
                 </table>
               </div>
-              <h2 style="margin: 0 0 12px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Order Confirmed!</h2>
-              <p style="margin: 0; font-size: 16px; color: #6b7280; line-height: 1.6;">Thank you for choosing FrameKart 🙏<br/>Your order is being processed with care</p>
+              <h2 class="success-title" style="margin: 0 0 12px; font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: #667eea;">Order Confirmed!</h2>
+              <p style="margin: 0; font-size: 15px; color: #6b7280; line-height: 1.6;">Thank you for choosing FrameKart 🙏<br/>Your order is being processed with care</p>
             </td>
           </tr>
 
           <!-- Order Summary Card -->
           <tr>
-            <td class="padding" style="padding: 0 40px 30px;">
-              <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; padding: 24px; border: 2px solid #fbbf24;">
+            <td class="padding" style="padding: 0 20px 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; padding: 20px; border: 2px solid #fbbf24;">
                 <tr>
                   <td>
                     <table width="100%" cellpadding="0" cellspacing="0">
+                      <!-- Order ID and Date - Stack on mobile -->
                       <tr>
-                        <td style="padding-bottom: 16px;">
-                          <p style="margin: 0; font-size: 13px; color: #78350f; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Order ID</p>
-                          <p style="margin: 6px 0 0; font-size: 20px; font-weight: 700; color: #92400e;">#${orderId}</p>
-                        </td>
-                        <td style="padding-bottom: 16px; text-align: right;">
-                          <p style="margin: 0; font-size: 13px; color: #78350f; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Order Date</p>
-                          <p style="margin: 6px 0 0; font-size: 16px; font-weight: 600; color: #92400e;">${orderDate}</p>
+                        <td class="mobile-stack" style="padding-bottom: 12px; vertical-align: top;">
+                          <p style="margin: 0; font-size: 12px; color: #78350f; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Order ID</p>
+                          <p class="order-id-text" style="margin: 4px 0 0; font-size: 18px; font-weight: 700; color: #92400e; word-break: break-all;">#${orderId}</p>
                         </td>
                       </tr>
                       <tr>
-                        <td colspan="2" style="padding-top: 16px; border-top: 2px dashed #f59e0b;">
-                          <p style="margin: 0; font-size: 13px; color: #78350f; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Total Amount</p>
-                          <p style="margin: 8px 0 0; font-size: 32px; font-weight: 800; color: #92400e;">₹${order.totalAmount.toLocaleString('en-IN')}</p>
+                        <td class="mobile-stack" style="padding-bottom: 12px; vertical-align: top;">
+                          <p style="margin: 0; font-size: 12px; color: #78350f; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Order Date</p>
+                          <p class="mobile-text-small" style="margin: 4px 0 0; font-size: 14px; font-weight: 600; color: #92400e;">${orderDate}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="padding-top: 12px; border-top: 2px dashed #f59e0b;">
+                          <p style="margin: 0; font-size: 12px; color: #78350f; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Total Amount</p>
+                          <p class="total-amount" style="margin: 6px 0 0; font-size: 28px; font-weight: 800; color: #92400e;">₹${order.totalAmount.toLocaleString('en-IN')}</p>
                         </td>
                       </tr>
                     </table>
@@ -129,11 +165,8 @@ export function getOrderConfirmationEmail(order: any) {
               </table>
             </td>
           </tr>
-
-          <!-- Order Items -->
-          <tr>
-            <td class="padding" style="padding: 0 40px 30px;">
-              <h3 style="margin: 0 0 16px; font-size: 20px; font-weight: 700; color: #111827;">📦 Order Items</h3>
+20px 20px;">
+              <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #111827;">📦 Order Items</h3>
               <table width="100%" cellpadding="0" cellspacing="0" style="border: 2px solid #e5e7eb; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
                 ${itemsHtml}
               </table>
@@ -142,13 +175,13 @@ export function getOrderConfirmationEmail(order: any) {
 
           <!-- Delivery Address -->
           <tr>
-            <td class="padding" style="padding: 0 40px 30px;">
-              <h3 style="margin: 0 0 16px; font-size: 20px; font-weight: 700; color: #111827;">🏠 Delivery Address</h3>
-              <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); border-radius: 12px; padding: 24px; border: 2px solid #818cf8;">
+            <td class="padding" style="padding: 0 20px 20px;">
+              <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #111827;">🏠 Delivery Address</h3>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); border-radius: 12px; padding: 16px; border: 2px solid #818cf8;">
                 <tr>
                   <td>
-                    <p style="margin: 0; font-weight: 700; color: #312e81; font-size: 16px;">${order.address.fullName}</p>
-                    <p style="margin: 12px 0 0; font-size: 14px; color: #4338ca; line-height: 1.8;">
+                    <p style="margin: 0; font-weight: 700; color: #312e81; font-size: 15px;">${order.address.fullName}</p>
+                    <p style="margin: 10px 0 0; font-size: 13px; color: #4338ca; line-height: 1.8;">
                       ${order.address.addressLine1}<br/>
                       ${order.address.addressLine2 ? `${order.address.addressLine2}<br/>` : ''}
                       ${order.address.city}, ${order.address.state} ${order.address.pincode}<br/>
@@ -162,12 +195,12 @@ export function getOrderConfirmationEmail(order: any) {
 
           <!-- Timeline & Next Steps -->
           <tr>
-            <td class="padding" style="padding: 0 40px 30px;">
-              <h3 style="margin: 0 0 16px; font-size: 20px; font-weight: 700; color: #111827;">⏰ What's Next?</h3>
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0fdf4; border-radius: 12px; padding: 20px; border-left: 6px solid #10b981;">
+            <td class="padding" style="padding: 0 20px 20px;">
+              <h3 style="margin: 0 0 12px; font-size: 18px; font-weight: 700; color: #111827;">⏰ What's Next?</h3>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0fdf4; border-radius: 12px; padding: 16px; border-left: 6px solid #10b981;">
                 <tr>
                   <td>
-                    <p style="margin: 0 0 12px; font-size: 15px; color: #065f46; line-height: 1.6;">
+                    <p style="margin: 0 0 10px; font-size: 14px; color: #065f46; line-height: 1.8;">
                       <strong style="color: #047857;">✓ Order Confirmed</strong> - We've received your order<br/>
                       <strong style="color: #047857;">⏳ Processing</strong> - We're preparing your frames (1-2 days)<br/>
                       <strong style="color: #047857;">🚚 Shipping</strong> - Your order will be shipped soon<br/>
@@ -181,11 +214,11 @@ export function getOrderConfirmationEmail(order: any) {
 
           <!-- CTA Button -->
           <tr>
-            <td class="padding" style="padding: 0 40px 30px; text-align: center;">
+            <td class="padding" style="padding: 0 20px 20px; text-align: center;">
               <table cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center">
-                    <a href="https://framekart.co.in/orders/${order._id}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+                    <a href="https://framekart.co.in/orders/${order._id}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 15px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
                       🔍 Track Your Order
                     </a>
                   </td>
@@ -196,13 +229,13 @@ export function getOrderConfirmationEmail(order: any) {
 
           <!-- Social Media -->
           <tr>
-            <td class="padding" style="padding: 0 40px 30px; text-align: center;">
-              <table cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); border-radius: 12px; padding: 24px;">
+            <td class="padding" style="padding: 0 20px 20px; text-align: center;">
+              <table cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); border-radius: 12px; padding: 20px;">
                 <tr>
                   <td align="center">
-                    <p style="margin: 0 0 12px; font-size: 16px; font-weight: 700; color: #831843;">📸 Follow Us on Instagram!</p>
-                    <p style="margin: 0 0 16px; font-size: 14px; color: #9f1239;">Get inspired by latest designs & exclusive offers</p>
-                    <a href="https://www.instagram.com/framekart.co.in" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                    <p style="margin: 0 0 10px; font-size: 15px; font-weight: 700; color: #831843;">📸 Follow Us on Instagram!</p>
+                    <p style="margin: 0 0 14px; font-size: 13px; color: #9f1239;">Get inspired by latest designs & exclusive offers</p>
+                    <a href="https://www.instagram.com/framekart.co.in" style="display: inline-block; padding: 10px 24px; background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 13px;">
                       Follow @framekart.co.in
                     </a>
                   </td>
@@ -213,12 +246,12 @@ export function getOrderConfirmationEmail(order: any) {
 
           <!-- Support -->
           <tr>
-            <td class="padding" style="padding: 0 40px 30px;">
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; border-radius: 12px; padding: 20px; text-align: center;">
+            <td class="padding" style="padding: 0 20px 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; border-radius: 12px; padding: 16px; text-align: center;">
                 <tr>
                   <td>
-                    <p style="margin: 0 0 8px; font-size: 15px; font-weight: 600; color: #334155;">Need Help?</p>
-                    <p style="margin: 0; font-size: 14px; color: #64748b;">
+                    <p style="margin: 0 0 6px; font-size: 14px; font-weight: 600; color: #334155;">Need Help?</p>
+                    <p style="margin: 0; font-size: 13px; color: #64748b;">
                       <a href="https://framekart.co.in/contact" style="color: #667eea; text-decoration: none; font-weight: 600;">Contact Support</a> | 
                       <a href="https://framekart.co.in" style="color: #667eea; text-decoration: none; font-weight: 600;">Visit Website</a>
                     </p>
@@ -230,11 +263,14 @@ export function getOrderConfirmationEmail(order: any) {
 
           <!-- Footer -->
           <tr>
-            <td style="padding: 30px 40px; background-color: #1f2937; text-align: center; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
-              <p style="margin: 0 0 8px; font-size: 14px; color: #d1d5db; font-weight: 600;">
+            <td style="padding: 24px 20px; background-color: #1f2937; text-align: center; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+              <p style="margin: 0 0 6px; font-size: 13px; color: #d1d5db; font-weight: 600;">
                 © ${new Date().getFullYear()} FrameKart. All rights reserved.
               </p>
-              <p style="margin: 0 0 12px; font-size: 12px; color: #9ca3af;">
+              <p style="margin: 0 0 10px; font-size: 11px; color: #9ca3af;">
+                Premium Photo Frames | Made with ❤️ in India
+              </p>
+              <p style="margin: 0; font-size: 10ize: 12px; color: #9ca3af;">
                 Premium Photo Frames | Made with ❤️ in India
               </p>
               <p style="margin: 0; font-size: 11px; color: #6b7280;">

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Check, Loader2, ShoppingCart, Info, Sparkles, ArrowLeft, ZoomIn } from "lucide-react";
+import { Upload, Check, Loader2, ShoppingCart, Info, Sparkles, ArrowLeft, ZoomIn, ZoomOut, X, Move } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/store/cart";
@@ -57,7 +57,12 @@ export default function OccasionFramePage({ params }: PageProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showFullPreview, setShowFullPreview] = useState(false);
+  const [imageScale, setImageScale] = useState(1);
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { addItem } = useCartStore();
   const router = useRouter();
@@ -142,6 +147,48 @@ export default function OccasionFramePage({ params }: PageProps) {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleRemoveImage = () => {
+    setUploadedImage("");
+    setUploadedImageUrl("");
+    setImageScale(1);
+    setImagePosition({ x: 0, y: 0 });
+    toast({
+      title: "Image removed",
+      description: "You can upload a new image anytime.",
+    });
+  };
+
+  const handleZoomIn = () => {
+    setImageScale(prev => Math.min(prev + 0.1, 3));
+  };
+
+  const handleZoomOut = () => {
+    setImageScale(prev => Math.max(prev - 0.1, 0.5));
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!uploadedImage) return;
+    e.stopPropagation();
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - imagePosition.x,
+      y: e.clientY - imagePosition.y,
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    setImagePosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
 
   const handleAddToCart = () => {
@@ -285,42 +332,70 @@ export default function OccasionFramePage({ params }: PageProps) {
                   <Sparkles className="h-6 w-6 text-primary" />
                   Live Preview
                 </h2>
+                {uploadedImage && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleRemoveImage}
+                    className="gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Remove
+                  </Button>
+                )}
               </div>
               
               <div className="flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-8">
-                <motion.div
-                  key={frameSize}
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
+                <div
                   className="relative w-full max-w-md"
                   style={{ aspectRatio: `${frameRatio.width} / ${frameRatio.height}` }}
                 >
                   <motion.div 
-                    className="absolute inset-0 rounded-sm"
+                    key={frameSize}
+                    className="absolute inset-0 rounded-sm transition-all"
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
                     style={{
                       padding: frameSize === "A4" ? "20px" : frameSize === "12x18" ? "24px" : frameSize === "18x24" ? "28px" : "32px",
                       boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
-                    }}
-                    animate={{
                       backgroundColor: frameStyle === "Black" ? "#1a1a1a" : frameStyle === "White" ? "#f8f8f8" : "#8B4513",
                     }}
                   >
-                    <div className="relative w-full h-full bg-white dark:bg-gray-100 rounded-sm shadow-2xl overflow-hidden">
+                    <div 
+                      ref={imageContainerRef}
+                      className={`relative w-full h-full bg-white dark:bg-gray-100 rounded-sm shadow-2xl overflow-hidden ${!uploadedImage ? 'cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all' : ''}`}
+                      onClick={() => !isUploading && !uploadedImage && fileInputRef.current?.click()}
+                      onMouseDown={handleMouseDown}
+                      onMouseMove={handleMouseMove}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseUp}
+                      style={{ cursor: uploadedImage ? (isDragging ? 'grabbing' : 'grab') : 'pointer' }}
+                    >
                       <AnimatePresence mode="wait">
                         {uploadedImage ? (
-                          <motion.img
+                          <img
                             key={uploadedImage}
                             src={uploadedImage}
                             alt="Preview"
-                            className="w-full h-full object-cover"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
+                            className="w-full h-full object-cover select-none"
+                            draggable={false}
+                            style={{
+                              transform: `scale(${imageScale}) translate(${imagePosition.x / imageScale}px, ${imagePosition.y / imageScale}px)`,
+                              transformOrigin: 'center center',
+                              pointerEvents: 'none',
+                            }}
                           />
                         ) : (
-                          <motion.div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                          <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100"
+                          >
                             <div className="text-center text-gray-400 p-6">
                               <Upload className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                              <p className="text-sm font-medium">Upload an image to preview</p>
+                              <p className="text-sm font-medium">Click to upload an image</p>
+                              <p className="text-xs mt-1 opacity-75">or use the button below</p>
                             </div>
                           </motion.div>
                         )}
@@ -333,8 +408,45 @@ export default function OccasionFramePage({ params }: PageProps) {
                       <Loader2 className="w-12 h-12 text-white animate-spin" />
                     </div>
                   )}
-                </motion.div>
+                </div>
               </div>
+
+              {/* Image Controls */}
+              {uploadedImage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 flex items-center justify-center gap-2"
+                >
+                  <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleZoomOut}
+                      disabled={imageScale <= 0.5}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ZoomOut className="h-4 w-4" />
+                    </Button>
+                    <span className="text-xs font-medium px-2 min-w-[3rem] text-center">
+                      {Math.round(imageScale * 100)}%
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleZoomIn}
+                      disabled={imageScale >= 3}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ZoomIn className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
+                    <Move className="h-3 w-3" />
+                    Drag to position
+                  </div>
+                </motion.div>
+              )}
             </div>
           </motion.div>
 

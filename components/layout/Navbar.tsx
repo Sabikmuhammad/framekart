@@ -9,9 +9,11 @@ import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const { isSignedIn, user } = useUser();
-  const getTotalItems = useCartStore((state) => state.getTotalItems);
+  const items = useCartStore((state) => state.items);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  
+  const cartCount = items.reduce((total, item) => total + item.quantity, 0);
   
   useEffect(() => {
     setMounted(true);
@@ -69,9 +71,9 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <Link href="/cart" className="relative">
             <ShoppingCart className="h-5 w-5" />
-            {mounted && getTotalItems() > 0 && (
+            {mounted && cartCount > 0 && (
               <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
-                {getTotalItems()}
+                {cartCount}
               </span>
             )}
           </Link>

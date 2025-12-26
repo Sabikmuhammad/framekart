@@ -6,15 +6,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
-import { Package, FileText, Truck, RotateCcw, Shield, Lock, ChevronRight, User, Settings, LogOut } from "lucide-react";
+import { Package, FileText, Truck, RotateCcw, Shield, Lock, ChevronRight, User, Settings, LogOut, MapPin, Plus, Trash2, Edit, Check, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
+  "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh",
+  "Lakshadweep", "Puducherry",
+];
 
 export default function ProfilePage() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const router = useRouter();
+  const { toast } = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addressLoading, setAddressLoading] = useState(true);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [addressForm, setAddressForm] = useState({
+    fullName: "",
+    phone: "",
+    addressLine1: "",
+    addressLine2: "",
+    landmark: "",
+    city: "",
+    state: "",
+    pincode: "",
+    isDefault: false,
+  });
 
   useEffect(() => {
     fetch("/api/orders/user")
@@ -33,6 +63,122 @@ export default function ProfilePage() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Fetch saved addresses
+  useEffect(() => {
+    fetch("/api/addresses")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setAddresses(data.data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching addresses:", error);
+      })
+      .finally(() => setAddressLoading(false));
+  }, []);
+
+  // Handle address form submission
+  const handleAddressSubmit = async () => {
+    try {
+      const url = editingAddressId 
+        ? `/api/addresses/${editingAddressId}` 
+        : "/api/addresses";
+      const method = editingAddressId ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(addressForm),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: editingAddressId ? "Address updated" : "Address added",
+          description: "Your address has been saved successfully",
+        });
+
+        // Refresh addresses
+        const addressesRes = await fetch("/api/addresses");
+        const addressesData = await addressesRes.json();
+        if (addressesData.success) {
+          setAddresses(addressesData.data);
+        }
+
+        // Reset form
+        setShowAddressForm(false);
+        setEditingAddressId(null);
+        setAddressForm({
+          fullName: "",
+          phone: "",
+          addressLine1: "",
+          addressLine2: "",
+          landmark: "",
+          city: "",
+          state: "",
+          pincode: "",
+          isDefault: false,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to save address",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save address",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle delete address
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!confirm("Are you sure you want to delete this address?")) return;
+
+    try {
+      const response = await fetch(`/api/addresses/${addressId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setAddresses(addresses.filter((addr) => addr._id !== addressId));
+        toast({
+          title: "Address deleted",
+          description: "Your address has been removed",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete address",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle edit address
+  const handleEditAddress = (address: any) => {
+    setEditingAddressId(address._id);
+    setAddressForm({
+      fullName: address.fullName,
+      phone: address.phone,
+      addressLine1: address.addressLine1,
+      addressLine2: address.addressLine2,
+      landmark: address.landmark || "",
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      isDefault: address.isDefault,
+    });
+    setShowAddressForm(true);
+  };
 
   const policyLinks = [
     { href: "/shipping-policy", label: "Shipping Policy", icon: Truck, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/20" },
@@ -157,6 +303,237 @@ export default function ProfilePage() {
                     </Link>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Saved Addresses Section */}
+            <Card className="shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3 sm:pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                    Saved Addresses
+                  </CardTitle>
+                  {!showAddressForm && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setShowAddressForm(true);
+                        setEditingAddressId(null);
+                        setAddressForm({
+                          fullName: user?.fullName || "",
+                          phone: "",
+                          addressLine1: "",
+                          addressLine2: "",
+                          landmark: "",
+                          city: "",
+                          state: "",
+                          pincode: "",
+                          isDefault: addresses.length === 0,
+                        });
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {addressLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(2)].map((_, i) => (
+                      <div key={i} className="h-24 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+                    ))}
+                  </div>
+                ) : showAddressForm ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs">Full Name*</Label>
+                        <Input
+                          value={addressForm.fullName}
+                          onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
+                          placeholder="Your name"
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Phone*</Label>
+                        <Input
+                          value={addressForm.phone}
+                          onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                          placeholder="10 digits"
+                          maxLength={10}
+                          className="text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">House/Building*</Label>
+                      <Input
+                        value={addressForm.addressLine1}
+                        onChange={(e) => setAddressForm({ ...addressForm, addressLine1: e.target.value })}
+                        placeholder="Flat, Building name"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Street/Area*</Label>
+                      <Input
+                        value={addressForm.addressLine2}
+                        onChange={(e) => setAddressForm({ ...addressForm, addressLine2: e.target.value })}
+                        placeholder="Road, Colony, Area"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Landmark</Label>
+                      <Input
+                        value={addressForm.landmark}
+                        onChange={(e) => setAddressForm({ ...addressForm, landmark: e.target.value })}
+                        placeholder="Optional"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <Label className="text-xs">Pincode*</Label>
+                        <Input
+                          value={addressForm.pincode}
+                          onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })}
+                          placeholder="6 digits"
+                          maxLength={6}
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">City*</Label>
+                        <Input
+                          value={addressForm.city}
+                          onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                          placeholder="City"
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">State*</Label>
+                        <Select
+                          value={addressForm.state}
+                          onValueChange={(value) => setAddressForm({ ...addressForm, state: value })}
+                        >
+                          <SelectTrigger className="text-sm h-9">
+                            <SelectValue placeholder="State" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[200px]">
+                            {INDIAN_STATES.map((state) => (
+                              <SelectItem key={state} value={state} className="text-sm">
+                                {state}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded">
+                      <input
+                        type="checkbox"
+                        id="isDefault"
+                        checked={addressForm.isDefault}
+                        onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
+                        className="h-4 w-4 rounded"
+                      />
+                      <Label htmlFor="isDefault" className="text-xs cursor-pointer">
+                        Set as default address
+                      </Label>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button onClick={handleAddressSubmit} className="flex-1" size="sm">
+                        <Check className="h-4 w-4 mr-1" />
+                        Save
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setShowAddressForm(false);
+                          setEditingAddressId(null);
+                        }}
+                        variant="outline"
+                        className="flex-1"
+                        size="sm"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : addresses.length > 0 ? (
+                  <div className="space-y-3">
+                    {addresses.map((address) => (
+                      <div
+                        key={address._id}
+                        className="p-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary transition-all relative group"
+                      >
+                        <div className="pr-16">
+                          <p className="font-semibold text-sm">{address.fullName}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {address.addressLine1}, {address.addressLine2}
+                            {address.landmark && `, ${address.landmark}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {address.city}, {address.state} - {address.pincode}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            📞 {address.phone}
+                          </p>
+                          {address.isDefault && (
+                            <span className="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <div className="absolute top-3 right-3 flex gap-1">
+                          <button
+                            onClick={() => handleEditAddress(address)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded transition-colors"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAddress(address._id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <MapPin className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm text-muted-foreground mb-3">No saved addresses</p>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setShowAddressForm(true);
+                        setAddressForm({
+                          fullName: user?.fullName || "",
+                          phone: "",
+                          addressLine1: "",
+                          addressLine2: "",
+                          landmark: "",
+                          city: "",
+                          state: "",
+                          pincode: "",
+                          isDefault: true,
+                        });
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Address
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

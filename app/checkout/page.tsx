@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { calculateOrderTotalClient } from "@/lib/launchOfferClient";
-import { Tag, MapPin, Building2, Home } from "lucide-react";
+import { Tag, MapPin, Building2, Home, Loader2, AlertCircle, CheckCircle2, Plus, Trash2, Check } from "lucide-react";
 
 const INDIAN_STATES = [
   "Andhra Pradesh",
@@ -69,6 +69,13 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentInitiated, setPaymentInitiated] = useState(false);
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [pincodeError, setPincodeError] = useState<string>("");
+  const [pincodeValid, setPincodeValid] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  const [saveAddress, setSaveAddress] = useState(false);
   const [eligibility, setEligibility] = useState({
     eligible: true,
     discountValue: 15,
@@ -113,6 +120,96 @@ export default function CheckoutPage() {
     
     fetchEligibility();
   }, [isSignedIn]);
+
+  // Fetch saved addresses on mount
+  reactUseEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const response = await fetch("/api/addresses");
+        const data = await response.json();
+        if (data.success) {
+          setSavedAddresses(data.data);
+          
+          // Auto-select default address if exists
+          const defaultAddress = data.data.find((addr: any) => addr.isDefault);
+          if (defaultAddress && !showNewAddressForm) {
+            setSelectedAddressId(defaultAddress._id);
+            loadAddressToForm(defaultAddress);
+          } else if (data.data.length > 0 && !showNewAddressForm) {
+            // Select first address if no default
+            setSelectedAddressId(data.data[0]._id);
+            loadAddressToForm(data.data[0]);
+          } else {
+            // Show new address form if no saved addresses
+            setShowNewAddressForm(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching addresses:", error);
+        setShowNewAddressForm(true);
+      }
+    };
+
+    if (isSignedIn) {
+      fetchAddresses();
+    }
+  }, [isSignedIn]);
+
+  // Load address data to form
+  const loadAddressToForm = (address: any) => {
+    setFormData({
+      email: user?.primaryEmailAddress?.emailAddress || "",
+      fullName: address.fullName,
+      phone: address.phone,
+      addressLine1: address.addressLine1,
+      addressLine2: address.addressLine2,
+      landmark: address.landmark || "",
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+    });
+    setPincodeValid(true);
+    setPincodeError("");
+  };
+
+  // Handle address selection
+  const handleAddressSelect = (addressId: string) => {
+    setSelectedAddressId(addressId);
+    const address = savedAddresses.find((addr) => addr._id === addressId);
+    if (address) {
+      loadAddressToForm(address);
+      setShowNewAddressForm(false);
+    }
+  };
+
+  // Handle delete address
+  const handleDeleteAddress = async (addressId: string) => {
+    try {
+      const response = await fetch(`/api/addresses/${addressId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setSavedAddresses(savedAddresses.filter((addr) => addr._id !== addressId));
+        toast({
+          title: "Address deleted",
+          description: "Your address has been removed",
+        });
+        
+        // If deleted address was selected, show new address form
+        if (selectedAddressId === addressId) {
+          setShowNewAddressForm(true);
+          setSelectedAddressId("");
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete address",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Calculate pricing with discount (client-side for display only)
   const subtotal = getTotalPrice();
@@ -172,7 +269,71 @@ export default function CheckoutPage() {
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Reset pincode validation when user types
+    if (name === "pincode") {
+      setPincodeError("");
+      setPincodeValid(false);
+    }
+  };
+
+  // Validate pincode and auto-fill city & state
+  const validatePincode = async (pincode: string) => {
+    // Reset states
+    setPincodeError("");
+    setPincodeValid(false);
+
+    // Format validation: exactly 6 digits, numeric only
+    const pincodeRegex = /^[0-9]{6}$/;
+    if (!pincodeRegex.test(pincode)) {
+      setPincodeError("Pincode must be exactly 6 digits");
+      return;
+    }
+
+    // Call India Post API
+    setPincodeLoading(true);
+
+    try {
+      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      
+      if (!response.ok) {
+        throw new Error("Unable to validate pincode. Please try again.");
+      }
+
+      const data = await response.json();
+
+      // Check API response
+      if (data && data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
+        const postOffice = data[0].PostOffice[0];
+        
+        // Auto-fill city and state
+        setFormData((prev) => ({
+          ...prev,
+          city: postOffice.District || prev.city,
+          state: postOffice.State || prev.state,
+        }));
+
+        setPincodeValid(true);
+        setPincodeError("");
+      } else {
+        // Invalid pincode or API error
+        setPincodeError("Invalid pincode. Please enter a valid Indian pincode.");
+      }
+    } catch (error) {
+      console.error("Pincode validation error:", error);
+      setPincodeError("Unable to validate pincode. Please check your internet connection.");
+    } finally {
+      setPincodeLoading(false);
+    }
+  };
+
+  // Handle pincode blur event
+  const handlePincodeBlur = () => {
+    if (formData.pincode && formData.pincode.length === 6) {
+      validatePincode(formData.pincode);
+    }
   };
 
   const handlePayment = async () => {
@@ -213,11 +374,50 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate pincode
+    if (!pincodeValid && formData.pincode) {
+      await validatePincode(formData.pincode);
+      
+      // Check again after validation
+      if (pincodeError || !pincodeValid) {
+        toast({
+          title: "Invalid Pincode",
+          description: "Please enter a valid Indian pincode",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     setProcessingPayment(true);
     setPaymentInitiated(true);
 
     try {
+      // Save address if checkbox is checked and it's a new address
+      if (saveAddress && showNewAddressForm) {
+        try {
+          await fetch("/api/addresses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fullName: formData.fullName,
+              phone: formData.phone,
+              addressLine1: formData.addressLine1,
+              addressLine2: formData.addressLine2,
+              landmark: formData.landmark,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+              isDefault: savedAddresses.length === 0, // First address is default
+            }),
+          });
+        } catch (error) {
+          console.error("Failed to save address:", error);
+          // Continue with payment even if address save fails
+        }
+      }
+
       // Check if cart contains custom frames or template frames
       const hasCustomFrames = items.some(item => item.isCustom);
       const hasTemplateFrames = items.some(item => item.isTemplate);
@@ -464,6 +664,115 @@ export default function CheckoutPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 sm:gap-4">
+                {/* Saved Addresses Section */}
+                {savedAddresses.length > 0 && (
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">Select Delivery Address</Label>
+                    <div className="grid gap-2">
+                      {savedAddresses.map((address) => (
+                        <div
+                          key={address._id}
+                          onClick={() => handleAddressSelect(address._id)}
+                          className={`relative p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                            selectedAddressId === address._id
+                              ? 'border-primary bg-primary/5'
+                              : 'border-gray-200 hover:border-primary/50'
+                          }`}
+                        >
+                          {/* Selection Indicator */}
+                          {selectedAddressId === address._id && (
+                            <div className="absolute top-3 right-3">
+                              <div className="bg-primary text-white rounded-full p-1">
+                                <Check className="h-4 w-4" />
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Address Details */}
+                          <div className="pr-10">
+                            <p className="font-semibold text-sm">{address.fullName}</p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {address.addressLine1}, {address.addressLine2}
+                              {address.landmark && `, ${address.landmark}`}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {address.city}, {address.state} - {address.pincode}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Phone: {address.phone}
+                            </p>
+                            {address.isDefault && (
+                              <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
+                                Default Address
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteAddress(address._id);
+                            }}
+                            className="absolute bottom-3 right-3 p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add New Address Button */}
+                    {!showNewAddressForm && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowNewAddressForm(true);
+                          setSelectedAddressId("");
+                          setFormData({
+                            email: user?.primaryEmailAddress?.emailAddress || "",
+                            fullName: user?.fullName || "",
+                            phone: "",
+                            addressLine1: "",
+                            addressLine2: "",
+                            landmark: "",
+                            city: "",
+                            state: "",
+                            pincode: "",
+                          });
+                        }}
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New Address
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {/* New Address Form */}
+                {showNewAddressForm && (
+                  <>
+                    {savedAddresses.length > 0 && (
+                      <div className="flex items-center justify-between pb-2 border-b">
+                        <Label className="text-base font-semibold">New Delivery Address</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setShowNewAddressForm(false);
+                            if (savedAddresses.length > 0) {
+                              handleAddressSelect(savedAddresses[0]._id);
+                            }
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+
                 {/* Email */}
                 <div className="grid gap-2">
                   <Label htmlFor="email" className="flex items-center gap-2">
@@ -578,6 +887,9 @@ export default function CheckoutPage() {
                     <Label htmlFor="city" className="flex items-center gap-2">
                       <span>City</span>
                       <span className="text-red-500">*</span>
+                      {pincodeValid && (
+                        <span className="text-xs text-green-600 font-normal">(auto-filled)</span>
+                      )}
                     </Label>
                     <Input
                       id="city"
@@ -585,6 +897,8 @@ export default function CheckoutPage() {
                       placeholder="Your city"
                       value={formData.city}
                       onChange={handleInputChange}
+                      readOnly={pincodeValid}
+                      className={pincodeValid ? 'bg-green-50 dark:bg-green-950/10' : ''}
                       required
                     />
                   </div>
@@ -593,15 +907,19 @@ export default function CheckoutPage() {
                     <Label htmlFor="state" className="flex items-center gap-2">
                       <span>State</span>
                       <span className="text-red-500">*</span>
+                      {pincodeValid && (
+                        <span className="text-xs text-green-600 font-normal">(auto-filled)</span>
+                      )}
                     </Label>
                     <Select
                       value={formData.state}
                       onValueChange={(value) =>
                         setFormData((prev) => ({ ...prev, state: value }))
                       }
+                      disabled={pincodeValid}
                       required
                     >
-                      <SelectTrigger id="state">
+                      <SelectTrigger id="state" className={pincodeValid ? 'bg-green-50 dark:bg-green-950/10' : ''}>
                         <SelectValue placeholder="Select state" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
@@ -619,17 +937,47 @@ export default function CheckoutPage() {
                       <span>Pincode</span>
                       <span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      id="pincode"
-                      name="pincode"
-                      type="text"
-                      placeholder="6-digit code"
-                      value={formData.pincode}
-                      onChange={handleInputChange}
-                      maxLength={6}
-                      pattern="[0-9]{6}"
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="pincode"
+                        name="pincode"
+                        type="text"
+                        placeholder="6-digit code"
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                        onBlur={handlePincodeBlur}
+                        maxLength={6}
+                        pattern="[0-9]{6}"
+                        required
+                        className={`pr-10 ${pincodeError ? 'border-red-500 focus-visible:ring-red-500' : pincodeValid ? 'border-green-500 focus-visible:ring-green-500' : ''}`}
+                      />
+                      {/* Loading/Success/Error Icon */}
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {pincodeLoading && (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                        {!pincodeLoading && pincodeValid && (
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        )}
+                        {!pincodeLoading && pincodeError && (
+                          <AlertCircle className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                    </div>
+                    {/* Error Message */}
+                    {pincodeError && (
+                      <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 dark:bg-red-950/20 p-2 rounded-md animate-in fade-in slide-in-from-top-1 duration-200">
+                        <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>{pincodeError}</span>
+                      </div>
+                    )}
+                    {/* Success Message */}
+                    {pincodeValid && !pincodeError && (
+                      <div className="flex items-start gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-950/20 p-2 rounded-md animate-in fade-in slide-in-from-top-1 duration-200">
+                        <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>Valid pincode • City and state auto-filled</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -646,6 +994,24 @@ export default function CheckoutPage() {
                     onChange={handleInputChange}
                   />
                 </div>
+
+                {/* Save Address Checkbox */}
+                {showNewAddressForm && (
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <input
+                      type="checkbox"
+                      id="saveAddress"
+                      checked={saveAddress}
+                      onChange={(e) => setSaveAddress(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <Label htmlFor="saveAddress" className="text-sm font-medium cursor-pointer">
+                      Save this address for future orders
+                    </Label>
+                  </div>
+                )}
+                </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -718,7 +1084,7 @@ export default function CheckoutPage() {
 
               <Button
                 onClick={handlePayment}
-                disabled={loading || processingPayment || paymentInitiated}
+                disabled={loading || processingPayment || paymentInitiated || (formData.pincode.length === 6 && !pincodeValid) || pincodeLoading}
                 className="mt-4 sm:mt-6 w-full"
                 size="lg"
               >
@@ -731,6 +1097,16 @@ export default function CheckoutPage() {
                   <span className="flex items-center gap-2">
                     <span className="animate-spin">⏳</span>
                     Please wait...
+                  </span>
+                ) : pincodeLoading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Validating pincode...
+                  </span>
+                ) : (formData.pincode.length === 6 && !pincodeValid && !pincodeLoading) ? (
+                  <span className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Invalid Pincode
                   </span>
                 ) : (
                   "Proceed to Payment"
