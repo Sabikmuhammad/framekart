@@ -211,7 +211,7 @@ export default function Footer() {
                 <Heart className="inline h-4 w-4 text-red-500 fill-red-500" /> in India
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                Legal Business Name: DASARABETTU ABDUL RAHIMAN
+                {/* Legal Business Name: DASARABETTU ABDUL RAHIMAN */}
               </p>
             </div>
             <div className="flex items-center gap-6 text-xs text-gray-500 dark:text-gray-500">

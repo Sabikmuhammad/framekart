@@ -67,11 +67,11 @@ export default function AboutPage() {
             FrameKart brings together craftsmanship and contemporary design to help you display what matters most. We create frames that elevate interiors and preserve memories for generations.
           </p>
           
-          <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+          {/* <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-sm text-gray-700 dark:text-gray-300">
               <span className="font-semibold">Legal Business Name:</span> DASARABETTU ABDUL RAHIMAN
             </p>
-          </div>
+          </div> */}
 
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/frames" className="inline-flex items-center rounded-lg bg-primary px-5 py-3 text-white shadow hover:opacity-95 transition">
@@ -185,7 +185,7 @@ export default function AboutPage() {
       </section>
 
       {/* TEAM */}
-      <section className="mb-16">
+      {/* <section className="mb-16">
         <h2 className="text-2xl md:text-3xl font-bold mb-6">Meet the Team</h2>
         <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
           {[
@@ -205,7 +205,7 @@ export default function AboutPage() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* FAQ / Footer CTA */}
       <section className="mb-24 grid gap-6 md:grid-cols-3">
