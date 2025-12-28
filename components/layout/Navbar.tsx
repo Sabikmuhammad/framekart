@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useUser, UserButton } from "@clerk/nextjs";
-import { ShoppingCart, Menu, Shield } from "lucide-react";
+import { ShoppingCart, Menu, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
 import { useState, useEffect } from "react";
@@ -89,8 +90,18 @@ export default function Navbar() {
                 </Link>
               )}
               <Link href="/profile">
-                <Button variant="ghost" size="sm">
-                  Profile
+                <Button variant="ghost" size="sm" className="gap-2 p-1.5">
+                  {user?.imageUrl ? (
+                    <Image
+                      src={user.imageUrl}
+                      alt="Profile"
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <User className="h-4 w-4" />
+                  )}
                 </Button>
               </Link>
             </>

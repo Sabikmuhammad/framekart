@@ -40,6 +40,21 @@ export interface IOrder {
   type?: "regular" | "custom";
   customFrame?: {
     imageUrl: string;
+    uploadedImage?: {
+      originalUrl: string;
+      croppedUrl?: string;
+      width: number;
+      height: number;
+      orientation: "portrait" | "landscape" | "square";
+      isCropped: boolean;
+      cropData?: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        zoom?: number;
+      };
+    };
     frameStyle: "Black" | "White" | "Wooden";
     frameSize: "A4" | "12x18" | "18x24" | "24x36";
     customerNotes?: string;
@@ -147,6 +162,27 @@ const OrderSchema = new Schema<IOrder>(
     },
     customFrame: {
       imageUrl: String,
+      uploadedImage: {
+        originalUrl: String,
+        croppedUrl: String,
+        width: Number,
+        height: Number,
+        orientation: {
+          type: String,
+          enum: ["portrait", "landscape", "square"],
+        },
+        isCropped: {
+          type: Boolean,
+          default: false,
+        },
+        cropData: {
+          x: Number,
+          y: Number,
+          width: Number,
+          height: Number,
+          zoom: Number,
+        },
+      },
       frameStyle: {
         type: String,
         enum: ["Black", "White", "Wooden"],

@@ -151,11 +151,59 @@ export function OrderDetailDrawer({ order, isOpen, onClose }: OrderDetailProps) 
               <div>
                 <h3 className="font-semibold mb-3">Custom Frame Details</h3>
                 <div className="space-y-3">
-                  <img
-                    src={order.customFrame.imageUrl}
-                    alt="Custom frame"
-                    className="w-full rounded border"
-                  />
+                  {/* Image Status Badge */}
+                  {order.customFrame.uploadedImage && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant={order.customFrame.uploadedImage.isCropped ? "default" : "secondary"}>
+                        {order.customFrame.uploadedImage.isCropped ? "User Cropped" : "Full Image"}
+                      </Badge>
+                      <Badge variant="outline">
+                        {order.customFrame.uploadedImage.orientation}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {order.customFrame.uploadedImage.width} × {order.customFrame.uploadedImage.height}px
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Display Images */}
+                  <div className="grid gap-3">
+                    {/* Show cropped image if exists */}
+                    {order.customFrame.uploadedImage?.isCropped && order.customFrame.uploadedImage.croppedUrl && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1 font-medium">Cropped Image (Final)</p>
+                        <img
+                          src={order.customFrame.uploadedImage.croppedUrl}
+                          alt="Cropped frame"
+                          className="w-full rounded border object-contain bg-gray-50"
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Show original image */}
+                    {order.customFrame.uploadedImage?.originalUrl && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1 font-medium">
+                          {order.customFrame.uploadedImage.isCropped ? "Original Image" : "Image (Full)"}
+                        </p>
+                        <img
+                          src={order.customFrame.uploadedImage.originalUrl}
+                          alt="Original frame"
+                          className="w-full rounded border object-contain bg-gray-50"
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Fallback to old imageUrl field */}
+                    {!order.customFrame.uploadedImage?.originalUrl && order.customFrame.imageUrl && (
+                      <img
+                        src={order.customFrame.imageUrl}
+                        alt="Custom frame"
+                        className="w-full rounded border object-contain bg-gray-50"
+                      />
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <p className="text-muted-foreground">Frame Style</p>
@@ -166,6 +214,16 @@ export function OrderDetailDrawer({ order, isOpen, onClose }: OrderDetailProps) 
                       <p className="font-medium">{order.customFrame.frameSize}</p>
                     </div>
                   </div>
+
+                  {/* Crop Instructions */}
+                  {order.customFrame.uploadedImage && !order.customFrame.uploadedImage.isCropped && (
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                      <p className="text-xs text-blue-800 dark:text-blue-300">
+                        <strong>Note:</strong> Customer chose not to crop. Please adjust spacing/mat as needed for best framing.
+                      </p>
+                    </div>
+                  )}
+
                   {order.customFrame.customerNotes && (
                     <div>
                       <p className="text-muted-foreground text-sm">Customer Notes</p>

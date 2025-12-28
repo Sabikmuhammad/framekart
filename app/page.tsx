@@ -1084,154 +1084,338 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Wedding & Birthday Frames Promotion */}
-      <section className="py-8 sm:py-12 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-8"
-          >
-            <div className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full mb-4">
-              <Heart className="h-5 w-5" />
-              <span className="font-semibold text-sm">CELEBRATE SPECIAL MOMENTS</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Personalized <span className="text-primary">Template Frames</span>
-            </h2>
-            <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
-              Upload your photo, add your personal message, and let our design team create a beautiful custom frame for your special occasion
-            </p>
-          </motion.div>
+      {/* Wedding & Birthday Frames Promotion - Advanced Modern Design */}
+      <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden bg-gradient-to-br from-gray-50 via-white to-blue-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950/30">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-blue-200/20 to-blue-300/20 dark:from-blue-500/10 dark:to-blue-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-blue-300/20 to-blue-400/20 dark:from-blue-600/10 dark:to-blue-700/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Wedding Frame Promotion */}
+        <div className="container mx-auto px-4 relative z-10">
+          {/* Header Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+            className="text-center mb-12 sm:mb-16"
+          >
+            {/* Premium Badge */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
               viewport={{ once: true }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-5 py-2.5 sm:px-6 sm:py-3 rounded-full mb-6 shadow-lg hover:shadow-xl transition-shadow"
             >
-              <Card className="border-2 border-primary/20 overflow-hidden hover:shadow-2xl transition-all duration-300 h-full">
-                <CardContent className="p-0">
-                  <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
-                    <Image
-                      src="/images/templates/wedding-template.jpg"
-                      alt="Wedding Frame Template"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                      NEW
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Heart className="h-6 w-6 text-primary" />
-                        <h3 className="text-2xl font-bold text-white">Wedding Frames</h3>
-                      </div>
-                      <p className="text-white/90 text-sm mb-4">
-                        Celebrate your love story with elegant wedding frames. Perfect for anniversaries and special memories.
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
-                          ✨ Custom Design
-                        </span>
-                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
-                          🎨 Professional Team
-                        </span>
-                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
-                          💝 A4 Size
-                        </span>
-                      </div>
-                      <Link href="/frames/wedding">
-                        <Button size="lg" className="w-full gap-2">
-                          Create Wedding Frame
-                          <ArrowRight className="h-5 w-5" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+              <span className="font-bold text-xs sm:text-sm tracking-wide">CELEBRATE SPECIAL MOMENTS</span>
             </motion.div>
 
-            {/* Birthday Frame Promotion */}
+            {/* Main Heading */}
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6">
+              <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                Personalized
+              </span>
+              <br className="sm:hidden" />
+              <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 bg-clip-text text-transparent ml-0 sm:ml-3">
+                Template Frames
+              </span>
+            </h2>
+
+            {/* Description */}
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4">
+              Upload your photo, add your personal message, and let our expert design team create a 
+              <span className="font-semibold text-gray-900 dark:text-white"> stunning custom frame </span>
+              for your special occasion
+            </p>
+
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-6 text-xs sm:text-sm">
+              <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                <Sparkles className="h-4 w-4 text-blue-500" />
+                <span className="font-medium">Professional Design</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                <Shield className="h-4 w-4 text-blue-600" />
+                <span className="font-medium">Premium Quality</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                <Truck className="h-4 w-4 text-blue-700" />
+                <span className="font-medium">Fast Delivery</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Cards Grid */}
+          <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 max-w-7xl mx-auto">
+            {/* Wedding Frame Card */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
               viewport={{ once: true }}
+              className="group"
             >
-              <Card className="border-2 border-primary/20 overflow-hidden hover:shadow-2xl transition-all duration-300 h-full">
-                <CardContent className="p-0">
-                  <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
-                    <Image
-                      src="/images/templates/birthday-template.jpg"
-                      alt="Birthday Frame Template"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                      NEW
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Cake className="h-6 w-6 text-primary" />
-                        <h3 className="text-2xl font-bold text-white">Birthday Frames</h3>
+              <Link href="/frames/wedding">
+                <Card className="relative border-0 overflow-hidden hover:shadow-2xl transition-all duration-500 h-full bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-blue-950/20">
+                  <CardContent className="p-0">
+                    {/* Image Container */}
+                    <div className="relative aspect-[4/3] sm:aspect-[16/10] overflow-hidden">
+                      {/* Background Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-blue-400/10 to-transparent z-10" />
+                      
+                      {/* Image with Parallax Effect */}
+                      <div className="absolute inset-0 transform group-hover:scale-110 transition-transform duration-700">
+                        <Image
+                          src="/images/templates/wedding-template.jpg"
+                          alt="Wedding Frame Template"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
-                      <p className="text-white/90 text-sm mb-4">
-                        Make birthdays extra special with personalized frames. Perfect gifts for loved ones!
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
-                          🎉 Fun Designs
-                        </span>
-                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
-                          🎨 Custom Message
-                        </span>
-                        <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
-                          🎁 A4 Size
-                        </span>
+
+                      {/* Dark Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-20" />
+
+                      {/* NEW Badge */}
+                      <div className="absolute top-4 right-4 z-30">
+                        <div className="relative">
+                          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-xl backdrop-blur-sm border border-white/20">
+                            NEW
+                          </div>
+                          <div className="absolute inset-0 bg-blue-400 rounded-full blur animate-ping opacity-30" />
+                        </div>
                       </div>
-                      <Link href="/frames/birthday">
-                        <Button size="lg" className="w-full gap-2">
-                          Create Birthday Frame
-                          <ArrowRight className="h-5 w-5" />
+
+                      {/* Content Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 md:p-8 z-30">
+                        {/* Icon & Title */}
+                        <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <Heart className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                          </div>
+                          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                            Wedding Frames
+                          </h3>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-white/90 text-xs sm:text-sm md:text-base mb-4 sm:mb-5 leading-relaxed max-w-md">
+                          Celebrate your love story with elegant wedding frames. Perfect for anniversaries and special memories.
+                        </p>
+
+                        {/* Feature Tags */}
+                        <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+                          <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white text-xs sm:text-sm px-3 py-1.5 rounded-full border border-white/30 hover:bg-white/30 transition-colors">
+                            <Sparkles className="h-3 w-3" />
+                            Custom Design
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white text-xs sm:text-sm px-3 py-1.5 rounded-full border border-white/30 hover:bg-white/30 transition-colors">
+                            <Users className="h-3 w-3" />
+                            Professional Team
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white text-xs sm:text-sm px-3 py-1.5 rounded-full border border-white/30 hover:bg-white/30 transition-colors">
+                            <Package className="h-3 w-3" />
+                            A4 Size
+                          </span>
+                        </div>
+
+                        {/* CTA Button */}
+                        <Button 
+                          size="lg" 
+                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-xl hover:shadow-2xl border-0 group-hover:scale-[1.02] transition-all text-sm sm:text-base py-5 sm:py-6"
+                        >
+                          <span className="font-semibold">Create Wedding Frame</span>
+                          <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
-                      </Link>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+
+                    {/* Bottom Accent */}
+                    <div className="h-1.5 bg-gradient-to-r from-blue-500 via-blue-400 to-blue-500" />
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
+
+            {/* Birthday Frame Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="group"
+            >
+              <Link href="/frames/birthday">
+                <Card className="relative border-0 overflow-hidden hover:shadow-2xl transition-all duration-500 h-full bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-blue-950/20">
+                  <CardContent className="p-0">
+                    {/* Image Container */}
+                    <div className="relative aspect-[4/3] sm:aspect-[16/10] overflow-hidden">
+                      {/* Background Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-blue-500/10 to-transparent z-10" />
+                      
+                      {/* Image with Parallax Effect */}
+                      <div className="absolute inset-0 transform group-hover:scale-110 transition-transform duration-700">
+                        <Image
+                          src="/images/templates/birthday-template.jpg"
+                          alt="Birthday Frame Template"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+
+                      {/* Dark Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-20" />
+
+                      {/* NEW Badge */}
+                      <div className="absolute top-4 right-4 z-30">
+                        <div className="relative">
+                          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-xl backdrop-blur-sm border border-white/20">
+                            NEW
+                          </div>
+                          <div className="absolute inset-0 bg-blue-500 rounded-full blur animate-ping opacity-30" />
+                        </div>
+                      </div>
+
+                      {/* Content Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 md:p-8 z-30">
+                        {/* Icon & Title */}
+                        <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <Cake className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                          </div>
+                          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                            Birthday Frames
+                          </h3>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-white/90 text-xs sm:text-sm md:text-base mb-4 sm:mb-5 leading-relaxed max-w-md">
+                          Make birthdays extra special with personalized frames. Perfect gifts for loved ones!
+                        </p>
+
+                        {/* Feature Tags */}
+                        <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+                          <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white text-xs sm:text-sm px-3 py-1.5 rounded-full border border-white/30 hover:bg-white/30 transition-colors">
+                            <Sparkles className="h-3 w-3" />
+                            Fun Designs
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white text-xs sm:text-sm px-3 py-1.5 rounded-full border border-white/30 hover:bg-white/30 transition-colors">
+                            <MessageCircle className="h-3 w-3" />
+                            Custom Message
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white text-xs sm:text-sm px-3 py-1.5 rounded-full border border-white/30 hover:bg-white/30 transition-colors">
+                            <Gift className="h-3 w-3" />
+                            A4 Size
+                          </span>
+                        </div>
+
+                        {/* CTA Button */}
+                        <Button 
+                          size="lg" 
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-xl hover:shadow-2xl border-0 group-hover:scale-[1.02] transition-all text-sm sm:text-base py-5 sm:py-6"
+                        >
+                          <span className="font-semibold">Create Birthday Frame</span>
+                          <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Bottom Accent */}
+                    <div className="h-1.5 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600" />
+                  </CardContent>
+                </Card>
+              </Link>
             </motion.div>
           </div>
 
-          {/* Features Row */}
+          {/* Features Grid - Enhanced */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="mt-12 sm:mt-16 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto"
+          >
+            {[
+              { 
+                icon: Sparkles, 
+                title: "Design Team", 
+                description: "Expert designers create your frame",
+                color: "from-blue-500 to-blue-600"
+              },
+              { 
+                icon: ImageIcon, 
+                title: "Your Photo", 
+                description: "Upload in seconds",
+                color: "from-blue-600 to-blue-700"
+              },
+              { 
+                icon: Palette, 
+                title: "Custom Style", 
+                description: "Choose from 3 frame styles",
+                color: "from-blue-400 to-blue-500"
+              },
+              { 
+                icon: Package, 
+                title: "Fast Delivery", 
+                description: "Premium quality guaranteed",
+                color: "from-blue-700 to-blue-800"
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card className="text-center hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm h-full group hover:-translate-y-1">
+                  <CardContent className="pt-6 pb-5 px-4">
+                    <div className={`w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                      <feature.icon className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
+                    </div>
+                    <h4 className="font-bold text-sm sm:text-base mb-2 text-gray-900 dark:text-white">
+                      {feature.title}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Bottom CTA Strip */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
             viewport={{ once: true }}
-            className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4"
+            className="mt-12 sm:mt-16 text-center"
           >
-            {[
-              { icon: Sparkles, text: "Design Team", description: "Expert designers" },
-              { icon: ImageIcon, text: "Your Photo", description: "Upload easily" },
-              { icon: Palette, text: "Custom Style", description: "3 frame options" },
-              { icon: Package, text: "Fast Delivery", description: "Premium quality" },
-            ].map((feature, index) => (
-              <Card key={index} className="text-center">
-                <CardContent className="pt-4 pb-4 px-3">
-                  <feature.icon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                  <p className="font-semibold text-sm mb-1">{feature.text}</p>
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 px-6 sm:px-8 py-5 rounded-2xl shadow-lg border border-blue-100 dark:border-blue-900">
+              <div className="flex items-center gap-2.5">
+                <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
+                <span className="font-bold text-sm sm:text-base text-gray-900 dark:text-white">
+                  Most Loved Templates
+                </span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-full text-xs sm:text-sm font-semibold shadow-sm border border-blue-200 dark:border-blue-800">
+                  💕 Weddings
+                </span>
+                <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 text-blue-700 dark:text-blue-500 rounded-full text-xs sm:text-sm font-semibold shadow-sm border border-blue-300 dark:border-blue-700">
+                  🎂 Birthdays
+                </span>
+                <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 text-blue-500 dark:text-blue-300 rounded-full text-xs sm:text-sm font-semibold shadow-sm border border-blue-100 dark:border-blue-900">
+                  🎉 Celebrations
+                </span>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

@@ -246,35 +246,6 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Account Settings Card */}
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3 sm:pb-4">
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                  <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                  Account Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-2 sm:px-6">
-                <div className="w-full max-h-[400px] sm:max-h-[500px] overflow-y-auto rounded-lg shadow-inner bg-gray-50 dark:bg-gray-900 p-1 sm:p-2">
-                  <UserProfile 
-                    routing="hash"
-                    appearance={{
-                      elements: {
-                        rootBox: "w-full",
-                        card: "shadow-none border-0 rounded-lg bg-white dark:bg-gray-800",
-                        navbar: "hidden",
-                        pageScrollBox: "p-2 sm:p-4",
-                        profileSectionTitle: "text-sm sm:text-base font-semibold",
-                        formButtonPrimary: "bg-primary hover:bg-primary/90 text-sm sm:text-base",
-                        formFieldLabel: "text-xs sm:text-sm",
-                        formFieldInput: "text-sm sm:text-base",
-                      }
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Policies Section */}
             <Card className="shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="pb-3 sm:pb-4">
@@ -629,6 +600,35 @@ export default function ProfilePage() {
                     </Link>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Account Settings Card */}
+            <Card className="shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  Account Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-2 sm:px-6">
+                <div className="w-full max-h-[400px] sm:max-h-[500px] overflow-y-auto rounded-lg shadow-inner bg-gray-50 dark:bg-gray-900 p-1 sm:p-2">
+                  <UserProfile 
+                    routing="hash"
+                    appearance={{
+                      elements: {
+                        rootBox: "w-full",
+                        card: "shadow-none border-0 rounded-lg bg-white dark:bg-gray-800",
+                        navbar: "hidden",
+                        pageScrollBox: "p-2 sm:p-4",
+                        profileSectionTitle: "text-sm sm:text-base font-semibold",
+                        formButtonPrimary: "bg-primary hover:bg-primary/90 text-sm sm:text-base",
+                        formFieldLabel: "text-xs sm:text-sm",
+                        formFieldInput: "text-sm sm:text-base",
+                      }
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -2,16 +2,17 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Check, Loader2, ShoppingCart, Info, Sparkles, Package, Truck, Shield, X, ZoomIn, Download } from "lucide-react";
+import { Upload, Check, Loader2, ShoppingCart, Info, Sparkles, Package, Truck, Shield, X, ZoomIn, Download, Crop, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/store/cart";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
-
-type FrameSize = "A4" | "12x18" | "18x24" | "24x36";
-type FrameStyle = "Black" | "White" | "Wooden";
+import { ImageCropModal } from "@/components/custom-frames/ImageCropModal";
+import { OccasionPromo } from "@/components/custom-frames/OccasionPromo";
+import { detectImageOrientation, loadImage, getFrameDimensions, calculateAspectRatio, blobToDataURL } from "@/lib/utils/image-utils";
+import { UploadedImage, CropData, type FrameSize, type FrameStyle } from "@/lib/types/custom-frame";
 
 const FRAME_PRICES: Record<FrameSize, number> = {
   A4: 999,
@@ -49,15 +50,26 @@ const FRAME_STYLES = [
 ];
 
 export default function CustomFramePage() {
-  const [uploadedImage, setUploadedImage] = useState<string>("");
+  // Image upload state with crop support
+  const [uploadedImage, setUploadedImage] = useState<UploadedImage | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
+  const [uploadedImagePreview, setUploadedImagePreview] = useState<string>("");
+  
+  // Frame configuration
   const [frameSize, setFrameSize] = useState<FrameSize>("A4");
   const [frameStyle, setFrameStyle] = useState<FrameStyle>("Black");
   const [customerNotes, setCustomerNotes] = useState("");
+  
+  // UI states
   const [isUploading, setIsUploading] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showFullPreview, setShowFullPreview] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  
+  // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Hooks
   const { toast } = useToast();
   const { addItem } = useCartStore();
   const router = useRouter();
@@ -105,10 +117,15 @@ export default function CustomFramePage() {
     try {
       // Create preview
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setUploadedImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      const previewDataUrl = await new Promise<string>((resolve, reject) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      // Load image dimensions and detect orientation
+      const dimensions = await loadImage(previewDataUrl);
+      const orientation = detectImageOrientation(dimensions.width, dimensions.height);
 
       // Upload to Cloudinary
       const formData = new FormData();
@@ -122,10 +139,22 @@ export default function CustomFramePage() {
       const data = await response.json();
 
       if (data.success) {
+        // Store full image data
+        const imageData: UploadedImage = {
+          originalUrl: data.data.url,
+          width: dimensions.width,
+          height: dimensions.height,
+          orientation,
+          isCropped: false,
+        };
+
+        setUploadedImage(imageData);
         setUploadedImageUrl(data.data.url);
+        setUploadedImagePreview(previewDataUrl);
+
         toast({
           title: "Image uploaded successfully!",
-          description: "Your image is ready to be framed.",
+          description: "Your full image will be framed without cropping. You can optionally crop it.",
         });
       } else {
         throw new Error(data.error || "Upload failed");
@@ -139,14 +168,88 @@ export default function CustomFramePage() {
         description: error.message || "Please try again.",
         variant: "destructive",
       });
-      setUploadedImage("");
+      setUploadedImage(null);
+      setUploadedImagePreview("");
     } finally {
       setIsUploading(false);
     }
   };
 
+  const handleCropImage = () => {
+    if (!uploadedImage) return;
+    setShowCropModal(true);
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob, cropData: CropData) => {
+    if (!uploadedImage) return;
+
+    try {
+      // Convert blob to data URL for preview
+      const croppedDataUrl = await blobToDataURL(croppedBlob);
+
+      // Upload cropped image to Cloudinary
+      const formData = new FormData();
+      formData.append("file", croppedBlob, "cropped-image.jpg");
+
+      const response = await fetch("/api/upload/custom", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update image data with crop information
+        const updatedImage: UploadedImage = {
+          ...uploadedImage,
+          croppedUrl: data.data.url,
+          isCropped: true,
+          cropData,
+        };
+
+        setUploadedImage(updatedImage);
+        setUploadedImagePreview(croppedDataUrl);
+        setShowCropModal(false);
+
+        toast({
+          title: "Image cropped successfully!",
+          description: "Your cropped image will be used for the frame.",
+        });
+      } else {
+        throw new Error(data.error || "Crop upload failed");
+      }
+    } catch (error: any) {
+      console.error("Crop error:", error);
+      toast({
+        title: "Crop failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveCrop = () => {
+    if (!uploadedImage) return;
+
+    // Revert to original image
+    const updatedImage: UploadedImage = {
+      ...uploadedImage,
+      croppedUrl: undefined,
+      isCropped: false,
+      cropData: undefined,
+    };
+
+    setUploadedImage(updatedImage);
+    setUploadedImagePreview(""); // Will use original URL
+
+    toast({
+      title: "Crop removed",
+      description: "Your full original image will be used.",
+    });
+  };
+
   const handleAddToCart = () => {
-    if (!uploadedImageUrl) {
+    if (!uploadedImageUrl || !uploadedImage) {
       toast({
         title: "No image uploaded",
         description: "Please upload an image first.",
@@ -160,14 +263,15 @@ export default function CustomFramePage() {
     try {
       const customFrameItem = {
         _id: `custom-${Date.now()}`,
-        title: `Custom Frame - ${frameSize} ${frameStyle}`,
+        title: `Custom Frame - ${frameSize} ${frameStyle}${uploadedImage.isCropped ? ' (Cropped)' : ''}`,
         price: currentPrice,
-        imageUrl: uploadedImageUrl,
+        imageUrl: uploadedImage.isCropped && uploadedImage.croppedUrl ? uploadedImage.croppedUrl : uploadedImageUrl,
         frame_size: frameSize,
         frame_material: frameStyle,
         isCustom: true,
         customFrame: {
           uploadedImageUrl,
+          uploadedImage,
           frameStyle,
           frameSize,
           customerNotes,
@@ -195,18 +299,26 @@ export default function CustomFramePage() {
     }
   };
 
-  const getFrameDimensions = (size: FrameSize) => {
-    const ratios = {
-      "A4": { width: 210, height: 297 }, // A4 in mm
-      "12x18": { width: 12, height: 18 },
-      "18x24": { width: 18, height: 24 },
-      "24x36": { width: 24, height: 36 },
-    };
-    return ratios[size];
+  const getFrameRatio = () => {
+    const dimensions = getFrameDimensions(frameSize);
+    
+    // Auto-rotate frame based on image orientation
+    if (uploadedImage) {
+      if (uploadedImage.orientation === "portrait" && dimensions.width > dimensions.height) {
+        // Swap dimensions for portrait images
+        return { width: dimensions.height, height: dimensions.width };
+      } else if (uploadedImage.orientation === "landscape" && dimensions.height > dimensions.width) {
+        // Swap dimensions for landscape images
+        return { width: dimensions.height, height: dimensions.width };
+      }
+    }
+    
+    return dimensions;
   };
 
-  const frameRatio = getFrameDimensions(frameSize);
-  const aspectRatio = frameRatio.height / frameRatio.width;
+  const frameRatio = getFrameRatio();
+  const aspectRatio = calculateAspectRatio(frameRatio);
+  const displayImage = uploadedImagePreview || (uploadedImage?.isCropped && uploadedImage.croppedUrl) || uploadedImageUrl;
 
   return (
     <>
@@ -335,9 +447,9 @@ export default function CustomFramePage() {
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-black/5 pointer-events-none z-10" />
                         
                         <AnimatePresence mode="wait">
-                          {uploadedImage ? (
+                          {displayImage ? (
                             <motion.div
-                              key={uploadedImage}
+                              key={displayImage}
                               initial={{ opacity: 0, scale: 1.05 }}
                               animate={{ opacity: 1, scale: 1 }}
                               exit={{ opacity: 0, scale: 0.95 }}
@@ -345,9 +457,10 @@ export default function CustomFramePage() {
                               className="relative w-full h-full"
                             >
                               <img
-                                src={uploadedImage}
+                                src={displayImage}
                                 alt="Your uploaded image"
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain"
+                                style={{ objectFit: 'contain' }}
                               />
                             </motion.div>
                           ) : (
@@ -405,20 +518,46 @@ export default function CustomFramePage() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 flex items-center justify-between text-xs sm:text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4 py-3"
+                    className="mt-4 space-y-2"
                   >
-                    <span className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                      {frameSize} • {frameStyle} Frame
-                    </span>
-                    <span className="text-gray-500 dark:text-gray-500">
-                      {frameRatio.width} × {frameRatio.height} {frameSize === "A4" ? "mm" : "inches"}
-                    </span>
+                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4 py-3">
+                      <span className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                        {frameSize} • {frameStyle} Frame
+                      </span>
+                      <span className="text-gray-500 dark:text-gray-500">
+                        {frameRatio.width} × {frameRatio.height} {frameSize === "A4" ? "mm" : "inches"}
+                      </span>
+                    </div>
+
+                    {/* Image Info & Crop Status */}
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                      <div className="flex items-start gap-3">
+                        <ImageIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 text-sm text-blue-800 dark:text-blue-300">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="font-semibold">
+                              {uploadedImage.isCropped ? 'Cropped Image' : 'Full Image'} • {uploadedImage.orientation}
+                            </p>
+                            {uploadedImage.isCropped && (
+                              <span className="text-xs px-2 py-0.5 bg-blue-600 text-white rounded-full">
+                                User Cropped
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs">
+                            {uploadedImage.isCropped 
+                              ? "Your cropped image will be fitted perfectly to the frame."
+                              : "Your full image will be framed without cropping. Our design team will add mat/padding as needed."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
 
-                {/* Upload Button */}
-                <div className="mt-4 sm:mt-6">
+                {/* Upload & Crop Buttons */}
+                <div className="mt-4 sm:mt-6 space-y-3">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -430,8 +569,7 @@ export default function CustomFramePage() {
                     <Button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
-                      size="lg"
-                      className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold relative overflow-hidden group"
+                      className="w-full h-10 text-sm font-medium relative overflow-hidden group"
                     >
                       <motion.div
                         className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0"
@@ -462,8 +600,44 @@ export default function CustomFramePage() {
                       )}
                     </Button>
                   </motion.div>
-                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-                    PNG, JPG, WebP • Max 10MB • Recommended: 4000×4000px
+
+                  {/* Crop Button - Optional */}
+                  {uploadedImage && (
+                    <div className="flex gap-2">
+                      {!uploadedImage.isCropped ? (
+                        <Button
+                          onClick={handleCropImage}
+                          variant="outline"
+                          className="flex-1 h-10 font-medium"
+                        >
+                          <Crop className="mr-2 h-4 w-4" />
+                          Crop Image (Optional)
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            onClick={handleCropImage}
+                            variant="outline"
+                            className="flex-1 h-10 font-medium"
+                          >
+                            <Crop className="mr-2 h-4 w-4" />
+                            Re-crop
+                          </Button>
+                          <Button
+                            onClick={handleRemoveCrop}
+                            variant="ghost"
+                            className="h-10 font-medium"
+                          >
+                            <X className="mr-2 h-4 w-4" />
+                            Remove Crop
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 text-center">
+                    PNG, JPG, WebP • Max 10MB • {uploadedImage && !uploadedImage.isCropped && "Full image preserved - cropping optional"}
                   </p>
                 </div>
               </div>
@@ -756,9 +930,9 @@ export default function CustomFramePage() {
               >
                 <div className="relative w-full h-full bg-white rounded-lg shadow-2xl overflow-hidden">
                   <img
-                    src={uploadedImage}
+                    src={displayImage}
                     alt="Full preview"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </div>
               </div>
@@ -766,6 +940,20 @@ export default function CustomFramePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Occasion Frames Promotion */}
+      <OccasionPromo />
+
+      {/* Crop Modal */}
+      {uploadedImage && (
+        <ImageCropModal
+          isOpen={showCropModal}
+          onClose={() => setShowCropModal(false)}
+          imageSrc={uploadedImage.originalUrl}
+          aspectRatio={aspectRatio}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </>
   );
 }
