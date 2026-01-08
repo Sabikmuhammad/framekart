@@ -36,7 +36,7 @@ const HERO_SLIDES = [
     highlight: "Wedding Frames",
     description: "Preserve your special day with our beautiful wedding frame templates. Our design team will create a romantic masterpiece.",
     buttons: [
-      { label: "Explore Wedding Frames", href: "/frames/wedding", variant: "default" as const, icon: Heart },
+      { label: "Explore Wedding Frames", href: "/custom-frame/wedding", variant: "default" as const, icon: Heart },
       { label: "Shop All Frames", href: "/frames", variant: "outline" as const, icon: ArrowRight },
     ],
     gradient: "from-rose-50 via-background to-amber-50 dark:from-rose-950/20 dark:via-background dark:to-amber-950/20",
@@ -46,7 +46,7 @@ const HERO_SLIDES = [
     highlight: "Birthday Frames",
     description: "Create unforgettable birthday memories with personalized frame designs. Perfect for celebrating every milestone.",
     buttons: [
-      { label: "Explore Birthday Frames", href: "/frames/birthday", variant: "default" as const, icon: Cake },
+      { label: "Explore Birthday Frames", href: "/custom-frame/birthday", variant: "default" as const, icon: Cake },
       { label: "Shop All Frames", href: "/frames", variant: "outline" as const, icon: ArrowRight },
     ],
     gradient: "from-pink-50 via-background to-purple-50 dark:from-pink-950/20 dark:via-background dark:to-purple-950/20",
@@ -269,7 +269,7 @@ export default function HomePage() {
                 </motion.div>
               </Link>
 {/* Birthday Frames */}
-              <Link href="/frames/birthday">
+              <Link href="/custom-frame/birthday">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
@@ -305,7 +305,7 @@ export default function HomePage() {
               </Link>
 
               {/* Wedding Frames */}
-              <Link href="/frames/wedding">
+              <Link href="/custom-frame/wedding">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
@@ -518,7 +518,7 @@ export default function HomePage() {
               </motion.div>
             </Link>
 {/* Birthday Frames */}
-            <Link href="/frames/birthday">
+            <Link href="/custom-frame/birthday">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -555,7 +555,7 @@ export default function HomePage() {
             </Link>
 
             {/* Wedding Frames */}
-            <Link href="/frames/wedding">
+            <Link href="/custom-frame/wedding">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -1158,7 +1158,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="group"
             >
-              <Link href="/frames/wedding">
+              <Link href="/custom-frame/wedding">
                 <Card className="relative border-0 overflow-hidden hover:shadow-2xl transition-all duration-500 h-full bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-blue-950/20">
                   <CardContent className="p-0">
                     {/* Image Container */}
@@ -1248,7 +1248,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="group"
             >
-              <Link href="/frames/birthday">
+              <Link href="/custom-frame/birthday">
                 <Card className="relative border-0 overflow-hidden hover:shadow-2xl transition-all duration-500 h-full bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-blue-950/20">
                   <CardContent className="p-0">
                     {/* Image Container */}

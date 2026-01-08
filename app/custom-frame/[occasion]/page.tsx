@@ -1,35 +1,29 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Check, Loader2, ShoppingCart, Info, Sparkles, ArrowLeft, ZoomIn, ZoomOut, X, Move } from "lucide-react";
+import { motion } from "framer-motion";
+import { Upload, Loader2, ShoppingCart, Info, Cake, Heart, ArrowLeft, AlertCircle, Crop } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/store/cart";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { OccasionForm, OccasionMetadata, OccasionType } from "@/components/custom-frames/OccasionForm";
-import { getOccasionConfig, validateOccasionMetadata } from "@/lib/occasions";
+import Image from "next/image";
+import { OccasionPromo } from "@/components/custom-frames/OccasionPromo";
+import { ImageCropModal } from "@/components/custom-frames/ImageCropModal";
+import { detectImageOrientation, loadImage, blobToDataURL } from "@/lib/utils/image-utils";
+import type { UploadedImage, CropData } from "@/lib/types/custom-frame";
 
-type FrameSize = "A4" | "12x18" | "18x24" | "24x36";
+const BIRTHDAY_TEMPLATE = "/images/templates/birthday-template.jpg";
+const WEDDING_TEMPLATE = "/images/templates/wedding-template.jpeg";
+const FIXED_PRICE = 999; // A4 size price
+
 type FrameStyle = "Black" | "White" | "Wooden";
-
-const FRAME_PRICES: Record<FrameSize, number> = {
-  A4: 999,
-  "12x18": 1499,
-  "18x24": 1999,
-  "24x36": 2999,
-};
-
-const FRAME_SIZES = [
-  { value: "A4" as FrameSize, label: "A4 (8.3 × 11.7 inches)", price: 999 },
-  // { value: "12x18" as FrameSize, label: "12 × 18 inches", price: 1499 },
-  // { value: "18x24" as FrameSize, label: "18 × 24 inches", price: 1999 },
-  // { value: "24x36" as FrameSize, label: "24 × 36 inches", price: 2999 },
-];
+type OccasionType = "birthday" | "wedding";
 
 const FRAME_STYLES = [
   { value: "Black" as FrameStyle, label: "Black", color: "#000000", description: "Modern & Elegant" },
@@ -45,37 +39,47 @@ interface PageProps {
 
 export default function OccasionFramePage({ params }: PageProps) {
   const occasion = params.occasion as OccasionType;
-  const occasionConfig = getOccasionConfig(occasion);
-  const Icon = occasionConfig.icon;
-
-  const [uploadedImage, setUploadedImage] = useState<string>("");
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
-  const [frameSize, setFrameSize] = useState<FrameSize>("A4");
-  const [frameStyle, setFrameStyle] = useState<FrameStyle>("Black");
-  const [customerNotes, setCustomerNotes] = useState("");
-  const [occasionMetadata, setOccasionMetadata] = useState<OccasionMetadata>({});
-  const [isUploading, setIsUploading] = useState(false);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [showFullPreview, setShowFullPreview] = useState(false);
-  const [imageScale, setImageScale] = useState(1);
-  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-  const { addItem } = useCartStore();
   const router = useRouter();
-  const { isSignedIn } = useAuth();
-
-  const currentPrice = FRAME_PRICES[frameSize];
-
+  
   // Validate occasion type
   useEffect(() => {
-    if (!["custom", "birthday", "wedding"].includes(occasion)) {
+    if (!["birthday", "wedding"].includes(occasion)) {
       router.push("/custom-frame");
     }
   }, [occasion, router]);
+
+  const isBirthday = occasion === "birthday";
+  const templateImage = isBirthday ? BIRTHDAY_TEMPLATE : WEDDING_TEMPLATE;
+  const Icon = isBirthday ? Cake : Heart;
+  const title = isBirthday ? "Birthday Frames" : "Wedding Frames";
+  const description = isBirthday 
+    ? "Celebrate special birthdays with a professionally designed frame. Our design team will create a beautiful personalized frame for you."
+    : "Celebrate your special day with a beautifully designed wedding frame. Our design team will create a romantic personalized frame for you.";
+
+  const [uploadedImage, setUploadedImage] = useState<UploadedImage | null>(null);
+  const [uploadedPhoto, setUploadedPhoto] = useState<string>("");
+  const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState<string>("");
+  const [frameStyle, setFrameStyle] = useState<FrameStyle>(isBirthday ? "Black" : "White");
+  const [showCropModal, setShowCropModal] = useState(false);
+  
+  // Birthday fields
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [date, setDate] = useState("");
+  const [message, setMessage] = useState("");
+  
+  // Wedding fields
+  const [brideName, setBrideName] = useState("");
+  const [groomName, setGroomName] = useState("");
+  const [weddingDate, setWeddingDate] = useState("");
+  const [quote, setQuote] = useState("");
+  
+  const [isUploading, setIsUploading] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const { addItem } = useCartStore();
+  const { isSignedIn } = useAuth();
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,7 +88,7 @@ export default function OccasionFramePage({ params }: PageProps) {
     if (!isSignedIn) {
       toast({
         title: "Authentication required",
-        description: "Please sign in to upload your image.",
+        description: "Please sign in to upload your photo.",
       });
       router.push(`/sign-in?redirect=/custom-frame/${occasion}`);
       return;
@@ -112,16 +116,23 @@ export default function OccasionFramePage({ params }: PageProps) {
     setIsUploading(true);
 
     try {
+      // Create preview
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setUploadedImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      const previewDataUrl = await new Promise<string>((resolve, reject) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
+      // Load image dimensions and detect orientation
+      const dimensions = await loadImage(previewDataUrl);
+      const orientation = detectImageOrientation(dimensions.width, dimensions.height);
+
+      // Upload to Cloudinary
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("/api/upload/custom", {
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
@@ -129,10 +140,22 @@ export default function OccasionFramePage({ params }: PageProps) {
       const data = await response.json();
 
       if (data.success) {
-        setUploadedImageUrl(data.data.url);
+        // Store full image data
+        const imageData: UploadedImage = {
+          originalUrl: data.data.url,
+          width: dimensions.width,
+          height: dimensions.height,
+          orientation,
+          isCropped: false,
+        };
+
+        setUploadedImage(imageData);
+        setUploadedPhoto(previewDataUrl);
+        setUploadedPhotoUrl(data.data.url);
+        
         toast({
-          title: "Image uploaded successfully!",
-          description: "Your image is ready to be framed.",
+          title: "Photo uploaded successfully!",
+          description: "Your full image will be used. You can optionally crop it.",
         });
       } else {
         throw new Error(data.error || "Upload failed");
@@ -143,92 +166,159 @@ export default function OccasionFramePage({ params }: PageProps) {
         description: error.message || "Please try again.",
         variant: "destructive",
       });
-      setUploadedImage("");
+      setUploadedPhoto("");
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleRemoveImage = () => {
-    setUploadedImage("");
-    setUploadedImageUrl("");
-    setImageScale(1);
-    setImagePosition({ x: 0, y: 0 });
-    toast({
-      title: "Image removed",
-      description: "You can upload a new image anytime.",
-    });
-  };
-
-  const handleZoomIn = () => {
-    setImageScale(prev => Math.min(prev + 0.1, 3));
-  };
-
-  const handleZoomOut = () => {
-    setImageScale(prev => Math.max(prev - 0.1, 0.5));
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleCropImage = () => {
     if (!uploadedImage) return;
-    e.stopPropagation();
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - imagePosition.x,
-      y: e.clientY - imagePosition.y,
+    console.log('Opening crop modal with image data:', {
+      width: uploadedImage.width,
+      height: uploadedImage.height,
+      aspectRatio: uploadedImage.width / uploadedImage.height,
+      orientation: uploadedImage.orientation
     });
+    setShowCropModal(true);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    setImagePosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y,
-    });
-  };
+  const handleCropComplete = async (croppedBlob: Blob, cropData: CropData) => {
+    if (!uploadedImage) return;
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
+    try {
+      // Convert blob to data URL for preview
+      const croppedDataUrl = await blobToDataURL(croppedBlob);
+
+      // Upload cropped image to Cloudinary
+      const formData = new FormData();
+      formData.append("file", croppedBlob, "cropped-image.jpg");
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update image data with cropped version
+        setUploadedImage({
+          ...uploadedImage,
+          croppedUrl: data.data.url,
+          isCropped: true,
+          cropData,
+        });
+        setUploadedPhoto(croppedDataUrl);
+        setUploadedPhotoUrl(data.data.url);
+        setShowCropModal(false);
+
+        toast({
+          title: "Image cropped successfully!",
+          description: "Your cropped image has been saved.",
+        });
+      } else {
+        throw new Error(data.error || "Failed to upload cropped image");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Crop failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddToCart = () => {
-    // Validate occasion-specific metadata (image is now optional)
-    const validation = validateOccasionMetadata(occasion, occasionMetadata);
-    if (!validation.valid) {
-      toast({
-        title: "Missing required fields",
-        description: `Please fill in: ${validation.missing.join(", ")}`,
-        variant: "destructive",
-      });
-      return;
+    // Validate required fields based on occasion
+    if (isBirthday) {
+      if (!name.trim()) {
+        toast({
+          title: "Name required",
+          description: "Please enter the birthday person's name.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!age.trim()) {
+        toast({
+          title: "Age required",
+          description: "Please enter the age.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!date.trim()) {
+        toast({
+          title: "Date required",
+          description: "Please enter the birthday date.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      if (!brideName.trim()) {
+        toast({
+          title: "Bride name required",
+          description: "Please enter the bride's name.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!groomName.trim()) {
+        toast({
+          title: "Groom name required",
+          description: "Please enter the groom's name.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!weddingDate.trim()) {
+        toast({
+          title: "Wedding date required",
+          description: "Please enter the wedding date.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIsAddingToCart(true);
 
     try {
-      const customFrameItem = {
-        _id: `custom-${occasion}-${Date.now()}`,
-        title: `${occasionConfig.title} - ${frameSize} ${frameStyle}`,
-        price: currentPrice,
-        imageUrl: uploadedImageUrl || "/placeholder-frame.jpg", // Placeholder if no image
-        frame_size: frameSize,
+      const templateItem = {
+        _id: `template-${occasion}-${Date.now()}`,
+        title: `${isBirthday ? 'Birthday' : 'Wedding'} Frame - A4 ${frameStyle}`,
+        price: FIXED_PRICE,
+        imageUrl: templateImage,
+        frame_size: "A4",
         frame_material: frameStyle,
-        isCustom: true,
-        customFrame: {
-          uploadedImageUrl: uploadedImageUrl || "", // Empty string if no image
-          frameStyle,
-          frameSize,
-          customerNotes,
-          occasion,
-          occasionMetadata,
+        isTemplate: true,
+        templateFrame: {
+          occasion: occasion,
+          templateImage: templateImage,
+          uploadedPhoto: uploadedPhotoUrl || undefined,
+          frameSize: "A4" as const,
+          frameStyle: frameStyle,
+          metadata: isBirthday ? {
+            name: name.trim(),
+            age: age.trim(),
+            date: date.trim(),
+            message: message.trim() || undefined,
+          } : {
+            brideName: brideName.trim(),
+            groomName: groomName.trim(),
+            weddingDate: weddingDate.trim(),
+            quote: quote.trim() || undefined,
+          },
         },
       };
 
-      addItem(customFrameItem);
+      addItem(templateItem);
 
       toast({
         title: "Added to cart!",
-        description: `Your ${occasionConfig.title.toLowerCase()} has been added to the cart.`,
+        description: `Your ${occasion} frame has been added to the cart.`,
       });
 
       setTimeout(() => {
@@ -245,20 +335,8 @@ export default function OccasionFramePage({ params }: PageProps) {
     }
   };
 
-  const getFrameDimensions = (size: FrameSize) => {
-    const ratios = {
-      "A4": { width: 210, height: 297 },
-      "12x18": { width: 12, height: 18 },
-      "18x24": { width: 18, height: 24 },
-      "24x36": { width: 24, height: 36 },
-    };
-    return ratios[size];
-  };
-
-  const frameRatio = getFrameDimensions(frameSize);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(0_0_0/0.05)_1px,transparent_0)] [background-size:40px_40px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.05)_1px,transparent_0)] pointer-events-none" />
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -286,182 +364,87 @@ export default function OccasionFramePage({ params }: PageProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className={`inline-flex items-center gap-2 bg-gradient-to-r ${occasionConfig.bgGradient} px-5 py-2.5 rounded-full text-sm font-semibold mb-6 border ${occasionConfig.borderColor} shadow-sm`}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 px-5 py-2.5 rounded-full text-sm font-semibold mb-6 border border-primary/20 shadow-sm"
           >
-            <Icon className="h-4 w-4 animate-pulse" />
-            {occasionConfig.subtitle}
+            <Icon className="h-4 w-4 text-primary animate-pulse" />
+            Template-Based Design
           </motion.div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-6 leading-tight">
-            {occasionConfig.heroTitle}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+            {title}
           </h1>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            {occasionConfig.heroDescription}
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed mb-6">
+            {description}
           </p>
           
-          {/* Design Team Info Banner */}
-          {occasion !== "custom" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="mt-6 mx-auto max-w-2xl"
-            >
-              <div className={`${occasionConfig.bgGradient} border ${occasionConfig.borderColor} rounded-lg p-4`}>
-                <div className="flex items-start gap-3">
-                  <Info className={`h-5 w-5 ${occasionConfig.accentColor} mt-0.5 flex-shrink-0`} />
-                  <div className="text-sm text-gray-700 dark:text-gray-300 text-left">
-                    <p className="font-semibold mb-1">Design Assistance Available</p>
-                    <p>Our design team will contact you soon after placing the order to finalize the design and ensure it&apos;s perfect for your special occasion.</p>
-                  </div>
+          {/* Important Info Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mx-auto max-w-3xl"
+          >
+            <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-gray-700 dark:text-gray-300 text-left">
+                  <p className="font-semibold mb-1">This is a sample template</p>
+                  <p>Our design team will professionally prepare your frame after order placement, incorporating your details and photo beautifully.</p>
                 </div>
               </div>
-            </motion.div>
-          )}
+            </div>
+          </motion.div>
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* Left: Preview */}
+          {/* Left: Template Preview */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                  Live Preview
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800 sticky top-8">
+              <div className="mb-4">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
+                  <Icon className="h-6 w-6 text-primary" />
+                  Template Preview
                 </h2>
-                {uploadedImage && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleRemoveImage}
-                    className="gap-2"
-                  >
-                    <X className="h-4 w-4" />
-                    Remove
-                  </Button>
-                )}
+                <p className="text-sm text-gray-500 dark:text-gray-400">Sample design - Final design will be customized</p>
               </div>
               
-              <div className="flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-8">
-                <div
-                  className="relative w-full max-w-md"
-                  style={{ aspectRatio: `${frameRatio.width} / ${frameRatio.height}` }}
-                >
-                  <motion.div 
-                    key={frameSize}
-                    className="absolute inset-0 rounded-sm transition-all"
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    style={{
-                      padding: frameSize === "A4" ? "20px" : frameSize === "12x18" ? "24px" : frameSize === "18x24" ? "28px" : "32px",
-                      boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
-                      backgroundColor: frameStyle === "Black" ? "#1a1a1a" : frameStyle === "White" ? "#f8f8f8" : "#8B4513",
-                    }}
-                  >
-                    <div 
-                      ref={imageContainerRef}
-                      className={`relative w-full h-full bg-white dark:bg-gray-100 rounded-sm shadow-2xl overflow-hidden ${!uploadedImage ? 'cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all' : ''}`}
-                      onClick={() => !isUploading && !uploadedImage && fileInputRef.current?.click()}
-                      onMouseDown={handleMouseDown}
-                      onMouseMove={handleMouseMove}
-                      onMouseUp={handleMouseUp}
-                      onMouseLeave={handleMouseUp}
-                      style={{ cursor: uploadedImage ? (isDragging ? 'grabbing' : 'grab') : 'pointer' }}
-                    >
-                      <AnimatePresence mode="wait">
-                        {uploadedImage ? (
-                          <img
-                            key={uploadedImage}
-                            src={uploadedImage}
-                            alt="Preview"
-                            className="w-full h-full object-cover select-none"
-                            draggable={false}
-                            style={{
-                              transform: `scale(${imageScale}) translate(${imagePosition.x / imageScale}px, ${imagePosition.y / imageScale}px)`,
-                              transformOrigin: 'center center',
-                              pointerEvents: 'none',
-                            }}
-                          />
-                        ) : (
-                          <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100"
-                          >
-                            <div className="text-center text-gray-400 p-6">
-                              <Upload className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                              <p className="text-sm font-medium">Click to upload an image</p>
-                              <p className="text-xs mt-1 opacity-75">or use the button below</p>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center rounded-sm z-20">
-                      <Loader2 className="w-12 h-12 text-white animate-spin" />
-                    </div>
-                  )}
-                </div>
+              <div className="relative aspect-[210/297] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden shadow-2xl">
+                <Image
+                  src={templateImage}
+                  alt={`${title} Template`}
+                  fill
+                  className="object-contain"
+                />
               </div>
 
-              {/* Image Controls */}
-              {uploadedImage && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 flex items-center justify-center gap-2"
-                >
-                  <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleZoomOut}
-                      disabled={imageScale <= 0.5}
-                      className="h-8 w-8 p-0"
-                    >
-                      <ZoomOut className="h-4 w-4" />
-                    </Button>
-                    <span className="text-xs font-medium px-2 min-w-[3rem] text-center">
-                      {Math.round(imageScale * 100)}%
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleZoomIn}
-                      disabled={imageScale >= 3}
-                      className="h-8 w-8 p-0"
-                    >
-                      <ZoomIn className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
-                    <Move className="h-3 w-3" />
-                    Drag to position
-                  </div>
-                </motion.div>
-              )}
+              <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2 text-sm">
+                  <AlertCircle className="h-4 w-4 text-primary" />
+                  <p className="text-gray-700 dark:text-gray-300">
+                    <span className="font-semibold">Frame Size:</span> A4 (Fixed) • <span className="font-semibold">Price:</span> ₹{FIXED_PRICE}
+                  </p>
+                </div>
+              </div>
             </div>
           </motion.div>
 
-          {/* Right: Configuration */}
+          {/* Right: Form */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
             className="space-y-6"
           >
-            {/* Upload Section */}
+            {/* Upload Photo (Optional) */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Upload Image</h3>
-                <span className="text-sm text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">Optional</span>
+                <h3 className="text-lg font-semibold">
+                  {isBirthday ? "Upload Photo" : "Upload Couple Photo"}
+                </h3>
+                <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-600 dark:text-gray-400">Optional</span>
               </div>
               <input
                 ref={fileInputRef}
@@ -475,44 +458,29 @@ export default function OccasionFramePage({ params }: PageProps) {
                 disabled={isUploading}
                 className="w-full mb-3"
                 size="lg"
-                variant={uploadedImage ? "outline" : "default"}
+                variant={uploadedPhoto ? "outline" : "default"}
               >
                 {isUploading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Upload className="h-5 w-5 mr-2" />}
-                {uploadedImage ? "Change Image" : "Upload Image"}
+                {uploadedPhoto ? "Change Photo" : "Upload Photo"}
               </Button>
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                You can skip this step – our team will help you select the perfect image later
-              </p>
-            </div>
-
-            {/* Occasion-Specific Form */}
-            <OccasionForm
-              occasion={occasion}
-              metadata={occasionMetadata}
-              onMetadataChange={setOccasionMetadata}
-            />
-
-            {/* Frame Size */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800">
-              <h3 className="text-lg font-semibold mb-4">Frame Size</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {FRAME_SIZES.map((size) => (
-                  <motion.button
-                    key={size.value}
-                    onClick={() => setFrameSize(size.value)}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      frameSize === size.value
-                        ? `border-primary bg-primary/5`
-                        : "border-gray-200 dark:border-gray-700"
-                    }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+              {uploadedPhoto && (
+                <>
+                  <div className="mt-3 relative aspect-video rounded-lg overflow-hidden">
+                    <Image src={uploadedPhoto} alt="Uploaded" fill className="object-cover" />
+                  </div>
+                  <Button
+                    onClick={handleCropImage}
+                    variant="outline"
+                    className="w-full mt-3"
                   >
-                    <div className="text-sm font-semibold">{size.label}</div>
-                    <div className="text-lg font-bold text-primary mt-1">₹{size.price}</div>
-                  </motion.button>
-                ))}
-              </div>
+                    <Crop className="h-4 w-4 mr-2" />
+                    Crop Image
+                  </Button>
+                </>
+              )}
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+                Photo upload is optional. You can also share images later via WhatsApp or Email.
+              </p>
             </div>
 
             {/* Frame Style */}
@@ -520,37 +488,127 @@ export default function OccasionFramePage({ params }: PageProps) {
               <h3 className="text-lg font-semibold mb-4">Frame Style</h3>
               <div className="grid grid-cols-3 gap-3">
                 {FRAME_STYLES.map((style) => (
-                  <motion.button
+                  <button
                     key={style.value}
                     onClick={() => setFrameStyle(style.value)}
                     className={`p-4 rounded-lg border-2 transition-all ${
                       frameStyle === style.value
                         ? "border-primary bg-primary/5"
-                        : "border-gray-200 dark:border-gray-700"
+                        : "border-gray-200 dark:border-gray-700 hover:border-primary/30"
                     }`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <div
                       className="w-12 h-12 rounded-full mx-auto mb-2 border-2"
                       style={{ backgroundColor: style.color }}
                     />
                     <div className="text-sm font-semibold">{style.label}</div>
-                  </motion.button>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{style.description}</div>
+                  </button>
                 ))}
               </div>
             </div>
 
-            {/* Additional Notes */}
+            {/* Occasion Details */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800">
-              <Label htmlFor="notes">Additional Notes (Optional)</Label>
-              <Textarea
-                id="notes"
-                placeholder="Any special instructions or preferences..."
-                value={customerNotes}
-                onChange={(e) => setCustomerNotes(e.target.value)}
-                className="mt-2"
-              />
+              <h3 className="text-lg font-semibold mb-4">
+                {isBirthday ? "Birthday Details" : "Wedding Details"}
+              </h3>
+              <div className="space-y-4">
+                {isBirthday ? (
+                  <>
+                    <div>
+                      <Label htmlFor="name">Name *</Label>
+                      <Input
+                        id="name"
+                        placeholder="Birthday person's name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="mt-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="age">Age *</Label>
+                      <Input
+                        id="age"
+                        type="number"
+                        placeholder="Age"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
+                        className="mt-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="date">Birthday Date *</Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="mt-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="message">Special Message (Optional)</Label>
+                      <Textarea
+                        id="message"
+                        placeholder="Add a special birthday message..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="mt-2"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <Label htmlFor="brideName">Bride&apos;s Name *</Label>
+                      <Input
+                        id="brideName"
+                        placeholder="Bride's name"
+                        value={brideName}
+                        onChange={(e) => setBrideName(e.target.value)}
+                        className="mt-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="groomName">Groom&apos;s Name *</Label>
+                      <Input
+                        id="groomName"
+                        placeholder="Groom's name"
+                        value={groomName}
+                        onChange={(e) => setGroomName(e.target.value)}
+                        className="mt-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="weddingDate">Wedding Date *</Label>
+                      <Input
+                        id="weddingDate"
+                        type="date"
+                        value={weddingDate}
+                        onChange={(e) => setWeddingDate(e.target.value)}
+                        className="mt-2"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="quote">Special Quote (Optional)</Label>
+                      <Textarea
+                        id="quote"
+                        placeholder="Add a romantic quote or message..."
+                        value={quote}
+                        onChange={(e) => setQuote(e.target.value)}
+                        className="mt-2"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Add to Cart */}
@@ -565,16 +623,28 @@ export default function OccasionFramePage({ params }: PageProps) {
               ) : (
                 <ShoppingCart className="h-5 w-5 mr-2" />
               )}
-              Add to Cart - ₹{currentPrice}
+              Add to Cart - ₹{FIXED_PRICE}
             </Button>
-            {!uploadedImage && occasion !== "custom" && (
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
-                No image yet? No problem! Our design team will assist you after checkout.
-              </p>
-            )}
+            <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+              Design will be handled by FrameKart&apos;s design team after order placement
+            </p>
           </motion.div>
         </div>
       </div>
+
+      {/* Other Occasion Promotions */}
+      <OccasionPromo exclude={occasion} />
+
+      {/* Crop Modal */}
+      {uploadedImage && uploadedImage.width && uploadedImage.height && (
+        <ImageCropModal
+          isOpen={showCropModal}
+          onClose={() => setShowCropModal(false)}
+          imageSrc={uploadedImage.originalUrl}
+          aspectRatio={210 / 297}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

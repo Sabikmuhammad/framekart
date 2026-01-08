@@ -54,47 +54,53 @@ export function calculateAspectRatio(dimensions: AspectRatioDimensions): number 
 /**
  * Creates a cropped image from canvas
  */
-export async function createCroppedImage(
+export function createCroppedImage(
   imageSrc: string,
   pixelCrop: { x: number; y: number; width: number; height: number }
 ): Promise<Blob> {
-  const image = await loadImage(imageSrc);
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    throw new Error("Failed to get canvas context");
-  }
-
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
-
-  const img = new Image();
-  img.src = imageSrc;
-  await new Promise((resolve) => {
-    img.onload = resolve;
-  });
-
-  ctx.drawImage(
-    img,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    pixelCrop.width,
-    pixelCrop.height
-  );
-
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        reject(new Error("Canvas is empty"));
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
         return;
       }
-      resolve(blob);
-    }, "image/jpeg", 0.95);
+      
+      canvas.width = pixelCrop.width;
+      canvas.height = pixelCrop.height;
+      
+      ctx.drawImage(
+        image,
+        pixelCrop.x,
+        pixelCrop.y,
+        pixelCrop.width,
+        pixelCrop.height,
+        0,
+        0,
+        pixelCrop.width,
+        pixelCrop.height
+      );
+      
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Canvas is empty'));
+          }
+        },
+        'image/jpeg',
+        0.95
+      );
+    };
+    
+    image.onerror = () => reject(new Error('Failed to load image'));
+    image.src = imageSrc;
   });
 }
 

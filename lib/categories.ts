@@ -29,11 +29,20 @@ export const categories = [
   {
     name: "Birthday",
     fullName: "Birthday Frames",
-    href: "/frames?category=Birthday Frames",
+    href: "/custom-frame/birthday",
     image: "framekart/categories/birthday-frames.jpg",
     gradient: "from-pink-100 to-pink-50 dark:from-pink-950 dark:to-pink-900",
     iconColor: "text-pink-600 dark:text-pink-400",
     bgColor: "from-pink-100 to-pink-50 dark:from-pink-950 dark:to-pink-900",
+  },
+  {
+    name: "Wedding",
+    fullName: "Wedding Frames",
+    href: "/custom-frame/wedding",
+    image: "framekart/categories/wedding-frames.jpg",
+    gradient: "from-rose-100 to-rose-50 dark:from-rose-950 dark:to-rose-900",
+    iconColor: "text-rose-600 dark:text-rose-400",
+    bgColor: "from-rose-100 to-rose-50 dark:from-rose-950 dark:to-rose-900",
   },
   {
     name: "Calligraphy",
