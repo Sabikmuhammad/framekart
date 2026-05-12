@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth } from "@clerk/nextjs/server";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -8,9 +8,15 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+export async function GET() {
+  return NextResponse.json({ message: "API working" });
+}
+
 export async function POST(req: NextRequest) {
+  console.log("Cashfree API hit");
+
   try {
-    const { userId } = auth();
+    const { userId } = getAuth(req);
 
     if (!userId) {
       return NextResponse.json(
@@ -29,7 +35,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate file type
     const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
@@ -38,7 +43,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate file size (max 10MB)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
@@ -78,6 +82,7 @@ export async function POST(req: NextRequest) {
         height: result.height,
       }
     });
+
   } catch (error: any) {
     console.error("Custom upload error:", error);
     return NextResponse.json(
