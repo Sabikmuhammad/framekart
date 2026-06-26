@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       shipping,
       discount,
       address,
-      customerEmail 
+      customerEmail,
     } = body;
 
     // Validate required fields

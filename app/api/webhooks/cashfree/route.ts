@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
+import { markCartSessionCompleted } from "@/lib/cart/recovery";
 
 export async function POST(req: NextRequest) {
   try {
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
       await dbConnect();
 
       // Find order by cashfreeOrderId
-      const order = await Order.findOne({ cashfreeOrderId });
+      const order = await Order.findOne({ cashfreeOrderId: cashfreeOrderId });
 
       if (!order) {
         console.error("❌ Order not found for cashfreeOrderId:", cashfreeOrderId);
@@ -87,6 +88,9 @@ export async function POST(req: NextRequest) {
         paymentStatus: "completed",
         paymentId: payment?.cf_payment_id,
         status: "Processing",
+      });
+      await markCartSessionCompleted({
+        email: order.customerEmail,
       });
 
       console.log("✅ Order updated successfully via webhook");

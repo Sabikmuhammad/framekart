@@ -1,5 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import {
+  getSavedCartEmail,
+  normalizeCartEmail,
+  saveCartEmail,
+  syncCartSession,
+} from "@/lib/cart/client";
 
 export interface CartItem {
   _id: string;
@@ -9,7 +15,6 @@ export interface CartItem {
   quantity: number;
   frame_size: string;
   frame_material: string;
-  // Custom frame fields
   isCustom?: boolean;
   customFrame?: {
     uploadedImageUrl: string;
@@ -18,19 +23,10 @@ export interface CartItem {
     customerNotes?: string;
     occasion?: "custom" | "birthday" | "wedding";
     occasionMetadata?: {
-      // Birthday fields
-      name?: string;
-      age?: string;
-      date?: string;
-      message?: string;
-      // Wedding fields
-      brideName?: string;
-      groomName?: string;
-      weddingDate?: string;
-      quote?: string;
+      name?: string; age?: string; date?: string; message?: string;
+      brideName?: string; groomName?: string; weddingDate?: string; quote?: string;
     };
   };
-  // Template frame fields (NEW)
   isTemplate?: boolean;
   templateFrame?: {
     occasion: "birthday" | "wedding";
@@ -39,70 +35,97 @@ export interface CartItem {
     frameSize: "A4";
     frameStyle: "Black" | "White" | "Wooden";
     metadata: {
-      name?: string;
-      age?: string;
-      date?: string;
-      message?: string;
-      brideName?: string;
-      groomName?: string;
-      weddingDate?: string;
-      quote?: string;
+      name?: string; age?: string; date?: string; message?: string;
+      brideName?: string; groomName?: string; weddingDate?: string; quote?: string;
     };
   };
 }
 
 interface CartStore {
   items: CartItem[];
+  customerEmail: string;
   addItem: (item: Omit<CartItem, "quantity">) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  setCustomerEmail: (email: string) => void;
   getTotalPrice: () => number;
   getTotalItems: () => number;
+}
+
+function buildCartProducts(items: CartItem[]) {
+  return items.map((item) => ({
+    productId: item._id,
+    name: item.title,
+    price: item.price,
+    quantity: item.quantity,
+    image: item.imageUrl,
+  }));
+}
+
+function syncSnapshot(items: CartItem[], total: number, email: string) {
+  void syncCartSession({
+    email,
+    products: buildCartProducts(items),
+    total,
+  });
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      customerEmail: getSavedCartEmail(),
+
       addItem: (item) =>
         set((state) => {
-          const existingItem = state.items.find((i) => i._id === item._id);
-          if (existingItem) {
-            return {
-              items: state.items.map((i) =>
-                i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i
-              ),
-            };
-          }
-          return { items: [...state.items, { ...item, quantity: 1 }] };
+          const existing = state.items.find((i) => i._id === item._id);
+          const newItems: CartItem[] = existing
+            ? state.items.map((i) => i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i)
+            : [...state.items, { ...item, quantity: 1 }];
+
+          const cartTotal = newItems.reduce((t, i) => t + i.price * i.quantity, 0);
+          syncSnapshot(newItems, cartTotal, state.customerEmail);
+          return { items: newItems };
         }),
+
       removeItem: (id) =>
-        set((state) => ({
-          items: state.items.filter((item) => item._id !== id),
-        })),
+        set((state) => {
+          const newItems = state.items.filter((i) => i._id !== id);
+          const cartTotal = newItems.reduce((t, i) => t + i.price * i.quantity, 0);
+          syncSnapshot(newItems, cartTotal, state.customerEmail);
+          return { items: newItems };
+        }),
+
       updateQuantity: (id, quantity) =>
-        set((state) => ({
-          items: state.items.map((item) =>
-            item._id === id ? { ...item, quantity } : item
-          ),
-        })),
+        set((state) => {
+          const newItems = state.items.map((i) => i._id === id ? { ...i, quantity } : i);
+          const cartTotal = newItems.reduce((t, i) => t + i.price * i.quantity, 0);
+          syncSnapshot(newItems, cartTotal, state.customerEmail);
+          return { items: newItems };
+        }),
+
       clearCart: () => {
-        console.log('🧹 clearCart() called - clearing items');
+        const email = get().customerEmail;
+        syncSnapshot([], 0, email);
         set({ items: [] });
-        console.log('✅ Cart state set to empty array');
       },
-      getTotalPrice: () => {
-        const { items } = get();
-        return items.reduce((total, item) => total + item.price * item.quantity, 0);
+
+      setCustomerEmail: (email) => {
+        const normalizedEmail = normalizeCartEmail(email);
+        saveCartEmail(normalizedEmail);
+        const items = get().items;
+        const total = get().getTotalPrice();
+        syncSnapshot(items, total, normalizedEmail);
+        set({ customerEmail: normalizedEmail });
       },
-      getTotalItems: () => {
-        const { items } = get();
-        return items.reduce((total, item) => total + item.quantity, 0);
-      },
+
+      getTotalPrice: () =>
+        get().items.reduce((t, i) => t + i.price * i.quantity, 0),
+
+      getTotalItems: () =>
+        get().items.reduce((n, i) => n + i.quantity, 0),
     }),
-    {
-      name: "cart-storage",
-    }
+    { name: "cart-storage" }
   )
 );

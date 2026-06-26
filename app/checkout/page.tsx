@@ -63,7 +63,7 @@ declare global {
 export default function CheckoutPage() {
   const { isSignedIn, user } = useUser();
   const router = useRouter();
-  const { items, getTotalPrice, clearCart } = useCartStore();
+  const { items, getTotalPrice, setCustomerEmail } = useCartStore();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
@@ -123,6 +123,11 @@ export default function CheckoutPage() {
     
     fetchEligibility();
   }, [isSignedIn]);
+
+  reactUseEffect(() => {
+    if (!formData.email) return;
+    setCustomerEmail(formData.email);
+  }, [formData.email, setCustomerEmail]);
 
   // Fetch saved addresses on mount
   reactUseEffect(() => {

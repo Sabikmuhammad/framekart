@@ -18,6 +18,7 @@ import {
   Image as ImageIcon,
   BarChart3,
   FileText,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
@@ -27,6 +28,7 @@ const menuItems = [
   { href: "/admin/frames", label: "Products", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/users", label: "Customers", icon: Users },
+  { href: "/admin/campaigns", label: "Campaigns", icon: Mail },
 ];
 
 export function AdminSidebar() {

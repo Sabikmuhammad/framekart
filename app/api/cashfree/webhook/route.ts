@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
+import { markCartSessionCompleted } from "@/lib/cart/recovery";
 
 export const dynamic = 'force-dynamic';
 
@@ -141,6 +142,9 @@ export async function POST(req: NextRequest) {
       dbOrder.paidAt = paymentTime ? new Date(paymentTime) : new Date();
       
       await dbOrder.save();
+      await markCartSessionCompleted({
+        email: dbOrder.customerEmail,
+      });
       
       console.log(`✅ [${webhookId}] Order updated: ${dbOrder._id}`);
       
