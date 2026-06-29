@@ -340,7 +340,7 @@ export default function CustomFramePage() {
               className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 text-primary px-5 py-2.5 rounded-full text-sm font-semibold mb-6 border border-primary/20 shadow-sm"
             >
               <Sparkles className="h-4 w-4 animate-pulse" />
-              AI-Powered Frame Designer
+              <span>Custom Frame</span>
             </motion.div>
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-6 leading-tight">
               Design Your Perfect Frame

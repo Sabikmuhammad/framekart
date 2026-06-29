@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Star, Shield, Truck, Heart, Sparkles, Frame, Image as ImageIcon, Gift, Home, Palette, Zap, Clock, TrendingUp, Instagram, Users, Package, MessageCircle, Mail, Send, Cake } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type TouchEvent } from "react";
 import FrameCard from "@/components/FrameCard";
 import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
@@ -20,9 +20,10 @@ const HERO_SLIDES = [
       { label: "Create Custom Frame", href: "/custom-frame", variant: "outline" as const, icon: Sparkles },
     ],
     gradient: "from-primary/10 via-background to-secondary/10",
+    image: "/images/banners/H1.png",
   },
   {
-    title: "Create Your Own",
+    title: "Create",
     highlight: "Custom Frame",
     description: "Design a personalized frame with your choice of size, style, and uploaded image. Bring your vision to life.",
     buttons: [
@@ -30,6 +31,7 @@ const HERO_SLIDES = [
       { label: "View Gallery", href: "/frames", variant: "outline" as const, icon: ArrowRight },
     ],
     gradient: "from-purple-50 via-background to-blue-50 dark:from-purple-950/20 dark:via-background dark:to-blue-950/20",
+    image: "/images/banners/H2.png",
   },
   {
     title: "Celebrate Forever,",
@@ -40,6 +42,7 @@ const HERO_SLIDES = [
       { label: "Shop All Frames", href: "/frames", variant: "outline" as const, icon: ArrowRight },
     ],
     gradient: "from-rose-50 via-background to-amber-50 dark:from-rose-950/20 dark:via-background dark:to-amber-950/20",
+    image: "/images/banners/H3.png",
   },
   {
     title: "Make It Special,",
@@ -50,13 +53,87 @@ const HERO_SLIDES = [
       { label: "Shop All Frames", href: "/frames", variant: "outline" as const, icon: ArrowRight },
     ],
     gradient: "from-pink-50 via-background to-purple-50 dark:from-pink-950/20 dark:via-background dark:to-purple-950/20",
+    image: "/images/banners/H4.png",
   },
 ];
+
+type HeroSlide = (typeof HERO_SLIDES)[number];
+
+function HeroButtons({
+  buttons,
+  mobile = false,
+}: {
+  buttons: HeroSlide["buttons"];
+  mobile?: boolean;
+}) {
+  const visibleButtons = mobile ? buttons.filter((button) => button.variant === "default") : buttons;
+
+  return (
+    <div className={mobile ? "flex max-w-full flex-wrap gap-2" : "flex flex-row flex-wrap gap-2.5 sm:gap-3 md:gap-4"}>
+      {visibleButtons.map((button, index) => {
+        const Icon = button.icon;
+        return (
+          <Link key={index} href={button.href}>
+            <Button
+              variant={button.variant}
+              className={
+                mobile
+                  ? `h-10 max-w-full rounded-xl px-5 text-sm gap-1.5 ${
+                      button.variant === "outline"
+                        ? "border border-black/20 bg-white/80 text-black hover:bg-black hover:text-white"
+                        : "shadow-sm"
+                    }`
+                  : `h-11 px-5 text-xs gap-2 sm:h-12 sm:px-6 sm:text-sm md:h-12 md:px-7 md:text-sm lg:h-14 lg:px-8 lg:text-base ${
+                      button.variant === "outline"
+                        ? "border-2 border-black text-black hover:bg-black hover:text-white"
+                        : ""
+                    }`
+              }
+            >
+              {button.variant === "default" && <Icon className="h-4 w-4" />}
+              {button.label}
+              {button.variant === "outline" && <Icon className="h-4 w-4" />}
+            </Button>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function HeroCopy({
+  slide,
+  mobile = false,
+}: {
+  slide: HeroSlide;
+  mobile?: boolean;
+}) {
+  return (
+    <>
+      <h1
+        className={
+          mobile
+            ? "mb-2 text-[28px] font-black leading-tight tracking-tight text-black"
+            : "mb-3 text-3xl font-bold tracking-tight text-black sm:mb-4 sm:text-4xl md:mb-5 md:text-5xl lg:mb-6 lg:text-6xl"
+        }
+      >
+        {slide.title} <span className="text-primary">{slide.highlight}</span>
+      </h1>
+      {!mobile && (
+        <p className="mb-5 text-sm leading-snug text-black/80 sm:mb-6 sm:text-base md:mb-7 md:text-lg lg:mb-8 lg:text-xl">
+          {slide.description}
+        </p>
+      )}
+      <HeroButtons buttons={slide.buttons} mobile={mobile} />
+    </>
+  );
+}
 
 export default function HomePage() {
   const [frames, setFrames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [eligibility, setEligibility] = useState({
     eligible: true,
     discountValue: 15,
@@ -116,6 +193,27 @@ export default function HomePage() {
     setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   };
 
+  const handleHeroTouchStart = (event: TouchEvent<HTMLElement>) => {
+    setTouchStartX(event.touches[0]?.clientX ?? null);
+  };
+
+  const handleHeroTouchEnd = (event: TouchEvent<HTMLElement>) => {
+    if (touchStartX === null) return;
+
+    const touchEndX = event.changedTouches[0]?.clientX ?? touchStartX;
+    const deltaX = touchStartX - touchEndX;
+
+    if (Math.abs(deltaX) > 40) {
+      if (deltaX > 0) {
+        nextSlide();
+      } else {
+        prevSlide();
+      }
+    }
+
+    setTouchStartX(null);
+  };
+
   const currentHero = HERO_SLIDES[currentSlide];
 
   // Category images configuration - Local paths from public folder
@@ -161,49 +259,88 @@ export default function HomePage() {
       )}
 
       {/* Hero Section */}
-      <section className={`relative overflow-hidden bg-gradient-to-br ${currentHero.gradient} py-12 sm:py-20 md:py-32 transition-all duration-700`}>
-        <div className="container mx-auto px-4">
-          <motion.div
-            key={currentSlide}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto max-w-3xl text-center"
-          >
-            <h1 className="mb-4 sm:mb-6 text-3xl sm:text-4xl font-bold tracking-tight md:text-6xl">
-              {currentHero.title}{" "}
-              <span className="text-primary">{currentHero.highlight}</span>
-            </h1>
-            <p className="mb-6 sm:mb-8 text-base sm:text-lg text-muted-foreground md:text-xl">
-              {currentHero.description}
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              {currentHero.buttons.map((button, index) => {
-                const Icon = button.icon;
-                return (
-                  <Link key={index} href={button.href}>
-                    <Button size="lg" variant={button.variant} className={`gap-2 ${button.variant === "outline" ? "border-2" : ""}`}>
-                      {button.variant === "default" && <Icon className="h-4 w-4" />}
-                      {button.label}
-                      {button.variant === "outline" && <Icon className="h-4 w-4" />}
-                    </Button>
-                  </Link>
-                );
-              })}
+      <section
+        className="relative"
+        onTouchStart={handleHeroTouchStart}
+        onTouchEnd={handleHeroTouchEnd}
+      >
+        <div className="px-4 py-4 md:hidden">
+          <div className="relative h-[220px] overflow-hidden rounded-[24px] bg-background shadow-[0_16px_40px_rgba(15,23,42,0.12)] ring-1 ring-black/5">
+            <Image
+              key={`mobile-${currentSlide}`}
+              src={currentHero.image}
+              alt={currentHero.highlight}
+              fill
+              sizes="100vw"
+              className="object-cover object-right opacity-100 brightness-100 contrast-100 saturate-100"
+              priority
+            />
+            <div className="absolute inset-y-0 left-0 w-[38%] bg-gradient-to-r from-white/10 via-transparent to-transparent" />
+            <div className="relative z-10 grid h-full grid-cols-[55%_45%] p-5">
+              <motion.div
+                key={`mobile-copy-${currentSlide}`}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.45 }}
+                className="flex w-[55%] max-w-[55%] flex-col justify-center"
+              >
+                <HeroCopy slide={currentHero} mobile />
+              </motion.div>
+              <div aria-hidden="true" />
             </div>
-          </motion.div>
+          </div>
 
-          {/* Slide Indicators */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+          <div className="mt-4 flex justify-center gap-2">
             {HERO_SLIDES.map((_, index) => (
               <button
-                key={index}
+                key={`mobile-indicator-${index}`}
                 onClick={() => setCurrentSlide(index)}
                 className={`h-2 rounded-full transition-all ${
-                  index === currentSlide ? "w-8 bg-primary" : "w-2 bg-gray-400 hover:bg-gray-600"
+                  index === currentSlide ? "w-8 bg-primary" : "w-2 bg-black/15 hover:bg-black/30"
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
+                aria-current={index === currentSlide}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="relative hidden h-[560px] overflow-hidden md:block lg:h-[700px]">
+          <Image
+            key={`desktop-${currentSlide}`}
+            src={currentHero.image}
+            alt={currentHero.highlight}
+            fill
+            sizes="100vw"
+            className="object-cover object-right transition-opacity duration-700"
+            priority
+          />
+
+          <div className="relative z-10 h-full">
+            <div className="container mx-auto grid h-full grid-cols-[52%_48%] items-center px-8 lg:grid-cols-2">
+              <motion.div
+                key={`desktop-copy-${currentSlide}`}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="w-full max-w-full pr-6 md:max-w-lg lg:max-w-xl lg:pr-0"
+              >
+                <HeroCopy slide={currentHero} />
+              </motion.div>
+              <div aria-hidden="true" />
+            </div>
+          </div>
+
+          <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+            {HERO_SLIDES.map((_, index) => (
+              <button
+                key={`desktop-indicator-${index}`}
+                onClick={() => setCurrentSlide(index)}
+                className={`h-2 rounded-full transition-all ${
+                  index === currentSlide ? "w-8 bg-primary" : "w-2 bg-white/50 hover:bg-white"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+                aria-current={index === currentSlide}
               />
             ))}
           </div>
