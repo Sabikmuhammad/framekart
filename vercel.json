@@ -1,12 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cart/check-abandoned",
-      "schedule": "*/30 * * * *"
-    },
-    {
       "path": "/api/cart/send-recovery-email",
-      "schedule": "5,35 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
