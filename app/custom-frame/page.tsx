@@ -49,6 +49,12 @@ const FRAME_STYLES = [
   },
 ];
 
+const FEATURE_ITEMS = [
+  { icon: Package, title: "Premium Quality", desc: "Museum-grade printing", gradient: "from-blue-500/10 to-blue-600/10", iconColor: "text-blue-600 dark:text-blue-400" },
+  { icon: Truck, title: "Fast Delivery", desc: "Ships in 3-5 days", gradient: "from-green-500/10 to-green-600/10", iconColor: "text-green-600 dark:text-green-400" },
+  { icon: Shield, title: "Secure Packaging", desc: "Protected delivery", gradient: "from-purple-500/10 to-purple-600/10", iconColor: "text-purple-600 dark:text-purple-400" },
+] as const;
+
 export default function CustomFramePage() {
   // Image upload state with crop support
   const [uploadedImage, setUploadedImage] = useState<UploadedImage | null>(null);
@@ -326,26 +332,26 @@ export default function CustomFramePage() {
         {/* Subtle Background Pattern */}
         <div className="fixed inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(0_0_0/0.05)_1px,transparent_0)] [background-size:40px_40px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.05)_1px,transparent_0)] pointer-events-none" />
         
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8 sm:mb-12"
+            className="mb-8 text-center sm:mb-12"
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1 }}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 text-primary px-5 py-2.5 rounded-full text-sm font-semibold mb-6 border border-primary/20 shadow-sm"
+              className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 px-4 py-2 text-xs font-semibold text-primary shadow-sm sm:mb-6 sm:px-5 sm:py-2.5 sm:text-sm"
             >
-              <Sparkles className="h-4 w-4 animate-pulse" />
-              <span>Custom Frame</span>
+              <ShoppingCart className="h-4 w-4 animate-pulse" />
+              
             </motion.div>
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-6 leading-tight">
-              Design Your Perfect Frame
+            <h1 className="mb-3 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-3xl font-bold leading-[1.1] text-transparent dark:from-white dark:via-gray-100 dark:to-gray-300 sm:mb-4 sm:text-5xl lg:mb-6 lg:text-7xl">
+              Turn Your Memories Into Beautiful Wall Art
             </h1>
-            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            <p className="mx-auto max-w-2xl text-sm leading-6 text-gray-600 line-clamp-2 dark:text-gray-400 sm:text-base sm:leading-7 lg:text-lg">
               Upload your image, customize your frame with real-time preview, and we&apos;ll bring it to life with premium quality printing.
             </p>
             
@@ -355,9 +361,9 @@ export default function CustomFramePage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-6 mx-auto max-w-lg"
+                className="mx-auto mt-4 max-w-lg sm:mt-6"
               >
-                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/30 sm:p-4">
                   <div className="flex items-start gap-3">
                     <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-blue-800 dark:text-blue-300 text-left">
@@ -370,7 +376,7 @@ export default function CustomFramePage() {
             )}
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
             {/* Left: Preview Section */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -379,17 +385,17 @@ export default function CustomFramePage() {
               className="space-y-4 sm:space-y-6"
             >
               {/* Live Preview */}
-              <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-800">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div className="relative rounded-2xl border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-800 dark:bg-gray-900 sm:p-6 lg:p-8">
+                <div className="mb-4 flex items-start justify-between gap-3 sm:mb-6">
                   <div>
-                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white sm:text-2xl">
                       <div className="relative">
                         <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-                        <Sparkles className="relative h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                        
                       </div>
                       Live Preview
                     </h2>
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
                       Real-time {frameSize} frame visualization
                     </p>
                   </div>
@@ -398,7 +404,7 @@ export default function CustomFramePage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setShowFullPreview(true)}
-                      className="gap-1.5"
+                      className="h-11 w-11 gap-1.5 rounded-xl px-0 sm:h-9 sm:w-auto sm:px-3"
                     >
                       <ZoomIn className="h-4 w-4" />
                       <span className="hidden sm:inline">Fullscreen</span>
@@ -407,13 +413,13 @@ export default function CustomFramePage() {
                 </div>
                 
                 {/* A4 Proportional Container */}
-                <div className="flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 sm:p-6 lg:p-8">
+                <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-3 dark:from-gray-800 dark:to-gray-900 sm:p-6 lg:p-8">
                   <motion.div
                     key={frameSize}
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="relative w-full max-w-md"
+                    className="relative w-full max-w-[280px] sm:max-w-sm lg:max-w-md"
                     style={{ aspectRatio: `${frameRatio.width} / ${frameRatio.height}` }}
                   >
                     {/* Frame Border with 3D Effect */}
@@ -520,22 +526,22 @@ export default function CustomFramePage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-4 space-y-2"
                   >
-                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4 py-3">
+                    <div className="rounded-lg bg-gray-50 px-3 py-3 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400 sm:flex sm:items-center sm:justify-between sm:px-4 sm:text-sm">
                       <span className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                         {frameSize} • {frameStyle} Frame
                       </span>
-                      <span className="text-gray-500 dark:text-gray-500">
+                      <span className="mt-2 block text-gray-500 dark:text-gray-500 sm:mt-0">
                         {frameRatio.width} × {frameRatio.height} {frameSize === "A4" ? "mm" : "inches"}
                       </span>
                     </div>
 
                     {/* Image Info & Crop Status */}
-                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/30">
                       <div className="flex items-start gap-3">
                         <ImageIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                         <div className="flex-1 text-sm text-blue-800 dark:text-blue-300">
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="mb-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                             <p className="font-semibold">
                               {uploadedImage.isCropped ? 'Cropped Image' : 'Full Image'} • {uploadedImage.orientation}
                             </p>
@@ -569,7 +575,7 @@ export default function CustomFramePage() {
                     <Button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
-                      className="w-full h-10 text-sm font-medium relative overflow-hidden group"
+                      className="group relative h-12 w-full overflow-hidden rounded-xl text-sm font-medium sm:h-11"
                     >
                       <motion.div
                         className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0"
@@ -603,12 +609,12 @@ export default function CustomFramePage() {
 
                   {/* Crop Button - Optional */}
                   {uploadedImage && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:gap-2">
                       {!uploadedImage.isCropped ? (
                         <Button
                           onClick={handleCropImage}
                           variant="outline"
-                          className="flex-1 h-10 font-medium"
+                          className="h-12 flex-1 rounded-xl font-medium sm:h-10"
                         >
                           <Crop className="mr-2 h-4 w-4" />
                           Crop Image (Optional)
@@ -618,7 +624,7 @@ export default function CustomFramePage() {
                           <Button
                             onClick={handleCropImage}
                             variant="outline"
-                            className="flex-1 h-10 font-medium"
+                            className="h-12 flex-1 rounded-xl font-medium sm:h-10"
                           >
                             <Crop className="mr-2 h-4 w-4" />
                             Re-crop
@@ -626,7 +632,7 @@ export default function CustomFramePage() {
                           <Button
                             onClick={handleRemoveCrop}
                             variant="ghost"
-                            className="h-10 font-medium"
+                            className="h-12 rounded-xl font-medium sm:h-10"
                           >
                             <X className="mr-2 h-4 w-4" />
                             Remove Crop
@@ -641,31 +647,6 @@ export default function CustomFramePage() {
                   </p>
                 </div>
               </div>
-
-              {/* Features Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                {[
-                  { icon: Package, title: "Premium Quality", desc: "Museum-grade printing", gradient: "from-blue-500/10 to-blue-600/10", iconColor: "text-blue-600 dark:text-blue-400" },
-                  { icon: Truck, title: "Fast Delivery", desc: "Ships in 3-5 days", gradient: "from-green-500/10 to-green-600/10", iconColor: "text-green-600 dark:text-green-400" },
-                  { icon: Shield, title: "Secure Packaging", desc: "Protected delivery", gradient: "from-purple-500/10 to-purple-600/10", iconColor: "text-purple-600 dark:text-purple-400" },
-                ].map((feature, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ y: -4, scale: 1.02 }}
-                    transition={{ delay: 0.2 + index * 0.1 }}
-                    className={`bg-gradient-to-br ${feature.gradient} backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-shadow`}
-                  >
-                    <div className="relative">
-                      <div className={`absolute inset-0 ${feature.iconColor} opacity-20 blur-xl`} />
-                      <feature.icon className={`relative h-8 w-8 ${feature.iconColor} mb-2`} />
-                    </div>
-                    <p className="font-semibold text-sm text-gray-900 dark:text-white">{feature.title}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{feature.desc}</p>
-                  </motion.div>
-                ))}
-              </div>
             </motion.div>
 
             {/* Right: Customization Section */}
@@ -676,8 +657,8 @@ export default function CustomFramePage() {
               className="space-y-4 sm:space-y-6"
             >
               {/* Frame Size */}
-              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-800">
-                <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6 lg:p-8">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white sm:text-xl">
                   Select Size
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
@@ -688,9 +669,9 @@ export default function CustomFramePage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      whileHover={{ scale: 1.02, x: 4 }}
+                      whileHover={{ scale: 1.01, x: 2 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`relative p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 text-left overflow-hidden group ${
+                      className={`group relative min-h-14 overflow-hidden rounded-xl border-2 p-3 text-left transition-all duration-200 sm:p-4 ${
                         frameSize === size.value
                           ? "border-primary bg-primary/5 shadow-sm"
                           : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
@@ -703,15 +684,15 @@ export default function CustomFramePage() {
                           transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                         />
                       )}
-                      <div className="relative flex justify-between items-center">
+                      <div className="relative flex items-center justify-between gap-3">
                         <div className="flex-1">
-                          <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">{size.label}</p>
+                          <p className="font-semibold text-sm leading-snug text-gray-900 dark:text-white sm:text-base">{size.label}</p>
                           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                             Perfect for {size.value === "A4" ? "desks/walls" : size.value === "12x18" ? "rooms" : size.value === "18x24" ? "walls" : "large walls"}
                           </p>
                         </div>
-                        <div className="text-right ml-4">
-                          <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">₹{size.price}</p>
+                        <div className="ml-2 text-right">
+                          <p className="text-lg font-bold text-gray-900 dark:text-white sm:text-2xl">₹{size.price}</p>
                           {frameSize === size.value && (
                             <motion.div
                               initial={{ scale: 0, rotate: -180 }}
@@ -730,11 +711,11 @@ export default function CustomFramePage() {
               </div>
 
               {/* Frame Style */}
-              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-800">
-                <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6 lg:p-8">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white sm:text-xl">
                   Select Style
                 </h3>
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                   {FRAME_STYLES.map((style, index) => (
                     <motion.button
                       key={style.value}
@@ -742,9 +723,9 @@ export default function CustomFramePage() {
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.05 }}
-                      whileHover={{ scale: 1.05, y: -4 }}
+                      whileHover={{ scale: 1.03, y: -2 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`relative p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 overflow-hidden group ${
+                      className={`group relative overflow-hidden rounded-xl border-2 p-3 transition-all duration-200 sm:p-4 ${
                         frameStyle === style.value
                           ? "border-primary bg-primary/5 shadow-sm"
                           : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
@@ -784,15 +765,15 @@ export default function CustomFramePage() {
               </div>
 
               {/* Customer Notes */}
-              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-800">
-                <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6 lg:p-8">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white sm:text-xl">
                   Special Instructions <span className="text-sm text-gray-600 dark:text-gray-400 font-normal">(Optional)</span>
                 </h3>
                 <textarea
                   value={customerNotes}
                   onChange={(e) => setCustomerNotes(e.target.value)}
                   placeholder="Add any special requests or instructions for your frame..."
-                  className="w-full h-20 sm:h-24 p-3 sm:p-4 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                  className="h-24 w-full resize-none rounded-xl border-2 border-gray-200 bg-white p-3 text-sm text-gray-900 transition-all placeholder-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 sm:h-24 sm:p-4 sm:text-base"
                   maxLength={500}
                 />
                 <p className="text-xs text-muted-foreground mt-2">{customerNotes.length}/500 characters</p>
@@ -803,7 +784,7 @@ export default function CustomFramePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-950 rounded-2xl shadow-2xl p-4 sm:p-6 text-white border border-gray-800 relative overflow-hidden"
+                className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 text-gray-900 shadow-xl dark:border-gray-800 dark:bg-gray-900 dark:text-white sm:p-6"
               >
                 {/* Animated Background Gradient */}
                 <motion.div
@@ -815,43 +796,68 @@ export default function CustomFramePage() {
                     ],
                   }}
                   transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 opacity-50"
+                  className="absolute inset-0 opacity-30 dark:opacity-50"
                 />
 
                 <div className="relative z-10">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-gray-400 text-xs sm:text-sm mb-1 flex items-center gap-1">
-                        <span className="inline-block w-1 h-1 rounded-full bg-gray-400" />
-                        Total Price
-                      </p>
-                      <motion.div
-                        key={currentPrice}
-                        initial={{ scale: 1.2, y: -10 }}
-                        animate={{ scale: 1, y: 0 }}
-                        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                        className="relative"
-                      >
-                        <motion.div
-                          initial={{ opacity: 1, scale: 1.5 }}
-                          animate={{ opacity: 0, scale: 2 }}
-                          transition={{ duration: 0.6 }}
-                          className="absolute inset-0 bg-blue-500/30 blur-2xl"
-                        />
-                        <p className="text-3xl sm:text-4xl font-bold relative z-10 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text">
-                          ₹{currentPrice}
+                  <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50/90 p-4 dark:border-white/10 dark:bg-white/5">
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="mb-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                          <span className="inline-block h-1 w-1 rounded-full bg-gray-500 dark:bg-gray-400" />
+                          Price Summary
                         </p>
-                      </motion.div>
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                          Custom Frame
+                        </h3>
+                      </div>
+                      <div className="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-medium text-green-700 dark:bg-green-500/15 dark:text-green-300 sm:text-xs">
+                        {uploadedImage ? "Ready to Add" : "Upload an Image"}
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-gray-300 text-xs sm:text-sm font-medium">{frameSize} • {frameStyle}</p>
+
+                    <div className="mb-4 grid gap-2 text-sm sm:grid-cols-2">
+                      <div className="rounded-lg bg-white px-3 py-2 shadow-sm dark:bg-white/5 dark:shadow-none">
+                        <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Size</p>
+                        <p className="mt-1 font-medium text-gray-900 dark:text-white">{frameSize}</p>
+                      </div>
+                      <div className="rounded-lg bg-white px-3 py-2 shadow-sm dark:bg-white/5 dark:shadow-none">
+                        <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Style</p>
+                        <p className="mt-1 font-medium text-gray-900 dark:text-white">{frameStyle}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-end justify-between gap-3 border-t border-gray-200 pt-3 dark:border-white/10">
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">Total Price</p>
+                        <motion.div
+                          key={currentPrice}
+                          initial={{ scale: 1.08, y: -6 }}
+                          animate={{ scale: 1, y: 0 }}
+                          transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                          className="relative"
+                        >
+                          <motion.div
+                            initial={{ opacity: 1, scale: 1.3 }}
+                            animate={{ opacity: 0, scale: 1.8 }}
+                            transition={{ duration: 0.5 }}
+                            className="absolute inset-0 bg-blue-500/30 blur-2xl"
+                          />
+                          <p className="relative z-10 bg-gradient-to-r from-gray-900 via-primary to-blue-600 bg-clip-text text-3xl font-bold text-transparent dark:from-white dark:via-blue-100 dark:to-white sm:text-4xl">
+                            ₹{currentPrice}
+                          </p>
+                        </motion.div>
+                      </div>
+                      <p className="max-w-[9rem] text-right text-[11px] leading-5 text-gray-500 dark:text-gray-300 sm:max-w-none sm:text-sm">
+                        Premium print, frame, and finishing included
+                      </p>
                     </div>
                   </div>
 
                   <Button
                     onClick={handleAddToCart}
-                    disabled={!uploadedImageUrl || isAddingToCart}
-                    className="w-full h-10 sm:h-11 text-sm sm:text-base font-semibold bg-white text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+                    disabled={isAddingToCart}
+                    className="relative h-[52px] w-full overflow-hidden rounded-xl bg-primary text-sm font-semibold text-primary-foreground shadow-lg transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:h-12 sm:text-base"
                   >
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-blue-400/20 to-blue-400/0"
@@ -881,7 +887,7 @@ export default function CustomFramePage() {
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-center text-xs text-gray-400 mt-3 flex items-center justify-center gap-1"
+                      className="mt-3 flex items-center justify-center gap-1 text-center text-xs text-gray-500 dark:text-gray-400"
                     >
                       <Upload className="h-3 w-3" />
                       Upload an image to continue
@@ -890,6 +896,27 @@ export default function CustomFramePage() {
                 </div>
               </motion.div>
             </motion.div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
+            {FEATURE_ITEMS.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -2, scale: 1.01 }}
+                transition={{ delay: 0.2 + index * 0.1 }}
+                className={`rounded-xl border border-gray-200 bg-gradient-to-br ${feature.gradient} p-4 transition-shadow hover:shadow-md dark:border-gray-700`}
+              >
+                <div className="relative">
+                  <div className={`absolute inset-0 ${feature.iconColor} opacity-20 blur-xl`} />
+                  <feature.icon className={`relative mb-2 h-8 w-8 ${feature.iconColor}`} />
+                </div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">{feature.title}</p>
+                <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400">{feature.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
@@ -902,7 +929,7 @@ export default function CustomFramePage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowFullPreview(false)}
-            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-3 backdrop-blur-sm sm:p-4"
           >
             <Button
               onClick={() => setShowFullPreview(false)}
@@ -917,11 +944,11 @@ export default function CustomFramePage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", damping: 25 }}
-              className="relative max-w-4xl w-full aspect-square"
+              className="relative aspect-square w-full max-w-4xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div 
-                className="absolute inset-0 p-16 transition-all duration-500"
+                className="absolute inset-0 p-6 transition-all duration-500 sm:p-10 lg:p-16"
                 style={{
                   backgroundColor: frameStyle === "Black" ? "#1a1a1a" : 
                                  frameStyle === "White" ? "#f5f5f5" : 
