@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CampaignComposerModal, type CampaignRecipient, type CampaignType } from "@/components/admin/campaigns/CampaignComposerModal";
 import { useToast } from "@/components/ui/use-toast";
-import { CheckSquare, Mail, Megaphone, RefreshCw, Sparkles, Ticket } from "lucide-react";
+import { CheckSquare, Mail, Megaphone, RefreshCw, Ticket } from "lucide-react";
 
 interface UserRecord {
   _id: string;
@@ -198,7 +198,7 @@ export default function AdminUsersPage() {
                         <TableCell>
                           <div className="flex flex-wrap justify-end gap-2">
                             <Button type="button" size="sm" variant="outline" onClick={() => openComposer("promotion", [recipient], "selected")}>
-                              <Sparkles className="mr-2 h-4 w-4" />
+                              <Megaphone className="mr-2 h-4 w-4" />
                               Send Promotion Mail
                             </Button>
                             <Button type="button" size="sm" variant="outline" onClick={() => openComposer("coupon", [recipient], "selected")}>

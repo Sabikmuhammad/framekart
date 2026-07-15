@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Download, Loader2, Package, RefreshCw, CheckCircle2, Clock, Truck, Box, Cake, Heart, Sparkles } from "lucide-react";
+import { Download, Loader2, Package, RefreshCw, CheckCircle2, Clock, Truck, Box, Cake, Heart, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { getOccasionBadgeColor, getOccasionDisplayName } from "@/lib/occasions";
@@ -254,7 +254,7 @@ export default function AdminCustomOrdersPage() {
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 flex items-center justify-center border-2 border-dashed border-blue-300 dark:border-blue-700">
                               <div className="text-center p-6">
-                                <Sparkles className="w-12 h-12 mx-auto mb-3 text-blue-500" />
+                                <Palette className="w-12 h-12 mx-auto mb-3 text-blue-500" />
                                 <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Awaiting Design</p>
                                 <p className="text-xs text-gray-600 dark:text-gray-400">FrameKart team will finalize</p>
                               </div>
@@ -276,7 +276,7 @@ export default function AdminCustomOrdersPage() {
                               <span className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1 ${getOccasionBadgeColor(order.customFrame.occasion)}`}>
                                 {order.customFrame.occasion === "birthday" && <Cake className="w-3 h-3" />}
                                 {order.customFrame.occasion === "wedding" && <Heart className="w-3 h-3" />}
-                                {order.customFrame.occasion === "custom" && <Sparkles className="w-3 h-3" />}
+                                {order.customFrame.occasion === "custom" && <Palette className="w-3 h-3" />}
                                 {getOccasionDisplayName(order.customFrame.occasion)}
                               </span>
                             )}

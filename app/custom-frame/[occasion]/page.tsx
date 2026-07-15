@@ -22,13 +22,14 @@ const BIRTHDAY_TEMPLATE = "/images/templates/birthday-template.jpg";
 const WEDDING_TEMPLATE = "/images/templates/wedding-template.jpeg";
 const FIXED_PRICE = 999; // A4 size price
 
-type FrameStyle = "Black" | "White" | "Wooden";
+type FrameStyle = "Black" | "White" | "Wooden"| "Golden";
 type OccasionType = "birthday" | "wedding";
 
 const FRAME_STYLES = [
   { value: "Black" as FrameStyle, label: "Black", color: "#000000", description: "Modern & Elegant" },
   { value: "White" as FrameStyle, label: "White", color: "#FFFFFF", description: "Clean & Minimal" },
   { value: "Wooden" as FrameStyle, label: "Wooden", color: "#8B4513", description: "Classic & Warm" },
+  { value: "Golden" as FrameStyle, label: "Golden", color: "#D4AF37", description: "Luxury & Bold" },
 ];
 
 interface PageProps {
@@ -43,7 +44,7 @@ export default function OccasionFramePage({ params }: PageProps) {
   
   // Validate occasion type
   useEffect(() => {
-    if (!["birthday", "wedding"].includes(occasion)) {
+    if (!["birthday", "wedding", "NikahCertificate"].includes(occasion)) {
       router.push("/custom-frame");
     }
   }, [occasion, router]);
@@ -336,9 +337,37 @@ export default function OccasionFramePage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 relative overflow-hidden">
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(0_0_0/0.05)_1px,transparent_0)] [background-size:40px_40px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.05)_1px,transparent_0)] pointer-events-none" />
       
+      {/* Floating background gradient orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute top-[-10%] left-[-10%] w-[350px] h-[350px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[80px]"
+          animate={{
+            x: [0, 40, -20, 0],
+            y: [0, -40, 20, 0],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute top-[5%] right-[-10%] w-[300px] h-[300px] bg-secondary/15 dark:bg-secondary/25 rounded-full blur-[70px]"
+          animate={{
+            x: [0, -30, 40, 0],
+            y: [0, 30, -30, 0],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </div>
+
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Back Button */}
         <motion.div
@@ -356,31 +385,64 @@ export default function OccasionFramePage({ params }: PageProps) {
 
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1,
+              },
+            },
+          }}
           className="text-center mb-8 sm:mb-12"
         >
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 px-5 py-2.5 rounded-full text-sm font-semibold mb-6 border border-primary/20 shadow-sm"
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: -10 },
+              visible: { opacity: 1, y: 0 }
+            }}
           >
-            <Icon className="h-4 w-4 text-primary animate-pulse" />
-            Template-Based Design
+            <motion.div 
+              animate={{ y: [0, -5, 0] }}
+              transition={{
+                repeat: Infinity,
+                duration: 4,
+                ease: "easeInOut",
+              }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 px-5 py-2.5 rounded-full text-sm font-semibold mb-6 border border-primary/20 shadow-sm text-primary"
+            >
+              
+            </motion.div>
           </motion.div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+          
+          <motion.h1
+            variants={{
+              hidden: { opacity: 0, y: 15 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+            }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight"
+          >
             {title}
-          </h1>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed mb-6">
+          </motion.h1>
+          
+          <motion.p 
+            variants={{
+              hidden: { opacity: 0, y: 15 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+            }}
+            className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed mb-6"
+          >
             {description}
-          </p>
+          </motion.p>
           
           {/* Important Info Banner */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            variants={{
+              hidden: { opacity: 0, y: 10 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+            }}
             className="mx-auto max-w-3xl"
           >
             <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
@@ -402,16 +464,16 @@ export default function OccasionFramePage({ params }: PageProps) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800 sticky top-8">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800 lg:sticky lg:top-8">
               <div className="mb-4">
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
                   <Icon className="h-6 w-6 text-primary" />
-                  Template Preview
+                  Preview
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Sample design - Final design will be customized</p>
               </div>
               
-              <div className="relative aspect-[210/297] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden shadow-2xl">
+              <div className="relative aspect-[210/297] max-w-xs mx-auto lg:max-w-none bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden shadow-2xl">
                 <Image
                   src={templateImage}
                   alt={`${title} Template`}
@@ -486,23 +548,23 @@ export default function OccasionFramePage({ params }: PageProps) {
             {/* Frame Style */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800">
               <h3 className="text-lg font-semibold mb-4">Frame Style</h3>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {FRAME_STYLES.map((style) => (
                   <button
                     key={style.value}
                     onClick={() => setFrameStyle(style.value)}
-                    className={`p-4 rounded-lg border-2 transition-all ${
+                    className={`p-2.5 sm:p-4 rounded-lg border-2 transition-all ${
                       frameStyle === style.value
                         ? "border-primary bg-primary/5"
                         : "border-gray-200 dark:border-gray-700 hover:border-primary/30"
                     }`}
                   >
                     <div
-                      className="w-12 h-12 rounded-full mx-auto mb-2 border-2"
+                      className="w-8 h-8 sm:w-12 sm:h-12 rounded-full mx-auto mb-2 border-2"
                       style={{ backgroundColor: style.color }}
                     />
-                    <div className="text-sm font-semibold">{style.label}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{style.description}</div>
+                    <div className="text-xs sm:text-sm font-semibold">{style.label}</div>
+                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">{style.description}</div>
                   </button>
                 ))}
               </div>

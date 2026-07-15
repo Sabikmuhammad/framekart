@@ -11,6 +11,10 @@ export default function MobileNav() {
   const items = useCartStore((state) => state.items);
   const [mounted, setMounted] = useState(false);
   
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+    return null;
+  }
+  
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
   
   useEffect(() => {

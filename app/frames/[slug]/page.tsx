@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShoppingCart, Heart, Star, Shield, Package, Truck, Award, Check, Eye, Sparkles } from "lucide-react";
+import { ShoppingCart, Heart, Star, Shield, Package, Truck, Award, Check, Eye, ImageIcon } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
 import { useToast } from "@/components/ui/use-toast";
@@ -256,7 +256,7 @@ export default function FrameDetailPage() {
           <Card className="border hover:border-primary transition-all duration-300 hover:shadow-md">
             <CardContent className="pt-4 sm:pt-5 pb-4 px-3 sm:px-4 text-center">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
               <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-1.5">HD Print Quality</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">

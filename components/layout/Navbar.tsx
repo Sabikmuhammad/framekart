@@ -2,17 +2,23 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useUser, UserButton } from "@clerk/nextjs";
-import { ShoppingCart, Menu, Shield, User } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { ShoppingCart, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
+  const pathname = usePathname();
   const { isSignedIn, user } = useUser();
   const items = useCartStore((state) => state.items);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+    return null;
+  }
   
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
   
@@ -29,8 +35,15 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden md:block">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="text-2xl font-bold">
-          FrameKart
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/images/branding/Frame-2.png"
+            alt="FrameKart"
+            width={380}
+            height={100}
+            priority
+            className="h-14 w-auto"
+          />
         </Link>
 
         {/* Desktop Navigation */}

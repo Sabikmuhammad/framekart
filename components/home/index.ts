@@ -1,0 +1,12 @@
+export { default as Hero } from "./Hero/Hero";
+export { default as CategoriesSection } from "./CategoriesSection";
+export { default as FeaturedFramesSection } from "./FeaturedFramesSection";
+export { default as CustomFrameBanner } from "./CustomFrameBanner";
+export { default as LimitedOfferBanner } from "./LimitedOfferBanner";
+export { default as BestSellerSection } from "./BestSellerSection";
+export { default as WeddingBirthdaySection } from "./WeddingBirthdaySection";
+export { default as InstagramSection } from "./InstagramSection";
+export { default as StatsSection } from "./StatsSection";
+export { default as NewsletterSection } from "./NewsletterSection";
+export { default as CTASection } from "./CTASection";
+export { default as LaunchOfferBanner } from "./LaunchOfferBanner";

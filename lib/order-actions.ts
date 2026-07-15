@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import { checkAdminAuth } from "./admin-auth";
+import { sendOrderStatusUpdateEmail } from "@/lib/email";
 
 export async function updateOrderStatus(orderId: string, newStatus: string) {
   try {
@@ -76,34 +77,5 @@ export async function bulkUpdateOrderStatus(orderIds: string[], newStatus: strin
 }
 
 async function sendOrderStatusEmail(order: any, newStatus: string) {
-  // Email sending logic using Resend
-  try {
-    const statusMessages: Record<string, string> = {
-      Processing: "Your order is being processed",
-      Printed: "Your order has been printed and is being prepared for shipping",
-      Shipped: "Your order has been shipped",
-      Delivered: "Your order has been delivered",
-    };
-
-    const message = statusMessages[newStatus] || `Your order status has been updated to ${newStatus}`;
-
-    // Get email safely
-    const customerEmail = order?.customerEmail || order?.email || 'unknown';
-
-    // TODO: Integrate with your email service (Resend)
-    console.log(`Email sent to ${customerEmail}: ${message}`);
-    
-    // Example Resend integration:
-    // await resend.emails.send({
-    //   from: 'FrameKart <orders@framekart.com>',
-    //   to: order.customerEmail,
-    //   subject: `Order Update: ${newStatus}`,
-    //   html: `<p>${message}</p>`
-    // });
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error sending email:", error);
-    return { success: false };
-  }
+  return await sendOrderStatusUpdateEmail(order, newStatus);
 }

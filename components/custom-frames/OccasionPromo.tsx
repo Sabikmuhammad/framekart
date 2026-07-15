@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Cake, Heart, Sparkles, ArrowRight, Wand2 } from "lucide-react";
+import { Cake, Heart, ArrowRight, Paintbrush, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,113 +23,71 @@ export function OccasionPromo({ exclude }: OccasionPromoProps = {}) {
   // Don't render if no cards to show
   if (visibleCount === 0) return null;
 
-  console.log('OccasionPromo render:', { exclude, showCustom, showBirthday, showWedding, visibleCount });
-
   return (
     <motion.section
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.3 }}
-      className="py-12 sm:py-16 bg-gray-50 dark:bg-gray-900/50"
+      transition={{ duration: 0.6, delay: 0.2 }}
+      className="py-12 sm:py-16 bg-muted/20 border-t border-border/40"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-10 sm:mb-12">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-primary/5 text-primary px-5 py-2.5 rounded-full text-sm font-semibold mb-5 border border-primary/20"
+            transition={{ delay: 0.3 }}
+            className="inline-flex items-center gap-1.5 bg-secondary text-secondary-foreground px-4 py-1.5 rounded-full text-xs font-semibold mb-4 tracking-wider uppercase"
           >
-            <Sparkles className="h-4 w-4 animate-pulse" />
-            {exclude ? "MORE FRAME OPTIONS" : "SPECIAL OCCASIONS"}
+            {exclude ? "More Options" : "Special Occasions"}
           </motion.div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            {exclude ? (
-              <>
-                Explore Other{" "}
-                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  Frame Options
-                </span>
-              </>
-            ) : (
-              <>
-                Create Frames for Life&apos;s{" "}
-                <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  Special Moments
-                </span>
-              </>
-            )}
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground mb-3">
+            {exclude ? "Explore Other Frame Options" : "Frames for Life's Special Moments"}
           </h2>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
             {exclude 
-              ? "Discover more ways to personalize your memories with our custom frame options"
-              : "Birthday & Wedding Frames – Personalized, Elegant, Timeless"
+              ? "Discover more ways to personalize your memories with our handcrafted frames"
+              : "Handcrafted Birthday & Wedding Frames – Personalized, Timeless, and Elegant"
             }
           </p>
         </div>
 
         {/* Promotional Cards */}
-        <div className={`grid ${gridClass} gap-6 lg:gap-8 mb-8`}>
+        <div className={`grid ${gridClass} gap-6 mb-8`}>
           {/* Custom Frames Card */}
           {showCustom && (
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <Link href="/custom-frame">
-                <Card className="group relative overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:border-primary dark:hover:border-primary transition-all duration-300 hover:shadow-2xl h-full bg-gradient-to-br from-white to-primary/5 dark:from-gray-900 dark:to-primary/10">
-                  <div className="absolute inset-0 opacity-5">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
-                  </div>
-
-                  <CardContent className="relative p-6 sm:p-8 h-full flex flex-col">
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-gradient-to-r from-primary to-primary/90 text-white border-0 shadow-lg">
-                        Flexible
-                      </Badge>
-                    </div>
-
-                    <div className="mb-6">
-                      <motion.div
-                        className="inline-flex"
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary to-primary/90 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-shadow">
-                          <Wand2 className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              <Link href="/custom-frame" className="block h-full">
+                <Card className="group relative overflow-hidden border border-border/80 bg-background/50 hover:bg-background/80 transition-all duration-300 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex flex-col justify-between h-full">
+                  <CardContent className="relative p-6 sm:p-8 h-full flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="w-12 h-12 bg-primary/5 dark:bg-primary/10 rounded-xl flex items-center justify-center text-primary transition-transform group-hover:scale-105 duration-300">
+                          <Paintbrush className="w-6 h-6" />
                         </div>
-                      </motion.div>
-                    </div>
+                        <Badge variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted font-medium rounded-full text-xs px-2.5 py-0.5 border-none">
+                          
+                        </Badge>
+                      </div>
 
-                    <div className="flex-1">
-                      <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary transition-colors">
-                        ✨ Custom Frames
+                      <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                        Custom Frames
                       </h3>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-6">
                         Create your own personalized frame for any occasion. Upload your photo, choose your style, and make it uniquely yours.
                       </p>
-
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                          🎨 Your Design
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                          📸 Any Photo
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                          🎯 Any Purpose
-                        </span>
-                      </div>
                     </div>
 
                     <Button 
                       size="lg" 
-                      className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg hover:shadow-xl group-hover:scale-[1.02] transition-all"
+                      className="w-full bg-primary hover:bg-primary/95 text-white font-semibold shadow-none rounded-xl transition-all duration-300 group-hover:scale-[1.01]"
                     >
-                      <span className="font-semibold">Create Custom Frame</span>
-                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      <span>Create Custom Frame</span>
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </CardContent>
                 </Card>
@@ -140,163 +98,102 @@ export function OccasionPromo({ exclude }: OccasionPromoProps = {}) {
           {/* Birthday Frames Card */}
           {showBirthday && (
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.45 }}
             >
-              <Link href="/custom-frame/birthday">
-              <Card className="group relative overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:border-primary dark:hover:border-primary transition-all duration-300 hover:shadow-2xl h-full bg-gradient-to-br from-white to-primary/5 dark:from-gray-900 dark:to-primary/10">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
-                </div>
-
-                <CardContent className="relative p-6 sm:p-8 h-full flex flex-col">
-                  {/* Badge */}
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-gradient-to-r from-primary to-primary/90 text-white border-0 shadow-lg">
-                      Popular
-                    </Badge>
-                  </div>
-
-                  {/* Icon */}
-                  <div className="mb-6">
-                    <motion.div
-                      className="inline-flex"
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary to-primary/90 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-shadow">
-                        <Cake className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              <Link href="/custom-frame/birthday" className="block h-full">
+                <Card className="group relative overflow-hidden border border-border/80 bg-background/50 hover:bg-background/80 transition-all duration-300 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex flex-col justify-between h-full">
+                  <CardContent className="relative p-6 sm:p-8 h-full flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="w-12 h-12 bg-primary/5 dark:bg-primary/10 rounded-xl flex items-center justify-center text-primary transition-transform group-hover:scale-105 duration-300">
+                          <Cake className="w-6 h-6" />
+                        </div>
+                        <Badge variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted font-medium rounded-full text-xs px-2.5 py-0.5 border-none">
+                          
+                        </Badge>
                       </div>
-                    </motion.div>
-                  </div>
 
-                  {/* Content */}
-                  <div className="flex-1">
-                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary transition-colors">
-                      🎂 Birthday Frames
-                    </h3>
-                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-                      Celebrate birthdays with beautifully designed custom frames. Add photos, names, ages, and special messages to create the perfect birthday gift.
-                    </p>
-
-                    {/* Features */}
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                        ✨ Custom Design
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                        📸 Photo Upload
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                        💌 Personal Message
-                      </span>
+                      <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                        Birthday Frames
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                        Celebrate birthdays with beautifully designed custom frames. Add photos, names, ages, and special messages to create the perfect birthday gift.
+                      </p>
                     </div>
-                  </div>
 
-                  {/* CTA Button */}
-                  <Button 
-                    size="lg" 
-                    className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg hover:shadow-xl group-hover:scale-[1.02] transition-all"
-                  >
-                    <span className="font-semibold">Create Birthday Frame</span>
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </Link>
-          </motion.div>
+                    <Button 
+                      size="lg" 
+                      className="w-full bg-primary hover:bg-primary/95 text-white font-semibold shadow-none rounded-xl transition-all duration-300 group-hover:scale-[1.01]"
+                    >
+                      <span>Create Birthday Frame</span>
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
           )}
 
           {/* Wedding Frames Card */}
           {showWedding && (
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
             >
-            <Link href="/custom-frame/wedding">
-              <Card className="group relative overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:border-primary dark:hover:border-primary transition-all duration-300 hover:shadow-2xl h-full bg-gradient-to-br from-white to-primary/5 dark:from-gray-900 dark:to-primary/10">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent" />
-                </div>
-
-                <CardContent className="relative p-6 sm:p-8 h-full flex flex-col">
-                  {/* Badge */}
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-gradient-to-r from-primary to-primary/90 text-white border-0 shadow-lg">
-                      Premium
-                    </Badge>
-                  </div>
-
-                  {/* Icon */}
-                  <div className="mb-6">
-                    <motion.div
-                      className="inline-flex"
-                      whileHover={{ scale: 1.1, rotate: -5 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-primary to-primary/90 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-shadow">
-                        <Heart className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              <Link href="/custom-frame/wedding" className="block h-full">
+                <Card className="group relative overflow-hidden border border-border/80 bg-background/50 hover:bg-background/80 transition-all duration-300 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex flex-col justify-between h-full">
+                  <CardContent className="relative p-6 sm:p-8 h-full flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="w-12 h-12 bg-primary/5 dark:bg-primary/10 rounded-xl flex items-center justify-center text-primary transition-transform group-hover:scale-105 duration-300">
+                          <Heart className="w-6 h-6" />
+                        </div>
+                        <Badge variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted font-medium rounded-full text-xs px-2.5 py-0.5 border-none">
+                      
+                      
+                        </Badge>
                       </div>
-                    </motion.div>
-                  </div>
 
-                  {/* Content */}
-                  <div className="flex-1">
-                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary transition-colors">
-                      💍 Wedding Frames
-                    </h3>
-                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-                      Turn wedding moments into timeless wall art. Elegant designs featuring couple names, wedding dates, and romantic quotes to cherish forever.
-                    </p>
-
-                    {/* Features */}
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                        💕 Elegant Design
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                        📸 Couple Photo
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
-                        💌 Love Quote
-                      </span>
+                      <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                        Wedding Frames
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                        Turn wedding moments into timeless wall art. Elegant designs featuring couple names, wedding dates, and romantic quotes to cherish forever.
+                      </p>
                     </div>
-                  </div>
 
-                  {/* CTA Button */}
-                  <Button 
-                    size="lg" 
-                    className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg hover:shadow-xl group-hover:scale-[1.02] transition-all"
-                  >
-                    <span className="font-semibold">Create Wedding Frame</span>
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </Link>
-          </motion.div>
+                    <Button 
+                      size="lg" 
+                      className="w-full bg-primary hover:bg-primary/95 text-white font-semibold shadow-none rounded-xl transition-all duration-300 group-hover:scale-[1.01]"
+                    >
+                      <span>Create Wedding Frame</span>
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
           )}
         </div>
 
         {/* Trust Message */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
           className="text-center"
         >
-          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-4 rounded-xl border border-primary/20 shadow-sm">
+          <div className="inline-flex items-center gap-2.5 bg-background border border-border/80 px-5 py-3 rounded-full shadow-sm">
             <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/90 rounded-full flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                <Gift className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 font-medium">
-              All Birthday & Wedding Frames are <span className="text-primary font-bold">handcrafted by our design team</span> for the best finish.
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+              All Birthday & Wedding Frames are <span className="text-primary font-semibold">handcrafted by our design team</span> for the best finish.
             </p>
           </div>
         </motion.div>

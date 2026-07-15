@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Bold, Italic, Link2, List, ListOrdered, Slash, Sparkles, Underline } from "lucide-react";
+import { Bold, Italic, Link2, List, ListOrdered, Slash, Underline } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -100,7 +100,6 @@ export function RichTextEditor({
 
       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1 rounded-full border px-2 py-1">
-          <Sparkles className="h-3 w-3" />
           Personalization
         </span>
         {TEMPLATE_VARIABLES.map((variable) => (

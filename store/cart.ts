@@ -18,8 +18,23 @@ export interface CartItem {
   isCustom?: boolean;
   customFrame?: {
     uploadedImageUrl: string;
-    frameStyle: "Black" | "White" | "Wooden";
+    frameStyle: "Black" | "White" | "Wooden" | "Golden";
     frameSize: "A4" | "12x18" | "18x24" | "24x36";
+    uploadedImage?: {
+      originalUrl: string;
+      croppedUrl?: string;
+      width: number;
+      height: number;
+      orientation: "portrait" | "landscape" | "square";
+      isCropped: boolean;
+      cropData?: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        zoom?: number;
+      };
+    };
     customerNotes?: string;
     occasion?: "custom" | "birthday" | "wedding";
     occasionMetadata?: {
@@ -33,7 +48,7 @@ export interface CartItem {
     templateImage: string;
     uploadedPhoto?: string;
     frameSize: "A4";
-    frameStyle: "Black" | "White" | "Wooden";
+    frameStyle: "Black" | "White" | "Wooden" | "Golden";
     metadata: {
       name?: string; age?: string; date?: string; message?: string;
       brideName?: string; groomName?: string; weddingDate?: string; quote?: string;

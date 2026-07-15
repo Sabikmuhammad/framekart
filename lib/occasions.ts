@@ -1,4 +1,4 @@
-import { Cake, Heart, Sparkles } from "lucide-react";
+import { Cake, Heart, Palette } from "lucide-react";
 
 export type OccasionType = "custom" | "birthday" | "wedding";
 
@@ -26,7 +26,7 @@ export const OCCASION_CONFIGS: Record<OccasionType, OccasionConfig> = {
     subtitle: "Upload any image and create your perfect frame",
     heroTitle: "Create Your Custom Frame",
     heroDescription: "Transform your favorite moments into beautiful framed art. Upload your photo, choose your style, and we'll bring it to life.",
-    icon: Sparkles,
+    icon: Palette,
     gradient: "from-purple-500 to-pink-500",
     borderColor: "border-purple-200 dark:border-purple-800",
     accentColor: "text-purple-600 dark:text-purple-400",

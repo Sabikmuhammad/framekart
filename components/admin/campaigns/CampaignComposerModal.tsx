@@ -5,12 +5,11 @@ import {
   Eye,
   ListPlus,
   Megaphone,
+  Pencil,
   Plus,
   Send,
-  Sparkles,
   Trash2,
   Users,
-  Wand2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -397,7 +396,7 @@ export function CampaignComposerModal({
                     <p className="text-xs text-muted-foreground">Use personalization tokens like {"{{name}}"} inside the content.</p>
                   </div>
                   <Button type="button" variant="outline" size="sm" onClick={() => setPreviewMode((current) => !current)}>
-                    {previewMode ? <Wand2 className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+                    {previewMode ? <Pencil className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
                     {previewMode ? "Edit content" : "Preview mode"}
                   </Button>
                 </div>
@@ -536,7 +535,7 @@ export function CampaignComposerModal({
 
               <div className="rounded-2xl border bg-gradient-to-br from-background to-muted/20 p-4">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <ListPlus className="h-4 w-4 text-primary" />
                   Campaign snapshot
                 </div>
                 <div className="mt-3 space-y-2 text-sm text-muted-foreground">

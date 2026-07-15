@@ -18,11 +18,16 @@ export async function GET(req: NextRequest) {
     }
 
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { tags: { $in: [new RegExp(search, "i")] } },
-      ];
+      const keywords = search.trim().split(/\s+/).filter(Boolean);
+      if (keywords.length > 0) {
+        query.$and = keywords.map((keyword) => ({
+          $or: [
+            { title: { $regex: keyword, $options: "i" } },
+            { description: { $regex: keyword, $options: "i" } },
+            { tags: { $in: [new RegExp(keyword, "i")] } },
+          ],
+        }));
+      }
     }
 
     const frames = await Frame.find(query).sort({ createdAt: -1 });

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
-import { Minus, Plus, Trash2, ShoppingBag, Tag, Cake, Heart, Sparkles } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Tag, Cake, Heart, Palette } from "lucide-react";
 import { calculateOrderTotalClient } from "@/lib/launchOfferClient";
 import { useState, useEffect } from "react";
 import { getOccasionBadgeColor } from "@/lib/occasions";
@@ -83,7 +83,7 @@ export default function CartPage() {
                       {item.isCustom && !item.customFrame?.uploadedImageUrl ? (
                         <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
                           <div className="text-center p-2">
-                            <Sparkles className="w-6 h-6 mx-auto mb-1 text-gray-400" />
+                            <Palette className="w-6 h-6 mx-auto mb-1 text-gray-400" />
                             <p className="text-[10px] text-gray-500">Design Pending</p>
                           </div>
                         </div>
@@ -113,7 +113,7 @@ export default function CartPage() {
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${getOccasionBadgeColor(item.customFrame.occasion as any)}`}>
                               {item.customFrame.occasion === "birthday" && <Cake className="h-3 w-3" />}
                               {item.customFrame.occasion === "wedding" && <Heart className="h-3 w-3" />}
-                              {item.customFrame.occasion === "custom" && <Sparkles className="h-3 w-3" />}
+                              {item.customFrame.occasion === "custom" && <Palette className="h-3 w-3" />}
                               {item.customFrame.occasion.charAt(0).toUpperCase() + item.customFrame.occasion.slice(1)}
                             </span>
                           )}

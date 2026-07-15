@@ -1,13 +1,20 @@
 "use client";
 
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import Image from "next/image";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function MobileHeader() {
+  const pathname = usePathname();
   const { isSignedIn, user } = useUser();
+
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+    return null;
+  }
   
   useEffect(() => {
     if (user) {
@@ -28,8 +35,15 @@ export default function MobileHeader() {
             {/* User icon removed */}
           </div>
           <div className="text-center">
-            <Link href="/">
-              <h1 className="text-lg font-bold">FrameKart</h1>
+            <Link href="/" className="inline-flex justify-center">
+              <Image
+                src="/images/branding/Frame-2.png"
+                alt="FrameKart"
+                width={250}
+                height={66}
+                priority
+                className="h-12 w-auto"
+              />
             </Link>
             <p className="text-xs text-muted-foreground">What are you framing today?</p>
           </div>

@@ -7,7 +7,7 @@ export type ImageOrientation = "portrait" | "landscape" | "square";
 
 export type FrameSize = "A4" | "12x18" | "18x24" | "24x36";
 
-export type FrameStyle = "Black" | "White" | "Wooden";
+export type FrameStyle = "Black" | "White" | "Wooden" | "Golden";
 
 export interface CropData {
   x: number;

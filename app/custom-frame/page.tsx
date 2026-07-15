@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Check, Loader2, ShoppingCart, Info, Sparkles, Package, Truck, Shield, X, ZoomIn, Download, Crop, ImageIcon } from "lucide-react";
+import { Upload, Check, Loader2, ShoppingCart, Info, Package, Truck, Shield, X, ZoomIn, Download, Crop, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/store/cart";
@@ -15,14 +15,14 @@ import { detectImageOrientation, loadImage, getFrameDimensions, calculateAspectR
 import { UploadedImage, CropData, type FrameSize, type FrameStyle } from "@/lib/types/custom-frame";
 
 const FRAME_PRICES: Record<FrameSize, number> = {
-  A4: 999,
+  A4: 1,
   "12x18": 1499,
   "18x24": 1999,
   "24x36": 2999,
 };
 
 const FRAME_SIZES = [
-  { value: "A4" as FrameSize, label: "A4 (8.3 × 11.7 inches)", price: 999 },
+  { value: "A4" as FrameSize, label: "A4 (8.3 × 11.7 inches)", price: 1 },
   // { value: "12x18" as FrameSize, label: "12 × 18 inches", price: 1499 },
   // { value: "18x24" as FrameSize, label: "18 × 24 inches", price: 1999 },
   // { value: "24x36" as FrameSize, label: "24 × 36 inches", price: 2999 },
@@ -47,6 +47,7 @@ const FRAME_STYLES = [
     color: "#8B4513",
     description: "Classic & Warm"
   },
+  { value: "Golden" as FrameStyle, label: "Golden", color: "#D4AF37", description: "Luxury & Bold" },
 ];
 
 const FEATURE_ITEMS = [
@@ -328,39 +329,109 @@ export default function CustomFramePage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 relative overflow-hidden">
         {/* Subtle Background Pattern */}
         <div className="fixed inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(0_0_0/0.05)_1px,transparent_0)] [background-size:40px_40px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.05)_1px,transparent_0)] pointer-events-none" />
         
+        {/* Floating background gradient orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            className="absolute top-[-10%] left-[-10%] w-[350px] h-[350px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[80px]"
+            animate={{
+              x: [0, 40, -20, 0],
+              y: [0, -40, 20, 0],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute top-[5%] right-[-10%] w-[300px] h-[300px] bg-secondary/15 dark:bg-secondary/25 rounded-full blur-[70px]"
+            animate={{
+              x: [0, -30, 40, 0],
+              y: [0, 30, -30, 0],
+            }}
+            transition={{
+              duration: 18,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           {/* Header */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1,
+                },
+              },
+            }}
             className="mb-8 text-center sm:mb-12"
           >
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 px-4 py-2 text-xs font-semibold text-primary shadow-sm sm:mb-6 sm:px-5 sm:py-2.5 sm:text-sm"
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: -10 },
+                visible: { opacity: 1, y: 0 }
+              }}
             >
-              <ShoppingCart className="h-4 w-4 animate-pulse" />
-              
+              <motion.div 
+                animate={{ y: [0, -5, 0] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 4,
+                  ease: "easeInOut",
+                }}
+                className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 px-4 py-2 text-xs font-semibold text-primary shadow-sm sm:mb-6 sm:px-5 sm:py-2.5 sm:text-sm"
+              >
+                
+                
+              </motion.div>
             </motion.div>
-            <h1 className="mb-3 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-3xl font-bold leading-[1.1] text-transparent dark:from-white dark:via-gray-100 dark:to-gray-300 sm:mb-4 sm:text-5xl lg:mb-6 lg:text-7xl">
+
+            <motion.h1 
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { 
+                  opacity: 1, 
+                  y: 0,
+                  transition: {
+                    type: "spring",
+                    stiffness: 80,
+                    damping: 15
+                  }
+                }
+              }}
+              className="mb-3 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-3xl font-bold leading-[1.1] text-transparent dark:from-white dark:via-gray-100 dark:to-gray-300 sm:mb-4 sm:text-5xl lg:mb-6 lg:text-7xl"
+            >
               Turn Your Memories Into Beautiful Wall Art
-            </h1>
-            <p className="mx-auto max-w-2xl text-sm leading-6 text-gray-600 line-clamp-2 dark:text-gray-400 sm:text-base sm:leading-7 lg:text-lg">
+            </motion.h1>
+
+            <motion.p 
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+              }}
+              className="mx-auto max-w-2xl text-sm leading-6 text-gray-600 line-clamp-2 dark:text-gray-400 sm:text-base sm:leading-7 lg:text-lg"
+            >
               Upload your image, customize your frame with real-time preview, and we&apos;ll bring it to life with premium quality printing.
-            </p>
+            </motion.p>
             
             {/* Guest User Notice */}
             {!isSignedIn && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+                }}
                 className="mx-auto mt-4 max-w-lg sm:mt-6"
               >
                 <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/30 sm:p-4">

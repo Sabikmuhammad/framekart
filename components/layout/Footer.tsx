@@ -1,10 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Heart, Shield, Truck, CreditCard, ArrowRight, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Heart, Shield, Truck, CreditCard, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+    return null;
+  }
+
   const currentYear = new Date().getFullYear();
 
   const features = [
@@ -78,12 +86,13 @@ export default function Footer() {
             className="lg:col-span-2"
           >
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent">
-                FrameKart
-              </h3>
+              <Image
+                src="/images/branding/Frame-2.png"
+                alt="FrameKart"
+                width={340}
+                height={90}
+                className="h-16 w-auto"
+              />
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-sm">
               Transform your memories into timeless art. Premium quality frames with custom designs, delivered to your doorstep.
