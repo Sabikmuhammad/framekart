@@ -12,10 +12,6 @@ export default function MobileHeader() {
   const pathname = usePathname();
   const { isSignedIn, user } = useUser();
 
-  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
-    return null;
-  }
-  
   useEffect(() => {
     if (user) {
       console.log("User data:", {
@@ -26,6 +22,10 @@ export default function MobileHeader() {
       });
     }
   }, [user]);
+
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur md:hidden">

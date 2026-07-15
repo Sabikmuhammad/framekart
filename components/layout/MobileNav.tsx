@@ -10,16 +10,15 @@ export default function MobileNav() {
   const pathname = usePathname();
   const items = useCartStore((state) => state.items);
   const [mounted, setMounted] = useState(false);
-  
-  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
-    return null;
-  }
-  
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
   
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+    return null;
+  }
 
   const navItems = [
     { href: "/", label: "Home", icon: Home },

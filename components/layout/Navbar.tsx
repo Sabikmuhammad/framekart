@@ -16,10 +16,6 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
-    return null;
-  }
-  
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
   
   useEffect(() => {
@@ -31,6 +27,10 @@ export default function Navbar() {
       console.log("Navbar - User role:", user.publicMetadata?.role);
     }
   }, [user]);
+
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+    return null;
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden md:block">
