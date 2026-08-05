@@ -240,3 +240,4 @@ For support, email info@framekart.com or create an issue in the repository.
 ---
 
 Built with ❤️ using Next.js and TypeScript
+
