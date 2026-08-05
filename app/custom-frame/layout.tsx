@@ -1,4 +1,10 @@
 import { Metadata } from "next";
+import { cookies, headers } from "next/headers";
+import dbConnect from "@/lib/db";
+import { verifyToken } from "@/lib/token";
+import { trackEvent } from "@/lib/analytics";
+import CustomFrameVisitor from "@/models/CustomFrameVisitor";
+import { PhoneOnboardingModal } from "@/components/custom-frames/PhoneOnboardingModal";
 
 export const metadata: Metadata = {
   title: "Custom Frame Designer | FrameKart",
@@ -11,10 +17,91 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CustomFrameLayout({
+export default async function CustomFrameLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  const cookieStore = cookies();
+  const token = cookieStore.get("framekart_custom_user")?.value;
+
+  let showModal = true;
+  let visitorId: string | undefined = undefined;
+
+  const reqHeaders = headers();
+  const userAgent = reqHeaders.get("user-agent") || "Unknown";
+  const referrer = reqHeaders.get("referer") || "Direct";
+  const ipAddress = reqHeaders.get("x-forwarded-for")?.split(",")[0] || reqHeaders.get("x-real-ip") || "127.0.0.1";
+
+  if (token) {
+    const secret = process.env.CUSTOM_FRAME_COOKIE_SECRET || "default_framekart_cookie_secret_fallback_key_length_32";
+    const payload = await verifyToken(token, secret);
+
+    if (payload && payload.visitorId) {
+      visitorId = payload.visitorId;
+      showModal = false;
+
+      // Update returning visitor details & track returning_visit in the background
+      try {
+        await dbConnect();
+        await CustomFrameVisitor.updateOne(
+          { visitorId },
+          {
+            $inc: { visitCount: 1 },
+            $set: {
+              lastVisitedAt: new Date(),
+              ipAddress,
+              userAgent,
+            },
+          }
+        );
+
+        // Track analytics page load & returning visit
+        await trackEvent({
+          visitorId,
+          event: "page_opened",
+          ipAddress,
+          userAgent,
+          referrer,
+        });
+
+        await trackEvent({
+          visitorId,
+          event: "returning_visit",
+          ipAddress,
+          userAgent,
+          referrer,
+        });
+      } catch (error) {
+        console.error("Failed to update visitor stats server-side:", error);
+      }
+    }
+  }
+
+  // If no valid visitor session, track as first-time visit page open
+  if (showModal) {
+    try {
+      await trackEvent({
+        event: "page_opened",
+        ipAddress,
+        userAgent,
+        referrer,
+      });
+      await trackEvent({
+        event: "first_time_visit",
+        ipAddress,
+        userAgent,
+        referrer,
+      });
+    } catch (e) {
+      console.error("Failed to track first time visit events:", e);
+    }
+  }
+
+  return (
+    <>
+      {children}
+      {showModal && <PhoneOnboardingModal />}
+    </>
+  );
 }

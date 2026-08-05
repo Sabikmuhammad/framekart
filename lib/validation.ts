@@ -73,3 +73,9 @@ export const ContactFormSchema = z.object({
   subject: z.string().min(3).max(200),
   message: z.string().min(10).max(2000),
 });
+
+// Custom Frame visitor onboarding validation
+export const VisitorSchema = z.object({
+  name: z.string().max(100).optional().or(z.literal("")),
+  phone: z.string().regex(/^\d{10}$/, "Mobile number must be exactly 10 digits consisting of numbers only"),
+});

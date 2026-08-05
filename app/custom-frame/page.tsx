@@ -15,14 +15,14 @@ import { detectImageOrientation, loadImage, getFrameDimensions, calculateAspectR
 import { UploadedImage, CropData, type FrameSize, type FrameStyle } from "@/lib/types/custom-frame";
 
 const FRAME_PRICES: Record<FrameSize, number> = {
-  A4: 1,
+  A4: 999,
   "12x18": 1499,
   "18x24": 1999,
   "24x36": 2999,
 };
 
 const FRAME_SIZES = [
-  { value: "A4" as FrameSize, label: "A4 (8.3 × 11.7 inches)", price: 1 },
+  { value: "A4" as FrameSize, label: "A4 (8.3 × 11.7 inches)", price: 999 },
   // { value: "12x18" as FrameSize, label: "12 × 18 inches", price: 1499 },
   // { value: "18x24" as FrameSize, label: "18 × 24 inches", price: 1999 },
   // { value: "24x36" as FrameSize, label: "24 × 36 inches", price: 2999 },
