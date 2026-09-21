@@ -22,9 +22,9 @@ export async function GET(req: NextRequest) {
     await dbConnect();
 
     // Check if user is admin
-    const user = await User.findById(userId);
+    const dbUser = await User.findById(userId);
     
-    if (!user || user.role !== "admin") {
+    if (!dbUser || dbUser.role !== "admin") {
       return NextResponse.json(
         { success: false, error: "Admin access required" },
         { status: 403 }

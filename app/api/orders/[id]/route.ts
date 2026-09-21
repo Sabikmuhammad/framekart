@@ -32,8 +32,8 @@ export async function GET(
     }
 
     // Check if user is admin or order owner
-    const user = await User.findById(userId);
-    if (user?.role !== "admin" && order.userId !== userId) {
+    const dbUser = await User.findById(userId);
+    if (dbUser?.role !== "admin" && order.userId !== userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
@@ -67,8 +67,8 @@ export async function PUT(
     await dbConnect();
 
     // Check if user is admin
-    const user = await User.findById(userId);
-    if (!user || user.role !== "admin") {
+    const dbUser = await User.findById(userId);
+    if (!dbUser || dbUser.role !== "admin") {
       return NextResponse.json(
         { success: false, error: "Admin access required" },
         { status: 403 }
