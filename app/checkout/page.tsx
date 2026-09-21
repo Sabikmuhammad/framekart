@@ -83,8 +83,8 @@ export default function CheckoutPage() {
     offerName: "Launch Offer",
   });
   const [formData, setFormData] = useState({
-    email: user?.primaryEmailAddress?.emailAddress || "",
-    fullName: user?.fullName || "",
+    email: user?.email || "",
+    fullName: user?.name || "",
     phone: "",
     addressLine1: "",
     addressLine2: "",
@@ -166,7 +166,7 @@ export default function CheckoutPage() {
   // Load address data to form
   const loadAddressToForm = (address: any) => {
     setFormData({
-      email: user?.primaryEmailAddress?.emailAddress || "",
+      email: user?.email || "",
       fullName: address.fullName,
       phone: address.phone,
       addressLine1: address.addressLine1,
@@ -739,8 +739,8 @@ export default function CheckoutPage() {
                           setShowNewAddressForm(true);
                           setSelectedAddressId("");
                           setFormData({
-                            email: user?.primaryEmailAddress?.emailAddress || "",
-                            fullName: user?.fullName || "",
+                            email: user?.email || "",
+                            fullName: user?.name || "",
                             phone: "",
                             addressLine1: "",
                             addressLine2: "",
@@ -795,7 +795,7 @@ export default function CheckoutPage() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    disabled={!!user?.primaryEmailAddress?.emailAddress}
+                    disabled={!!user?.email}
                   />
                   <p className="text-xs text-muted-foreground">
                     Order confirmation will be sent to this email
