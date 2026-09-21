@@ -213,23 +213,15 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl">
-                  {user?.imageUrl ? (
-                    <img 
-                      src={user.imageUrl} 
-                      alt={user.fullName || "Profile"} 
-                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-full ring-4 ring-white dark:ring-gray-800 shadow-md flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <User className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
-                    </div>
-                  )}
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <User className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white truncate">
-                      {user?.fullName || "User"}
+                      {user?.name || "User"}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                      {user?.primaryEmailAddress?.emailAddress}
+                      {user?.email}
                     </p>
                   </div>
                 </div>
@@ -292,7 +284,7 @@ export default function ProfilePage() {
                         setShowAddressForm(true);
                         setEditingAddressId(null);
                         setAddressForm({
-                          fullName: user?.fullName || "",
+                          fullName: user?.name || "",
                           phone: "",
                           addressLine1: "",
                           addressLine2: "",
@@ -488,7 +480,7 @@ export default function ProfilePage() {
                       onClick={() => {
                         setShowAddressForm(true);
                         setAddressForm({
-                          fullName: user?.fullName || "",
+                          fullName: user?.name || "",
                           phone: "",
                           addressLine1: "",
                           addressLine2: "",
