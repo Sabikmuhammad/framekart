@@ -1,23 +1,14 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { LayoutDashboard, Mail, Package, ShoppingCart, Tag, Upload, Users, PhoneCall } from "lucide-react";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 import { redirect } from "next/navigation";
-import dbConnect from "@/lib/db";
-import User from "@/models/User";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const { userId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId) {
-    redirect("/sign-in");
-  }
-
-  await dbConnect();
-  const user = await User.findOne({ clerkId: userId });
-
-  if (!user || user.role !== "admin") {
-    redirect("/");
+  if (!user || user.role !== "ADMIN") {
+    redirect("/whatsapp-login");
   }
 
   const menuItems = [

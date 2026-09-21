@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Phone, User, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Loader2, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -13,9 +15,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 
 const onboardingSchema = z.object({
   name: z.string().max(100, "Name must be under 100 characters").optional().or(z.literal("")),
@@ -77,16 +76,16 @@ export function PhoneOnboardingModal() {
     }
   };
 
-  const handleCancel = async () => {
-    try {
-      await fetch("/api/custom-frame/track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event: "modal_cancelled" }),
-      });
-    } catch (e) {
-      console.error("Tracking error:", e);
-    }
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Track cancellation in the background without awaiting it
+    fetch("/api/custom-frame/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "modal_cancelled" }),
+    }).catch((err) => console.error("Tracking error:", err));
 
     setIsOpen(false);
     // Redirect user back or to home page
@@ -99,103 +98,120 @@ export function PhoneOnboardingModal() {
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        className="max-w-[440px] rounded-[24px] border-none bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.15)] focus:outline-none sm:max-w-[440px] [&>button]:hidden"
+        className="max-w-[460px] w-[92vw] sm:max-w-[460px] p-0 border-none bg-transparent shadow-none [&>button]:hidden overflow-visible"
       >
-        <div className="absolute inset-0 -z-10 rounded-[24px] bg-gradient-to-tr from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
+        {/* Apple/Stripe-style Radial Blue Glow behind the card */}
+        <div className="absolute -inset-16 -z-20 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18)_0%,transparent_60%)] pointer-events-none blur-3xl" />
 
-        <DialogHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-            <Phone className="h-6 w-6 animate-pulse" />
-          </div>
-          <DialogTitle className="text-2xl font-bold tracking-tight text-gray-900">
-            Create Your Custom Frame
-          </DialogTitle>
-          <DialogDescription className="mt-2 text-sm text-gray-500 leading-relaxed">
-            Before we begin, please enter your mobile number so we can save your design, provide order updates, and offer support whenever you need it.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-semibold text-gray-700">
-              Full Name <span className="text-xs text-gray-400 font-normal">(Optional)</span>
-            </Label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-gray-400">
-                <User className="h-4 w-4" />
+        {/* 1px Gradient Border Wrapper for Premium Glassmorphism Effect */}
+        <div className="relative w-full rounded-[28px] p-[1px] bg-gradient-to-b from-white/40 via-white/10 to-blue-500/20 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12),0_0_1px_1px_rgba(255,255,255,0.4)_inset] overflow-hidden">
+          
+          {/* Card Body */}
+          <div className="rounded-[27px] bg-white/75 dark:bg-slate-900/80 backdrop-blur-xl px-6 py-6 sm:px-7 sm:py-7">
+            
+            <DialogHeader className="text-center space-y-1">
+              {/* FrameKart Actual Corporate Logo */}
+              <div className="mx-auto mb-4 flex justify-center">
+                <Image
+                  src="/images/branding/Frame-2.png"
+                  alt="FrameKart"
+                  width={160}
+                  height={42}
+                  priority
+                  className="h-10 w-auto object-contain dark:invert"
+                />
               </div>
-              <Input
-                id="name"
-                type="text"
-                disabled={loading}
-                placeholder="Enter your name"
-                className="pl-11 h-12 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                {...register("name")}
-              />
-            </div>
-            {errors.name && (
-              <p className="text-xs font-medium text-red-500">{errors.name.message}</p>
-            )}
-          </div>
+              <DialogTitle className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                Create Your Custom Frame
+              </DialogTitle>
+              <DialogDescription className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm mx-auto">
+                Before we begin, please enter your mobile number so we can save your design, provide order updates, and offer support whenever you need it.
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">
-              Mobile Number <span className="text-red-500 font-bold">*</span>
-            </Label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pr-2 border-r border-gray-200 text-sm font-semibold text-gray-500">
-                +91
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-4">
+              <div className="space-y-1.5">
+                <label htmlFor="name" className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                  Full Name <span className="text-[10px] text-gray-400 font-normal">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    id="name"
+                    type="text"
+                    disabled={loading}
+                    placeholder="Enter your name"
+                    className="w-full h-11 rounded-2xl border-none bg-slate-50 dark:bg-slate-800/40 px-4 text-sm text-gray-900 dark:text-white transition-all placeholder:text-gray-400 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                    {...register("name")}
+                  />
+                </div>
+                {errors.name && (
+                  <p className="text-[10px] font-medium text-red-500">{errors.name.message}</p>
+                )}
               </div>
-              <Input
-                id="phone"
-                type="tel"
-                disabled={loading}
-                maxLength={10}
-                placeholder="Enter your mobile number"
-                className="pl-14 h-12 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                {...register("phone")}
-              />
-            </div>
-            {errors.phone && (
-              <p className="text-xs font-medium text-red-500">{errors.phone.message}</p>
-            )}
-          </div>
 
-          {submitError && (
-            <div className="rounded-xl bg-red-50 p-3.5 text-xs font-medium text-red-600 border border-red-100">
-              {submitError}
-            </div>
-          )}
+              <div className="space-y-1.5">
+                <label htmlFor="phone" className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                  Mobile Number <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pr-2 border-r border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold text-gray-500">
+                    +91
+                  </div>
+                  <input
+                    id="phone"
+                    type="tel"
+                    disabled={loading}
+                    maxLength={10}
+                    placeholder="Enter your mobile number"
+                    className="w-full h-11 pl-14 rounded-2xl border-none bg-slate-50 dark:bg-slate-800/40 pr-4 text-sm text-gray-900 dark:text-white transition-all placeholder:text-gray-400 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                    {...register("phone")}
+                  />
+                </div>
+                {errors.phone && (
+                  <p className="text-[10px] font-medium text-red-500">{errors.phone.message}</p>
+                )}
+              </div>
 
-          <div className="flex flex-col gap-2 pt-2 sm:flex-row-reverse">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="h-12 w-full sm:flex-1 rounded-xl bg-blue-600 font-semibold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Please wait...
-                </>
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
+              {submitError && (
+                <div className="rounded-xl bg-red-50 dark:bg-red-950/20 p-3 text-[11px] font-medium text-red-600 dark:text-red-400 border border-red-100 dark:border-red-950/50">
+                  {submitError}
+                </div>
               )}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={loading}
-              onClick={handleCancel}
-              className="h-12 w-full sm:w-auto rounded-xl border border-gray-200 bg-white font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-800 transition-all active:scale-[0.98]"
-            >
-              Cancel
-            </Button>
+
+              <div className="pt-2">
+                <motion.button
+                  whileHover={{ scale: 1.01, boxShadow: "0 10px 20px -10px rgba(59,130,246,0.3)" }}
+                  whileTap={{ scale: 0.99 }}
+                  type="submit"
+                  disabled={loading}
+                  className="h-11 w-full rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 font-semibold text-sm text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(59,130,246,0.15)] disabled:opacity-50"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Please wait...
+                    </>
+                  ) : (
+                    <>
+                      Continue
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </motion.button>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={(e) => handleCancel(e)}
+                  className="w-full text-center text-xs font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors mt-3 py-2 cursor-pointer relative z-50"
+                >
+                  Cancel and return to home
+                </button>
+              </div>
+            </form>
+
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

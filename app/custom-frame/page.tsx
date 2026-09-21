@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/store/cart";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth as useCustomAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import { ImageCropModal } from "@/components/custom-frames/ImageCropModal";
 import { OccasionPromo } from "@/components/custom-frames/OccasionPromo";
@@ -80,7 +80,7 @@ export default function CustomFramePage() {
   const { toast } = useToast();
   const { addItem } = useCartStore();
   const router = useRouter();
-  const { isSignedIn } = useAuth();
+  const { isAuthenticated: isSignedIn } = useCustomAuth();
 
   const currentPrice = FRAME_PRICES[frameSize];
 

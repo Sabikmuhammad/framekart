@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 import dbConnect from "@/lib/db";
 import Address from "@/models/Address";
 
@@ -9,7 +9,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId } = auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(
@@ -53,7 +54,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId } = auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(

@@ -1,25 +1,18 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 import { redirect } from "next/navigation";
 
 export async function checkAdminAuth() {
-  const { userId } = auth();
+  const user = await getCurrentUser();
 
-  if (!userId) {
-    redirect("/sign-in");
-  }
-
-  // Check Clerk public metadata for admin role
-  const user = await currentUser();
-  
   if (!user) {
-    redirect("/sign-in");
+    redirect("/whatsapp-login");
   }
 
-  const isAdmin = user.publicMetadata?.role === "admin";
+  const isAdmin = user.role === "ADMIN";
 
   if (!isAdmin) {
     redirect("/403");
   }
 
-  return { userId, user };
+  return { userId: user._id.toString(), user };
 }

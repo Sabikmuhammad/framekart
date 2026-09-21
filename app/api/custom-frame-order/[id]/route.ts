@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import User from "@/models/User";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 
 // Update custom order status
 export async function PATCH(
@@ -10,7 +10,8 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId } = auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(
@@ -22,7 +23,7 @@ export async function PATCH(
     await dbConnect();
 
     // Check if user is admin
-    const user = await User.findOne({ clerkId: userId });
+    const user = await User.findById(userId);
     
     if (!user || user.role !== "admin") {
       return NextResponse.json(

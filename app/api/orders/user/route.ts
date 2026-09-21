@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       console.log("⚠️ No userId found in auth");

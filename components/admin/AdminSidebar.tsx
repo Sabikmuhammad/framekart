@@ -21,7 +21,7 @@ import {
   Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { UserButton } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 
 const menuItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -35,6 +35,7 @@ export function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   const isActive = (href: string) => {
     if (!pathname) return false;
@@ -99,7 +100,7 @@ export function AdminSidebar() {
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </Button>
-            <Button variant="ghost" className="w-full justify-start" size="sm">
+            <Button variant="ghost" className="w-full justify-start" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
@@ -110,7 +111,7 @@ export function AdminSidebar() {
             <Button variant="ghost" size="icon">
               <Settings className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={logout}>
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -172,7 +173,9 @@ export function AdminSidebar() {
           <span className="font-bold">FrameKart Admin</span>
         </div>
 
-        <UserButton afterSignOutUrl="/" />
+        <Button variant="ghost" size="icon" onClick={logout}>
+          <LogOut className="h-4 w-4" />
+        </Button>
       </div>
     </>
   );

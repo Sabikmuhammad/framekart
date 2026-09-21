@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import User from "@/models/User";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(
@@ -31,7 +32,7 @@ export async function GET(
     }
 
     // Check if user is admin or order owner
-    const user = await User.findOne({ clerkId: userId });
+    const user = await User.findById(userId);
     if (user?.role !== "admin" && order.userId !== userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -53,7 +54,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(
@@ -65,7 +67,7 @@ export async function PUT(
     await dbConnect();
 
     // Check if user is admin
-    const user = await User.findOne({ clerkId: userId });
+    const user = await User.findById(userId);
     if (!user || user.role !== "admin") {
       return NextResponse.json(
         { success: false, error: "Admin access required" },

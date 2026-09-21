@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/store/cart";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth as useCustomAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
 import { OccasionPromo } from "@/components/custom-frames/OccasionPromo";
@@ -80,7 +80,7 @@ export default function OccasionFramePage({ params }: PageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { addItem } = useCartStore();
-  const { isSignedIn } = useAuth();
+  const { isAuthenticated: isSignedIn } = useCustomAuth();
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { ShoppingCart, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { isSignedIn, user } = useUser();
+  const { isAuthenticated: isSignedIn, user } = useAuth();
   const items = useCartStore((state) => state.items);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -24,11 +24,11 @@ export default function Navbar() {
   
   useEffect(() => {
     if (user && process.env.NODE_ENV === 'development') {
-      console.log("Navbar - User role:", user.publicMetadata?.role);
+      console.log("Navbar - User role:", user.role);
     }
   }, [user]);
 
-  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+  if (pathname?.startsWith("/whatsapp-login") || pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
     return null;
   }
 
@@ -72,7 +72,7 @@ export default function Navbar() {
           >
             Contact
           </Link>
-          {isSignedIn && user?.publicMetadata?.role === "admin" && (
+          {isSignedIn && user?.role === "ADMIN" && (
             <Link
               href="/admin"
               className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
@@ -94,7 +94,7 @@ export default function Navbar() {
 
           {isSignedIn ? (
             <>
-              {user?.publicMetadata?.role === "admin" && (
+              {user?.role === "ADMIN" && (
                 <Link href="/admin">
                   <Button variant="default" size="sm" className="gap-2">
                     <Shield className="h-4 w-4" />
@@ -104,22 +104,12 @@ export default function Navbar() {
               )}
               <Link href="/profile">
                 <Button variant="ghost" size="sm" className="gap-2 p-1.5">
-                  {user?.imageUrl ? (
-                    <Image
-                      src={user.imageUrl}
-                      alt="Profile"
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <User className="h-4 w-4" />
-                  )}
+                  <User className="h-4 w-4" />
                 </Button>
               </Link>
             </>
           ) : (
-            <Link href="/sign-in">
+            <Link href="/whatsapp-login">
               <Button size="sm">Sign In</Button>
             </Link>
           )}
@@ -158,7 +148,7 @@ export default function Navbar() {
             >
               Contact
             </Link>
-            {isSignedIn && user?.publicMetadata?.role === "admin" && (
+            {isSignedIn && user?.role === "ADMIN" && (
               <Link
                 href="/admin"
                 className="text-sm font-medium text-primary"

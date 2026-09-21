@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(
@@ -82,7 +83,8 @@ export async function POST(req: NextRequest) {
 // Get all custom frame orders (Admin only)
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(

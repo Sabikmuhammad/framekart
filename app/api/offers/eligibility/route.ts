@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 import { getCurrentUserEligibility, getLaunchOfferSettings } from "@/lib/launchOffer";
 
 // GET - Check if current user is eligible for launch offer
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
     
     // For guest users, show offer as active but assume eligible
     if (!userId) {

@@ -28,25 +28,30 @@ export default function HeroSlider({
       onTouchEnd={handleHeroTouchEnd}
     >
       {/* Mobile Slider */}
-      <div className="px-4 py-4 md:hidden">
-        <div className="relative h-[220px] overflow-hidden rounded-[24px] bg-background shadow-[0_16px_40px_rgba(15,23,42,0.12)] ring-1 ring-black/5">
+      <div className="w-full md:hidden mb-4">
+        <div className="relative h-[250px] sm:h-[280px] w-full overflow-hidden bg-background">
           <Image
             key={`mobile-${currentSlide}`}
             src={currentHero.image}
             alt={currentHero.highlight}
             fill
             sizes="100vw"
-            className="object-cover object-right opacity-100 brightness-100 contrast-100 saturate-100"
+            className="object-cover object-center transition-opacity duration-500 opacity-100 brightness-100 contrast-100 saturate-100"
             priority
           />
-          <div className="absolute inset-y-0 left-0 w-[38%] bg-gradient-to-r from-white/10 via-transparent to-transparent" />
-          <div className="relative z-10 grid h-full grid-cols-[55%_45%] p-5">
+          <div 
+            className="absolute inset-y-0 left-0 w-full"
+            style={{
+              background: 'linear-gradient(90deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.45) 45%, rgba(255,255,255,0) 75%)'
+            }}
+          />
+          <div className="relative z-10 grid h-full grid-cols-[65%_35%] p-5 sm:p-7">
             <motion.div
               key={`mobile-copy-${currentSlide}`}
               initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.45 }}
-              className="flex w-[55%] max-w-[55%] flex-col justify-center"
+              className="flex w-full flex-col justify-center"
             >
               <HeroCopy slide={currentHero} mobile />
             </motion.div>
@@ -59,8 +64,8 @@ export default function HeroSlider({
             <button
               key={`mobile-indicator-${index}`}
               onClick={() => setCurrentSlide(index)}
-              className={`h-2 rounded-full transition-all ${
-                index === currentSlide ? "w-8 bg-primary" : "w-2 bg-black/15 hover:bg-black/30"
+              className={`h-2 rounded-full transition-all duration-500 ${
+                index === currentSlide ? "w-8 bg-[#3B82F6]" : "w-2 bg-[#CBD5E1] hover:bg-black/30"
               }`}
               aria-label={`Go to slide ${index + 1}`}
               aria-current={index === currentSlide}

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 import dbConnect from "@/lib/db";
 import Address from "@/models/Address";
 
 // GET all addresses for the logged-in user
 export async function GET() {
   try {
-    const { userId } = auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(
@@ -35,7 +36,8 @@ export async function GET() {
 // POST create a new address
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(

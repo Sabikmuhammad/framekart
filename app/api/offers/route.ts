@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 import connectDB from "@/lib/db";
 import OfferSetting from "@/models/OfferSetting";
 import User from "@/models/User";
@@ -37,7 +37,8 @@ export async function GET() {
 // PUT - Update launch offer settings (Admin only)
 export async function PUT(req: Request) {
   try {
-    const { userId } = await auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
     if (!userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -48,7 +49,7 @@ export async function PUT(req: Request) {
     await connectDB();
 
     // Check if user is admin
-    const user = await User.findOne({ clerkId: userId }).lean() as any;
+    const user = await User.findById(userId).lean() as any;
     if (!user || user.role !== "admin") {
       return NextResponse.json(
         { success: false, error: "Admin access required" },

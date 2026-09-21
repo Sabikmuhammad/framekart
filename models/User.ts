@@ -1,10 +1,15 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
 export interface IUser {
-  clerkId: string;
-  email: string;
+  clerkId?: string; // Kept for legacy relation mapping
+  email?: string;
+  phoneNumber?: string;
+  phoneVerified: boolean;
+  whatsappVerified: boolean;
   name: string;
-  role: "admin" | "user";
+  role: "ADMIN" | "STAFF" | "CUSTOMER";
+  status: "ACTIVE" | "SUSPENDED" | "DELETED";
+  lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,22 +18,45 @@ const UserSchema = new Schema<IUser>(
   {
     clerkId: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
+      sparse: true,
     },
     email: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
+      sparse: true,
+    },
+    phoneNumber: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
     name: {
       type: String,
       required: true,
     },
+    phoneVerified: {
+      type: Boolean,
+      default: false,
+    },
+    whatsappVerified: {
+      type: Boolean,
+      default: false,
+    },
     role: {
       type: String,
-      enum: ["admin", "user"],
-      default: "user",
+      enum: ["ADMIN", "STAFF", "CUSTOMER"],
+      default: "CUSTOMER",
+    },
+    status: {
+      type: String,
+      enum: ["ACTIVE", "SUSPENDED", "DELETED"],
+      default: "ACTIVE",
+    },
+    lastLoginAt: {
+      type: Date,
     },
   },
   {

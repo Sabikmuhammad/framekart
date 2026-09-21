@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
 import { Shield } from "lucide-react";
@@ -10,20 +10,18 @@ import { usePathname } from "next/navigation";
 
 export default function MobileHeader() {
   const pathname = usePathname();
-  const { isSignedIn, user } = useUser();
+  const { isAuthenticated: isSignedIn, user } = useAuth();
 
   useEffect(() => {
     if (user) {
       console.log("User data:", {
         id: user.id,
-        email: user.emailAddresses[0]?.emailAddress,
-        role: user.publicMetadata?.role,
-        fullMetadata: user.publicMetadata
+        role: user.role,
       });
     }
   }, [user]);
 
-  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+  if (pathname?.startsWith("/whatsapp-login") || pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
     return null;
   }
 
@@ -49,13 +47,13 @@ export default function MobileHeader() {
           </div>
           <div className="w-16 flex justify-end">
             {!isSignedIn && (
-              <Link href="/sign-in" className="text-xs text-primary font-medium">
+              <Link href="/whatsapp-login" className="text-xs text-primary font-medium">
                 Sign In
               </Link>
             )}
           </div>
         </div>
-        {isSignedIn && user?.publicMetadata?.role === "admin" && (
+        {isSignedIn && user?.role === "ADMIN" && (
           <div className="mt-2 flex justify-center">
             <Link href="/admin" className="w-full">
               <Button variant="default" size="sm" className="w-full gap-2">

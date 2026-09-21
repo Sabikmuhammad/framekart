@@ -1,24 +1,13 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
-import User from "@/models/User";
-
-export interface AdminApiUser {
-  clerkId: string;
-  role: "admin";
-  email?: string;
-  name?: string;
-}
 
 export async function requireAdminApiUser() {
-  const { userId } = auth();
-  if (!userId) {
+  const user = await getCurrentUser();
+  if (!user) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 
-  await dbConnect();
-  const user = await User.findOne({ clerkId: userId }).lean<AdminApiUser | null>();
-  if (!user || user.role !== "admin") {
+  if (user.role !== "ADMIN") {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
 

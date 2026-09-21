@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import User from "@/models/User";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 import { OrderSchema } from "@/lib/validation";
 import { ZodError } from "zod";
 import { calculateOrderTotal } from "@/lib/launchOffer";
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
     await dbConnect();
 
     // Check if user is admin
-    const user = await User.findOne({ clerkId: userId });
+    const user = await User.findById(userId);
     
     if (!user || user.role !== "admin") {
       return NextResponse.json(
@@ -44,7 +45,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(

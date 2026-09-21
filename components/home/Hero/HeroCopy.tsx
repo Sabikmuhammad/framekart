@@ -14,11 +14,11 @@ export default function HeroCopy({ slide, mobile = false }: HeroCopyProps) {
       <h1
         className={
           mobile
-            ? "mb-2 text-[28px] font-black leading-tight tracking-tight text-black"
+            ? "mb-2 text-[28px] font-[800] leading-tight tracking-tight text-[#0F172A]"
             : "mb-3 text-3xl font-bold tracking-tight text-black sm:mb-4 sm:text-4xl md:mb-5 md:text-5xl lg:mb-6 lg:text-6xl"
         }
       >
-        {slide.title} <span className="text-primary">{slide.highlight}</span>
+        {slide.title} <span className="text-[#3B82F6]">{slide.highlight}</span>
       </h1>
       {!mobile && (
         <p className="mb-5 text-sm leading-snug text-black/80 sm:mb-6 sm:text-base md:mb-7 md:text-lg lg:mb-8 lg:text-xl">

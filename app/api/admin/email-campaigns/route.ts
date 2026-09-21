@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await createCampaign(payload, authResult.user.clerkId);
+    const result = await createCampaign(payload, authResult.user._id.toString());
 
     if (!result.ok) {
       return NextResponse.json({ success: false, error: result.message }, { status: 400 });

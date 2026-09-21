@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser, UserProfile, useClerk } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,8 @@ const INDIAN_STATES = [
 ];
 
 export default function ProfilePage() {
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { user, logout } = useAuth();
+  const signOut = (cb: any) => { logout(); cb(); };
   const router = useRouter();
   const { toast } = useToast();
   const [orders, setOrders] = useState([]);
@@ -613,21 +613,11 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="px-2 sm:px-6">
                 <div className="w-full max-h-[400px] sm:max-h-[500px] overflow-y-auto rounded-lg shadow-inner bg-gray-50 dark:bg-gray-900 p-1 sm:p-2">
-                  <UserProfile 
-                    routing="hash"
-                    appearance={{
-                      elements: {
-                        rootBox: "w-full",
-                        card: "shadow-none border-0 rounded-lg bg-white dark:bg-gray-800",
-                        navbar: "hidden",
-                        pageScrollBox: "p-2 sm:p-4",
-                        profileSectionTitle: "text-sm sm:text-base font-semibold",
-                        formButtonPrimary: "bg-primary hover:bg-primary/90 text-sm sm:text-base",
-                        formFieldLabel: "text-xs sm:text-sm",
-                        formFieldInput: "text-sm sm:text-base",
-                      }
-                    }}
-                  />
+                  <div className="p-4 text-center">
+                    <p className="text-gray-500 mb-4">Account settings are managed via your phone number.</p>
+                    <p className="text-lg font-medium">{user?.phoneNumber}</p>
+                    <p className="text-sm text-gray-400 mt-2">More profile settings coming soon!</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>

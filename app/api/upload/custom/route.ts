@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { getAuth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth/authorization";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
   console.log("Cashfree API hit");
 
   try {
-    const { userId } = getAuth(req);
+    const user = await getCurrentUser();
+    const userId = user?._id.toString();
 
     if (!userId) {
       return NextResponse.json(

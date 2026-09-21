@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect as reactUseEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ declare global {
 }
 
 export default function CheckoutPage() {
-  const { isSignedIn, user } = useUser();
+  const { isAuthenticated: isSignedIn, user } = useAuth();
   const router = useRouter();
   const { items, getTotalPrice, setCustomerEmail } = useCartStore();
   const { toast } = useToast();
@@ -230,7 +230,7 @@ export default function CheckoutPage() {
   // Handle redirects and payment errors
   reactUseEffect(() => {
     if (!isSignedIn) {
-      router.push("/sign-in");
+      router.push("/whatsapp-login");
       return;
     }
     
