@@ -162,7 +162,7 @@ export default function PremiumVisitorPopup({
                     </div>
                     <div className="space-y-2">
                       <h3 className="text-2xl font-semibold tracking-tight text-slate-900">Thanks, {name}!</h3>
-                      <p className="text-slate-500">We'll make your FrameKart experience seamless.</p>
+                      <p className="text-slate-500">We&apos;ll make your FrameKart experience seamless.</p>
                     </div>
                   </motion.div>
                 ) : (

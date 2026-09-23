@@ -705,7 +705,7 @@ export default function CheckoutPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Almost there. Complete your details and we'll prepare your {items.length} {items.length === 1 ? 'frame' : 'frames'} for delivery.
+          Almost there. Complete your details and we&apos;ll prepare your {items.length} {items.length === 1 ? 'frame' : 'frames'} for delivery.
         </motion.p>
       </div>
 

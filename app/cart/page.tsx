@@ -340,7 +340,7 @@ export default function CartPage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="text-right text-xs text-muted-foreground"
                     >
-                      You're saving <span className="font-medium text-foreground">{formatPrice(discount)}</span> on this order
+                      You&apos;re saving <span className="font-medium text-foreground">{formatPrice(discount)}</span> on this order
                     </motion.div>
                   </AnimatePresence>
                 )}
