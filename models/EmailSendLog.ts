@@ -62,7 +62,6 @@ const EmailSendLogSchema = new Schema<IEmailSendLog>(
 );
 
 EmailSendLogSchema.index({ campaignId: 1, status: 1 });
-EmailSendLogSchema.index({ resendId: 1 });
 
 const EmailSendLog = models.EmailSendLog || model<IEmailSendLog>("EmailSendLog", EmailSendLogSchema);
 

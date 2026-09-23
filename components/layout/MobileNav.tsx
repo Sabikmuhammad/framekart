@@ -16,7 +16,7 @@ export default function MobileNav() {
     setMounted(true);
   }, []);
 
-  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up") || pathname?.startsWith("/whatsapp-login")) {
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
     return null;
   }
 

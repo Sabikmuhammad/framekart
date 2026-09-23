@@ -25,14 +25,21 @@ export async function POST(req: NextRequest) {
     // Parse and validate request body
     const body = await req.json();
     const validatedData = CashfreeOrderSchema.parse(body);
-    const { amount, customerPhone, customerEmail, customerName, orderId } = validatedData;
+    const { amount, customerPhone, customerEmail, customerName, orderId, trackingToken } = validatedData;
 
     console.log("📦 Creating Cashfree order for:", { orderId, amount, customerEmail });
 
     // ===== Environment Configuration =====
-    const clientId = process.env.CASHFREE_CLIENT_ID;
-    const clientSecret = process.env.CASHFREE_CLIENT_SECRET;
     const environment = process.env.CASHFREE_ENV || "sandbox";
+    const isProd = environment === "production";
+    
+    const clientId = isProd 
+      ? process.env.CASHFREE_CLIENT_ID 
+      : (process.env.CASHFREE_TEST_CLIENT_ID || process.env.CASHFREE_CLIENT_ID);
+      
+    const clientSecret = isProd 
+      ? process.env.CASHFREE_CLIENT_SECRET 
+      : (process.env.CASHFREE_TEST_CLIENT_SECRET || process.env.CASHFREE_CLIENT_SECRET);
 
     // Validate credentials
     if (!clientId || !clientSecret) {
@@ -61,22 +68,45 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     const baseUrl = appUrl || `https://${req.headers.get('host') || 'localhost:3000'}`;
     
-    const returnUrl = `${baseUrl}/api/cashfree/callback?db_order_id=${orderId}`;
+    let returnUrl = `${baseUrl}/api/cashfree/callback?db_order_id=${orderId}`;
+    if (trackingToken) {
+      returnUrl += `&token=${trackingToken}`;
+    }
     const notifyUrl = `${baseUrl}/api/cashfree/webhook`;
 
+    // ===== Verify Order & Amount Server-Side =====
+    const dbConnect = (await import("@/lib/db")).default;
+    const Order = (await import("@/models/Order")).default;
+    await dbConnect();
+    
+    const dbOrder = await Order.findById(orderId);
+    if (!dbOrder) {
+      console.error("❌ Order not found for Cashfree payment:", orderId);
+      return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
+    }
+    
+    // Security: Do NOT trust frontend amount. Use server-calculated amount.
+    const serverAmount = dbOrder.totalAmount || amount;
+
+    // Normalize phone number (digits only, max 10 for India)
+    let normalizedPhone = customerPhone.replace(/\D/g, '');
+    if (normalizedPhone.length > 10) {
+      normalizedPhone = normalizedPhone.slice(-10);
+    }
+    
     // ===== Create Cashfree Order Payload =====
     // Generate unique order ID (Cashfree requires alphanumeric + underscore/hyphen only)
     const cashfreeOrderId = `order_${orderId}_${Date.now()}`;
     
     const orderPayload = {
       order_id: cashfreeOrderId,
-      order_amount: parseFloat(amount.toFixed(2)), // Ensure 2 decimal places
+      order_amount: parseFloat(serverAmount.toFixed(2)), // Ensure 2 decimal places
       order_currency: "INR",
       customer_details: {
         customer_id: `cust_${Date.now()}`,
         customer_name: customerName,
         customer_email: customerEmail,
-        customer_phone: customerPhone,
+        customer_phone: normalizedPhone,
       },
       order_meta: {
         return_url: returnUrl,
@@ -108,11 +138,12 @@ export async function POST(req: NextRequest) {
 
     // ===== Handle API Response =====
     if (!response.ok) {
-      console.error("❌ Cashfree API error:", {
+      console.error("❌ Cashfree API error (Safe Log):", {
         status: response.status,
-        message: responseData.message,
         type: responseData.type,
         code: responseData.code,
+        environment,
+        credentialsConfigured: !!clientId && !!clientSecret
       });
 
       // Return detailed error in development, generic in production
@@ -149,10 +180,6 @@ export async function POST(req: NextRequest) {
 
     // ===== Update Database with Cashfree Order ID =====
     try {
-      const dbConnect = (await import("@/lib/db")).default;
-      const Order = (await import("@/models/Order")).default;
-      
-      await dbConnect();
       await Order.findByIdAndUpdate(orderId, {
         cashfreeOrderId: responseData.order_id,
         paymentStatus: "pending",

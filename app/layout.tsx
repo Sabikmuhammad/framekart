@@ -8,6 +8,7 @@ import MobileHeader from "@/components/layout/MobileHeader";
 import MobileNav from "@/components/layout/MobileNav";
 import { Toaster } from "@/components/ui/toaster";
 import LogoIntro from "@/components/LogoIntro";
+import VisitorTracker from "@/components/visitor/VisitorTracker";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -53,6 +54,7 @@ export default function RootLayout({
           </div>
           <MobileNav />
           <Toaster />
+          <VisitorTracker />
         </AuthProvider>
       </body>
     </html>

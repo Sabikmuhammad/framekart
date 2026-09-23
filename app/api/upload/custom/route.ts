@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { getCurrentUser } from "@/lib/auth/authorization";
-
+import { cookies } from "next/headers";
+import dbConnect from "@/lib/db";
+import VisitorLead from "@/models/VisitorLead";
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -16,13 +17,23 @@ export async function POST(req: NextRequest) {
   console.log("Cashfree API hit");
 
   try {
-    const user = await getCurrentUser();
-    const userId = user?._id.toString();
+    const cookieStore = cookies();
+    const sessionToken = cookieStore.get("framekart_visitor_token")?.value;
 
-    if (!userId) {
+    if (!sessionToken) {
       return NextResponse.json(
-        { success: false, error: "Please sign in to upload images" },
-        { status: 401 }
+        { success: false, error: "Visitor lead capture required", code: "VISITOR_LEAD_REQUIRED" },
+        { status: 403 }
+      );
+    }
+
+    await dbConnect();
+    const visitor = await VisitorLead.findOne({ sessionToken });
+    
+    if (!visitor) {
+      return NextResponse.json(
+        { success: false, error: "Visitor lead capture required", code: "VISITOR_LEAD_REQUIRED" },
+        { status: 403 }
       );
     }
 

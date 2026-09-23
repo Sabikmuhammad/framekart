@@ -7,23 +7,26 @@ const protectedRoutes = [
   '/admin',
 ];
 
-const authRoutes = [
-  '/whatsapp-login',
-  '/sign-in',
-  '/sign-up'
-];
+const authRoutes: string[] = [];
 
 export function middleware(request: NextRequest) {
   const sessionToken = request.cookies.get('framekart_session')?.value;
   const path = request.nextUrl.pathname;
 
-  const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route));
+  const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route) && !path.startsWith('/admin'));
+  const isAdminRoute = path.startsWith('/admin') && path !== '/admin-login';
   const isAuthRoute = authRoutes.some(route => path.startsWith(route));
+
+  if (isAdminRoute && !sessionToken) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/admin-login';
+    url.searchParams.set('redirectUrl', path);
+    return NextResponse.redirect(url);
+  }
 
   if (isProtectedRoute && !sessionToken) {
     const url = request.nextUrl.clone();
-    url.pathname = '/whatsapp-login';
-    url.searchParams.set('redirectUrl', path);
+    url.pathname = '/';
     return NextResponse.redirect(url);
   }
 

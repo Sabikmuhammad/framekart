@@ -21,7 +21,7 @@ export default function MobileHeader() {
     }
   }, [user]);
 
-  if (pathname?.startsWith("/whatsapp-login") || pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
     return null;
   }
 
@@ -46,11 +46,7 @@ export default function MobileHeader() {
             <p className="text-xs text-muted-foreground">What are you framing today?</p>
           </div>
           <div className="w-16 flex justify-end">
-            {!isSignedIn && (
-              <Link href="/whatsapp-login" className="text-xs text-primary font-medium">
-                Sign In
-              </Link>
-            )}
+            {!isSignedIn && null}
           </div>
         </div>
         {isSignedIn && user?.role === "ADMIN" && (

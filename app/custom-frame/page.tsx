@@ -11,6 +11,7 @@ import { useAuth as useCustomAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import { ImageCropModal } from "@/components/custom-frames/ImageCropModal";
 import { OccasionPromo } from "@/components/custom-frames/OccasionPromo";
+import PremiumVisitorPopup from "@/components/visitor/PremiumVisitorPopup";
 import { detectImageOrientation, loadImage, getFrameDimensions, calculateAspectRatio, blobToDataURL } from "@/lib/utils/image-utils";
 import { UploadedImage, CropData, type FrameSize, type FrameStyle } from "@/lib/types/custom-frame";
 
@@ -72,6 +73,8 @@ export default function CustomFramePage() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showFullPreview, setShowFullPreview] = useState(false);
   const [showCropModal, setShowCropModal] = useState(false);
+  const [showVisitorPopup, setShowVisitorPopup] = useState(false);
+  const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null);
   
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,41 +87,12 @@ export default function CustomFramePage() {
 
   const currentPrice = FRAME_PRICES[frameSize];
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleVisitorPopupClose = () => {
+    setShowVisitorPopup(false);
+    setPendingUploadFile(null);
+  };
 
-    // Check authentication before upload
-    if (!isSignedIn) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to upload your image.",
-      });
-      router.push("/sign-in?redirect=/custom-frame");
-      return;
-    }
-
-    // Validate file type
-    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload PNG, JPG, or WebP images only.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file size (10MB max)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please upload an image smaller than 10MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const executeUpload = async (file: File) => {
     setIsUploading(true);
 
     try {
@@ -163,6 +137,11 @@ export default function CustomFramePage() {
           title: "Image uploaded successfully!",
           description: "Your full image will be framed without cropping. You can optionally crop it.",
         });
+
+        toast({
+          title: "Image uploaded successfully!",
+          description: "Your full image will be framed without cropping. You can optionally crop it.",
+        });
       } else {
         throw new Error(data.error || "Upload failed");
       }
@@ -179,7 +158,46 @@ export default function CustomFramePage() {
       setUploadedImagePreview("");
     } finally {
       setIsUploading(false);
+      setPendingUploadFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload PNG, JPG, or WebP images only.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const isCaptured = localStorage.getItem("fk_visitor_captured") === "true";
+    if (!isCaptured) {
+      setPendingUploadFile(file);
+      setShowVisitorPopup(true);
+      return;
+    }
+
+    executeUpload(file);
   };
 
   const handleCropImage = () => {
@@ -227,11 +245,21 @@ export default function CustomFramePage() {
       }
     } catch (error: any) {
       console.error("Crop error:", error);
-      toast({
-        title: "Crop failed",
-        description: error.message || "Please try again.",
-        variant: "destructive",
-      });
+      
+      if (error.message === "Visitor lead capture required" || error.message?.includes("VISITOR_LEAD")) {
+        localStorage.removeItem("fk_visitor_captured"); // Invalid state, clear it
+        setShowVisitorPopup(true);
+        toast({
+          title: "Action required",
+          description: "Please complete your details to continue uploading.",
+        });
+      } else {
+        toast({
+          title: "Crop failed",
+          description: error.message || "Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -1052,6 +1080,24 @@ export default function CustomFramePage() {
           onCropComplete={handleCropComplete}
         />
       )}
+
+      {/* Visitor Lead Popup triggered on upload */}
+      <PremiumVisitorPopup
+        isOpen={showVisitorPopup}
+        onClose={handleVisitorPopupClose}
+        onSuccess={() => {
+          setShowVisitorPopup(false);
+          localStorage.setItem("fk_visitor_captured", "true");
+          if (pendingUploadFile) {
+            executeUpload(pendingUploadFile);
+          }
+        }}
+        title="Save Your Custom Frame"
+        subtitle="Enter your details so we can save your design and keep you updated."
+        eyebrow=""
+        sourceOverride="custom_frame"
+        triggerOverride="photo_upload"
+      />
     </>
   );
 }

@@ -37,6 +37,7 @@ export const CashfreeOrderSchema = z.object({
   customerEmail: z.string().email(),
   customerName: z.string().min(2).max(100),
   orderId: z.string().min(1),
+  trackingToken: z.string().optional(),
 });
 
 // Custom frame order validation

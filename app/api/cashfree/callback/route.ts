@@ -20,6 +20,9 @@ export async function GET(req: NextRequest) {
     // Our MongoDB order ID (we named it db_order_id to avoid conflict)
     const orderId = searchParams.get("db_order_id");
     
+    // Tracking token for guest checkout
+    const token = searchParams.get("token");
+    
     // Cashfree's order ID (they send it as order_id)
     let cashfreeOrderId = searchParams.get("order_id");
     
@@ -56,10 +59,17 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Verify payment status with Cashfree
-    console.log('🔍 Verifying payment with Cashfree API...');
+    // Choose correct credentials based on environment
     const environment = process.env.CASHFREE_ENV || "sandbox";
-    const apiUrl = environment === "production"
+    const isProd = environment === "production";
+    const clientId = isProd 
+      ? process.env.CASHFREE_CLIENT_ID 
+      : (process.env.CASHFREE_TEST_CLIENT_ID || process.env.CASHFREE_CLIENT_ID);
+    const clientSecret = isProd 
+      ? process.env.CASHFREE_CLIENT_SECRET 
+      : (process.env.CASHFREE_TEST_CLIENT_SECRET || process.env.CASHFREE_CLIENT_SECRET);
+
+    const apiUrl = isProd
       ? "https://api.cashfree.com/pg/orders"
       : "https://sandbox.cashfree.com/pg/orders";
 
@@ -67,8 +77,8 @@ export async function GET(req: NextRequest) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-client-id": process.env.CASHFREE_CLIENT_ID!,
-        "x-client-secret": process.env.CASHFREE_CLIENT_SECRET!,
+        "x-client-id": clientId!,
+        "x-client-secret": clientSecret!,
         "x-api-version": "2023-08-01",
       },
     });
@@ -94,7 +104,9 @@ export async function GET(req: NextRequest) {
         
         if (existingOrder.paymentStatus === "completed") {
           console.log('⚠️ Order already processed, redirecting to success');
-          return NextResponse.redirect(`${baseUrl}/checkout/success?orderId=${orderId}`);
+          let successUrl = `${baseUrl}/checkout/success?orderId=${orderId}`;
+          if (token) successUrl += `&token=${token}`;
+          return NextResponse.redirect(successUrl);
         }
         
         const updatedOrder = await Order.findByIdAndUpdate(
@@ -122,7 +134,8 @@ export async function GET(req: NextRequest) {
         }
         
         // Redirect to success page
-        const successUrl = `${baseUrl}/checkout/success?orderId=${orderId}`;
+        let successUrl = `${baseUrl}/checkout/success?orderId=${orderId}`;
+        if (token) successUrl += `&token=${token}`;
         console.log('🎉 Redirecting to success page:', successUrl);
         return NextResponse.redirect(successUrl);
       } else {

@@ -12,10 +12,17 @@ export async function POST(req: NextRequest) {
     const signature = req.headers.get("x-webhook-signature");
     const timestamp = req.headers.get("x-webhook-timestamp");
 
+    // Choose correct credentials based on environment
+    const environment = process.env.CASHFREE_ENV || "sandbox";
+    const isProd = environment === "production";
+    const clientSecret = isProd 
+      ? process.env.CASHFREE_CLIENT_SECRET 
+      : (process.env.CASHFREE_TEST_CLIENT_SECRET || process.env.CASHFREE_CLIENT_SECRET);
+      
     if (signature && timestamp) {
       const signedPayload = timestamp + JSON.stringify(body);
       const expectedSignature = crypto
-        .createHmac("sha256", process.env.CASHFREE_CLIENT_SECRET!)
+        .createHmac("sha256", clientSecret!)
         .update(signedPayload)
         .digest("base64");
 
@@ -27,8 +34,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const clientId = isProd 
+      ? process.env.CASHFREE_CLIENT_ID 
+      : (process.env.CASHFREE_TEST_CLIENT_ID || process.env.CASHFREE_CLIENT_ID);
+
     // Fetch payment details from Cashfree
-    const apiUrl = process.env.CASHFREE_ENV === "production"
+    const apiUrl = isProd
       ? "https://api.cashfree.com/pg/orders"
       : "https://sandbox.cashfree.com/pg/orders";
 
@@ -36,8 +47,8 @@ export async function POST(req: NextRequest) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-client-id": process.env.CASHFREE_CLIENT_ID!,
-        "x-client-secret": process.env.CASHFREE_CLIENT_SECRET!,
+        "x-client-id": clientId!,
+        "x-client-secret": clientSecret!,
         "x-api-version": "2023-08-01",
       },
     });

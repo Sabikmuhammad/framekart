@@ -375,7 +375,12 @@ export default function OrderManagementPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{order.address.fullName}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{order.address.fullName}</p>
+                            {!order.userId && (
+                              <Badge variant="outline" className="text-xs bg-gray-50">Guest</Badge>
+                            )}
+                          </div>
                           <p className="text-sm text-muted-foreground">{order.customerEmail}</p>
                         </div>
                       </TableCell>

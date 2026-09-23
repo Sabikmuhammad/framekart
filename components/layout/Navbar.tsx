@@ -28,7 +28,7 @@ export default function Navbar() {
     }
   }, [user]);
 
-  if (pathname?.startsWith("/whatsapp-login") || pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
+  if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up")) {
     return null;
   }
 
@@ -108,11 +108,7 @@ export default function Navbar() {
                 </Button>
               </Link>
             </>
-          ) : (
-            <Link href="/whatsapp-login">
-              <Button size="sm">Sign In</Button>
-            </Link>
-          )}
+          ) : null}
         </div>
       </div>
 

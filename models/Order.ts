@@ -9,8 +9,15 @@ export interface IOrderItem {
 }
 
 export interface IOrder {
-  userId: string;
-  customerEmail: string; // Customer email for order confirmation
+  orderNumber?: string;
+  trackingTokenHash?: string;
+  userId?: string;
+  customer?: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+  customerEmail: string; // Kept for backward compatibility
   items: IOrderItem[];
   totalAmount: number;
   paymentStatus: "pending" | "completed" | "failed";
@@ -101,9 +108,25 @@ export interface IOrder {
 
 const OrderSchema = new Schema<IOrder>(
   {
-    userId: {
+    orderNumber: {
       type: String,
-      required: true,
+      unique: true,
+      sparse: true,
+    },
+    trackingTokenHash: {
+      type: String,
+      select: false,
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+      default: null,
+    },
+    customer: {
+      name: String,
+      phone: String,
+      email: String,
     },
     customerEmail: {
       type: String,

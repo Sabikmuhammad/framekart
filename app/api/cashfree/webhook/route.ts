@@ -56,12 +56,18 @@ export async function POST(req: NextRequest) {
     
     // ===== Verify Signature =====
     const signature = req.headers.get('x-webhook-signature');
-    const clientSecret = process.env.CASHFREE_CLIENT_SECRET;
+    
+    // Choose correct secret based on environment
+    const environment = process.env.CASHFREE_ENV || "sandbox";
+    const isProd = environment === "production";
+    const clientSecret = isProd 
+      ? process.env.CASHFREE_CLIENT_SECRET 
+      : (process.env.CASHFREE_TEST_CLIENT_SECRET || process.env.CASHFREE_CLIENT_SECRET);
     
     if (!clientSecret) {
-      console.error(`❌ [${webhookId}] CASHFREE_CLIENT_SECRET not configured`);
+      console.error(`❌ [${webhookId}] Cashfree secret not configured`);
       return NextResponse.json(
-        { success: false, error: "Webhook secret not configured" },
+        { success: false, message: "Server configuration error" },
         { status: 500 }
       );
     }

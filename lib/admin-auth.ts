@@ -5,7 +5,7 @@ export async function checkAdminAuth() {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect("/whatsapp-login");
+    redirect("/admin-login");
   }
 
   const isAdmin = user.role === "ADMIN";

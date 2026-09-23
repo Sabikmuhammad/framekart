@@ -6,6 +6,8 @@ import { getCurrentUser } from "@/lib/auth/authorization";
 import { OrderSchema } from "@/lib/validation";
 import { ZodError } from "zod";
 import { calculateOrderTotal } from "@/lib/launchOffer";
+import { validateCartItems } from "@/lib/cartValidation";
+import crypto from "crypto";
 
 export async function GET(req: NextRequest) {
   try {
@@ -46,14 +48,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const userId = user?._id.toString();
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const userId = user?._id?.toString() || undefined;
 
     await dbConnect();
 
@@ -61,11 +56,14 @@ export async function POST(req: NextRequest) {
     
     // Validate input
     const validatedData = OrderSchema.parse(body);
-    const { items, address, customerEmail, subtotal, discount } = validatedData;
+    const { items: clientItems, address, customerEmail, discount } = validatedData;
+
+    // Securely validate items and calculate true subtotal on the server
+    const { subtotal: validatedSubtotal, validatedItems } = await validateCartItems(clientItems);
 
     // Calculate order total server-side with eligibility check
     const calculatedTotal = await calculateOrderTotal(
-      subtotal || items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+      validatedSubtotal,
       userId,
       false // userId, not email
     );
@@ -73,9 +71,25 @@ export async function POST(req: NextRequest) {
     // Use server-calculated total, not frontend total
     const finalAmount = calculatedTotal.total;
 
+    // Generate tracking token
+    const trackingToken = crypto.randomBytes(32).toString('hex');
+    const trackingTokenHash = crypto.createHash('sha256').update(trackingToken).digest('hex');
+
+    // Generate human readable order number
+    const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const randomStr = crypto.randomBytes(2).toString('hex').toUpperCase();
+    const orderNumber = `FK-${dateStr}-${randomStr}`;
+
     const order = await Order.create({
-      userId,
-      items,
+      userId: userId || null,
+      orderNumber,
+      trackingTokenHash,
+      customer: {
+        name: address.fullName,
+        phone: address.phone,
+        email: customerEmail,
+      },
+      items: validatedItems,
       totalAmount: finalAmount,
       subtotal: calculatedTotal.subtotal,
       shipping: calculatedTotal.shipping,
@@ -83,12 +97,12 @@ export async function POST(req: NextRequest) {
         discount,
       }),
       address,
-      customerEmail,
+      customerEmail, // Keeping for backward compatibility
       paymentStatus: "pending",
       status: "Pending",
     });
 
-    return NextResponse.json({ success: true, data: order }, { status: 201 });
+    return NextResponse.json({ success: true, data: order, trackingToken }, { status: 201 });
   } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Order creation error:', error);

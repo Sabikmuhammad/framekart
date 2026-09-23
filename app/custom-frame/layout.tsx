@@ -43,21 +43,22 @@ export default async function CustomFrameLayout({
 
       // Update returning visitor details & track returning_visit in the background
       try {
-        await dbConnect();
-        await CustomFrameVisitor.updateOne(
-          { visitorId },
-          {
-            $inc: { visitCount: 1 },
-            $set: {
-              lastVisitedAt: new Date(),
-              ipAddress,
-              userAgent,
-            },
-          }
-        );
+        dbConnect().then(() => {
+          CustomFrameVisitor.updateOne(
+            { visitorId },
+            {
+              $inc: { visitCount: 1 },
+              $set: {
+                lastVisitedAt: new Date(),
+                ipAddress,
+                userAgent,
+              },
+            }
+          ).catch(e => console.error("Update error:", e));
+        }).catch(e => console.error("DB connection error:", e));
 
         // Track analytics page load & returning visit
-        await trackEvent({
+        trackEvent({
           visitorId,
           event: "page_opened",
           ipAddress,
@@ -65,7 +66,7 @@ export default async function CustomFrameLayout({
           referrer,
         });
 
-        await trackEvent({
+        trackEvent({
           visitorId,
           event: "returning_visit",
           ipAddress,
@@ -81,13 +82,13 @@ export default async function CustomFrameLayout({
   // If no valid visitor session, track as first-time visit page open
   if (showModal) {
     try {
-      await trackEvent({
+      trackEvent({
         event: "page_opened",
         ipAddress,
         userAgent,
         referrer,
       });
-      await trackEvent({
+      trackEvent({
         event: "first_time_visit",
         ipAddress,
         userAgent,

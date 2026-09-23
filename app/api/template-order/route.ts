@@ -2,17 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/authorization";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
+import { calculateOrderTotal } from "@/lib/launchOffer";
+import { validateCustomCart } from "@/lib/cartValidation";
+import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const userId = user?._id.toString();
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const userId = user?._id?.toString() || undefined;
 
     await dbConnect();
 
@@ -24,10 +21,6 @@ export async function POST(request: NextRequest) {
       uploadedPhoto,
       frameStyle,
       metadata,
-      price,
-      totalAmount,
-      subtotal,
-      shipping,
       discount,
       address,
     } = body;
@@ -57,20 +50,45 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Securely validate template frame price on the server
+    const rawItems = [{
+      productId: null,
+      title: `${occasion === "birthday" ? "Birthday" : "Wedding"} Frame - A4`,
+      quantity: 1,
+      imageUrl: templateImage,
+    }];
+    const { subtotal: validatedSubtotal, validatedItems } = await validateCustomCart(rawItems, "A4");
+
+    // Calculate order total server-side
+    const calculatedTotal = await calculateOrderTotal(
+      validatedSubtotal,
+      userId,
+      false
+    );
+    const finalAmount = calculatedTotal.total;
+
+    // Generate tracking token
+    const trackingToken = crypto.randomBytes(32).toString('hex');
+    const trackingTokenHash = crypto.createHash('sha256').update(trackingToken).digest('hex');
+
+    // Generate human readable order number
+    const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const randomStr = crypto.randomBytes(2).toString('hex').toUpperCase();
+    const orderNumber = `FK-${dateStr}-${randomStr}`;
+
     // Create order in database
     const order = await Order.create({
-      userId,
-      customerEmail,
-      items: [
-        {
-          productId: null,
-          title: `${occasion === "birthday" ? "Birthday" : "Wedding"} Frame - A4`,
-          price: price,
-          quantity: 1,
-          imageUrl: templateImage,
-        },
-      ],
-      totalAmount,
+      userId: userId || null,
+      orderNumber,
+      trackingTokenHash,
+      customer: {
+        name: address.fullName,
+        phone: address.phone,
+        email: customerEmail,
+      },
+      customerEmail, // Keeping for backward compatibility
+      items: validatedItems,
+      totalAmount: finalAmount,
       paymentStatus: "pending",
       address,
       productType: "TEMPLATE",
@@ -83,15 +101,16 @@ export async function POST(request: NextRequest) {
         metadata,
         designStatus: "PENDING",
       },
-      subtotal,
-      shipping,
-      ...(discount && { discount }),
+      subtotal: calculatedTotal.subtotal,
+      shipping: calculatedTotal.shipping,
+      ...(calculatedTotal.eligible && calculatedTotal.discount > 0 && discount && { discount }),
       status: "Pending",
     });
 
     return NextResponse.json({
       success: true,
       data: order,
+      trackingToken,
     }, { status: 201 });
   } catch (error: any) {
     console.error("Template order creation error:", error);

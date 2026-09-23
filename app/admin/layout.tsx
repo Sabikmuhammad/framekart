@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const user = await getCurrentUser();
 
   if (!user || user.role !== "ADMIN") {
-    redirect("/whatsapp-login");
+    redirect("/admin-login");
   }
 
   const menuItems = [
@@ -20,6 +20,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     { href: "/admin/campaigns", label: "Campaigns", icon: Mail },
     { href: "/admin/uploads", label: "Uploads", icon: Upload },
     { href: "/admin/offers", label: "Offers", icon: Tag },
+    { href: "/admin/visitors", label: "Leads", icon: Users },
   ];
 
   return (

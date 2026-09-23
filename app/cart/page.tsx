@@ -4,12 +4,47 @@ import { useCartStore } from "@/store/cart";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
-import { Minus, Plus, Trash2, ShoppingBag, Tag, Cake, Heart, Palette } from "lucide-react";
+import { Minus, Plus, Trash2, Tag, Cake, Heart, Palette, ArrowRight, ShieldCheck, Check, Package, ArrowLeft, Loader2 } from "lucide-react";
 import { calculateOrderTotalClient } from "@/lib/launchOfferClient";
 import { useState, useEffect } from "react";
 import { getOccasionBadgeColor } from "@/lib/occasions";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { CartMarquee } from "@/components/cart/CartMarquee";
+import { CartBenefits } from "@/components/cart/CartBenefits";
+import { CartOfferBanner } from "@/components/cart/CartOfferBanner";
+
+// Animation Variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15, scale: 0.98 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    height: 0,
+    marginTop: 0,
+    marginBottom: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    transition: { duration: 0.3, ease: "easeOut" },
+  },
+};
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore();
@@ -18,13 +53,16 @@ export default function CartPage() {
     discountValue: 15,
     offerActive: true,
   });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     const fetchEligibility = async () => {
       try {
         const response = await fetch("/api/offers/eligibility");
         const data = await response.json();
-        console.log("Cart eligibility data:", data);
         if (data.success) {
           setEligibility({
             eligible: data.eligible || true,
@@ -33,16 +71,9 @@ export default function CartPage() {
           });
         }
       } catch (error) {
-        console.error("Error fetching eligibility:", error);
-        // Default to showing offer for guests
-        setEligibility({
-          eligible: true,
-          discountValue: 15,
-          offerActive: true,
-        });
+        setEligibility({ eligible: true, discountValue: 15, offerActive: true });
       }
     };
-    
     fetchEligibility();
   }, []);
 
@@ -53,220 +84,332 @@ export default function CartPage() {
     eligibility.eligible && eligibility.offerActive
   );
 
+  const handleCheckout = () => {
+    setIsProcessing(true);
+    router.push("/checkout");
+  };
+
+  // Prevent hydration mismatch by returning skeleton or nothing
+  if (!isClient) {
+    return (
+      <div className="container max-w-[1200px] mx-auto px-4 py-8 sm:py-12 flex justify-center items-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
-        <h2 className="mb-2 text-2xl font-bold">Your cart is empty</h2>
-        <p className="mb-6 text-muted-foreground">
-          Start adding some frames to your cart!
-        </p>
-        <Link href="/frames">
-          <Button>Continue Shopping</Button>
-        </Link>
+      <div className="container max-w-[1200px] mx-auto px-4 py-16 sm:py-32 flex flex-col items-center justify-center text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-md mx-auto flex flex-col items-center"
+        >
+          <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-8">
+            <Package className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h2 className="text-[11px] sm:text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase mb-4">
+            Your Cart is Empty
+          </h2>
+          <h1 className="text-3xl sm:text-4xl font-light mb-4">Nothing selected yet.</h1>
+          <p className="text-muted-foreground mb-10 text-sm sm:text-base">
+            Discover beautifully crafted frames ready to become part of your space.
+          </p>
+          <Link href="/frames" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto h-12 px-8 text-sm group relative overflow-hidden transition-all duration-300">
+              <span className="relative z-10 flex items-center gap-2">
+                Explore Frames
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Button>
+          </Link>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 sm:py-8">
-      <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">Shopping Cart</h1>
+    <div className="container max-w-[1200px] mx-auto px-4 py-8 sm:py-16 pb-32 md:pb-16">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="mb-10 sm:mb-16 max-w-xl"
+      >
+        <span className="inline-block text-[10px] sm:text-[11px] font-semibold tracking-[0.15em] text-muted-foreground uppercase mb-3">
+          Your Collection
+        </span>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight mb-4">
+          Curated pieces for your space.
+        </h1>
+        <p className="text-muted-foreground text-sm sm:text-base">
+          {items.length} {items.length === 1 ? "item" : "items"} in your cart.
+        </p>
+      </motion.div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <div className="space-y-4">
-            {items.map((item) => (
-              <Card key={item._id}>
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex gap-3 sm:gap-4">
-                    <div className="relative h-20 w-20 sm:h-24 sm:w-24 flex-shrink-0 overflow-hidden rounded">
-                      {item.isCustom && !item.customFrame?.uploadedImageUrl ? (
-                        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
-                          <div className="text-center p-2">
-                            <Palette className="w-6 h-6 mx-auto mb-1 text-gray-400" />
-                            <p className="text-[10px] text-gray-500">Design Pending</p>
-                          </div>
+      <CartMarquee />
+
+      <div className="grid gap-x-12 gap-y-12 lg:grid-cols-12 relative items-start">
+        <div className="lg:col-span-7">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col gap-6 sm:gap-8"
+          >
+            <AnimatePresence initial={false}>
+              {items.map((item) => (
+                <motion.div
+                  key={item._id}
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="show"
+                  exit="exit"
+                  layout
+                  className="flex flex-row gap-4 sm:gap-6 pb-6 sm:pb-8 border-b border-border/50 last:border-0"
+                >
+                  <div className="group relative aspect-square w-[90px] sm:w-[140px] flex-shrink-0 overflow-hidden rounded-xl sm:rounded-2xl bg-muted/30">
+                    {item.isCustom && !item.customFrame?.uploadedImageUrl ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                        <Palette className="w-8 h-8 mb-2 text-muted-foreground/50" />
+                        <p className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-wider">Design Pending</p>
+                      </div>
+                    ) : item.isTemplate && !item.templateFrame?.uploadedPhoto ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                        {item.templateFrame?.occasion === "birthday" && <Cake className="w-8 h-8 mb-2 text-pink-600/50" />}
+                        {item.templateFrame?.occasion === "wedding" && <Heart className="w-8 h-8 mb-2 text-rose-600/50" />}
+                        <p className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-wider">Template</p>
+                      </div>
+                    ) : (
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.title}
+                        fill
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex flex-col flex-1 justify-between min-w-0">
+                    <div>
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="min-w-0 pr-4">
+                          <h3 className="font-medium text-base sm:text-lg text-foreground mb-1">
+                            {item.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {item.frame_size} &middot; {item.frame_material}
+                          </p>
+                          
+                          {/* Occasion Badges */}
+                          {(item.isCustom && item.customFrame?.occasion) || (item.isTemplate && item.templateFrame?.occasion) ? (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {item.isCustom && item.customFrame?.occasion && (
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-medium bg-secondary/50`}>
+                                  {item.customFrame.occasion === "birthday" && <Cake className="h-3.5 w-3.5" />}
+                                  {item.customFrame.occasion === "wedding" && <Heart className="h-3.5 w-3.5" />}
+                                  {item.customFrame.occasion === "custom" && <Palette className="h-3.5 w-3.5" />}
+                                  {item.customFrame.occasion.charAt(0).toUpperCase() + item.customFrame.occasion.slice(1)}
+                                </span>
+                              )}
+                              {item.isTemplate && item.templateFrame?.occasion && (
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-medium bg-secondary/50`}>
+                                  {item.templateFrame.occasion === "birthday" && <Cake className="h-3.5 w-3.5" />}
+                                  {item.templateFrame.occasion === "wedding" && <Heart className="h-3.5 w-3.5" />}
+                                  {item.templateFrame.occasion === "birthday" ? "Birthday" : "Wedding"}
+                                </span>
+                              )}
+                            </div>
+                          ) : null}
+
+                          <p className="font-medium text-base mt-2">
+                            {formatPrice(item.price)}
+                          </p>
                         </div>
-                      ) : item.isTemplate && !item.templateFrame?.uploadedPhoto ? (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
-                          <div className="text-center p-2">
-                            {item.templateFrame?.occasion === "birthday" && <Cake className="w-6 h-6 mx-auto mb-1 text-pink-600" />}
-                            {item.templateFrame?.occasion === "wedding" && <Heart className="w-6 h-6 mx-auto mb-1 text-rose-600" />}
-                            <p className="text-[10px] text-gray-600 dark:text-gray-300 font-medium">Template</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.title}
-                          fill
-                          className="object-cover"
-                        />
-                      )}
+                        
+                        <button
+                          onClick={() => removeItem(item._id)}
+                          className="text-muted-foreground/50 hover:text-destructive transition-colors p-2 -mr-2 rounded-full hover:bg-destructive/10 active:scale-95 flex-shrink-0"
+                          aria-label="Remove item"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="flex flex-1 flex-col justify-between min-w-0">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-sm sm:text-base truncate">{item.title}</h3>
-                          {item.isCustom && item.customFrame?.occasion && (
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${getOccasionBadgeColor(item.customFrame.occasion as any)}`}>
-                              {item.customFrame.occasion === "birthday" && <Cake className="h-3 w-3" />}
-                              {item.customFrame.occasion === "wedding" && <Heart className="h-3 w-3" />}
-                              {item.customFrame.occasion === "custom" && <Palette className="h-3 w-3" />}
-                              {item.customFrame.occasion.charAt(0).toUpperCase() + item.customFrame.occasion.slice(1)}
-                            </span>
-                          )}
-                          {item.isTemplate && (
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${
-                              item.templateFrame?.occasion === "birthday" 
-                                ? "bg-pink-100 text-pink-800 dark:bg-pink-950/30 dark:text-pink-400"
-                                : "bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-400"
-                            }`}>
-                              {item.templateFrame?.occasion === "birthday" && <Cake className="h-3 w-3" />}
-                              {item.templateFrame?.occasion === "wedding" && <Heart className="h-3 w-3" />}
-                              {item.templateFrame?.occasion === "birthday" ? "Birthday" : "Wedding"}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          {item.frame_size} • {item.frame_material}
-                        </p>
-                        {item.isCustom && !item.customFrame?.uploadedImageUrl && (
-                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
-                            🎨 Design to be finalized by FrameKart team
-                          </p>
-                        )}
-                        {item.isTemplate && (
-                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
-                            🎨 Design will be handled by FrameKart&apos;s design team
-                          </p>
-                        )}
-                        {item.isCustom && item.customFrame?.occasionMetadata && (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {item.customFrame.occasion === "birthday" && item.customFrame.occasionMetadata.name && (
-                              <p>For: {item.customFrame.occasionMetadata.name} ({item.customFrame.occasionMetadata.age})</p>
-                            )}
-                            {item.customFrame.occasion === "wedding" && item.customFrame.occasionMetadata.brideName && (
-                              <p>{item.customFrame.occasionMetadata.brideName} & {item.customFrame.occasionMetadata.groomName}</p>
-                            )}
-                          </div>
-                        )}
-                        {item.isTemplate && item.templateFrame?.metadata && (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {item.templateFrame.occasion === "birthday" && item.templateFrame.metadata.name && (
-                              <p>For: {item.templateFrame.metadata.name} ({item.templateFrame.metadata.age})</p>
-                            )}
-                            {item.templateFrame.occasion === "wedding" && item.templateFrame.metadata.brideName && (
-                              <p>{item.templateFrame.metadata.brideName} & {item.templateFrame.metadata.groomName}</p>
-                            )}
-                          </div>
-                        )}
-                        <p className="mt-1 font-semibold text-primary text-sm sm:text-base">
-                          {formatPrice(item.price)}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2 mt-2">
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() =>
-                              updateQuantity(
-                                item._id,
-                                Math.max(1, item.quantity - 1)
-                              )
-                            }
-                          >
-                            <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </Button>
-                          <span className="w-6 sm:w-8 text-center text-sm">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() =>
-                              updateQuantity(item._id, item.quantity + 1)
-                            }
-                          >
-                            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </Button>
-                        </div>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2"
-                          onClick={() => removeItem(item._id)}
+                    <div className="flex items-center mt-6">
+                      <div className="flex items-center bg-secondary/30 rounded-full border border-border/50 h-9 p-1">
+                        <button
+                          onClick={() => updateQuantity(item._id, Math.max(1, item.quantity - 1))}
+                          className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-foreground active:scale-90 transition-all rounded-full"
+                          aria-label="Decrease quantity"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        
+                        <div className="w-10 text-center font-medium text-sm flex items-center justify-center relative overflow-hidden">
+                          <AnimatePresence mode="popLayout" initial={false}>
+                            <motion.span
+                              key={item.quantity}
+                              initial={{ y: -10, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={{ y: 10, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="absolute"
+                            >
+                              {item.quantity}
+                            </motion.span>
+                          </AnimatePresence>
+                        </div>
+
+                        <button
+                          onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                          className="w-8 h-full flex items-center justify-center text-muted-foreground hover:text-foreground active:scale-90 transition-all rounded-full"
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+          
+          <div className="mt-8 hidden lg:block">
+            <Link href="/frames" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              Continue shopping
+            </Link>
           </div>
         </div>
 
-        <div>
-          <Card className="sticky top-20">
-            <CardContent className="p-6">
-              <h2 className="mb-4 text-xl font-bold">Order Summary</h2>
+        {/* Order Summary Sticky Panel */}
+        <div className="lg:col-span-5 relative">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+            className="lg:sticky lg:top-28 bg-secondary/10 sm:bg-transparent rounded-2xl p-6 sm:p-0 border sm:border-0 border-border/50"
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-[0.15em] mb-6 hidden sm:block">
+              Order Summary
+            </h2>
 
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatPrice(subtotal)}</span>
-                </div>
-                
-                {eligibility.offerActive && eligibility.eligible && discount > 0 && (
-                  <div className="flex justify-between text-green-600 dark:text-green-400">
-                    <span className="flex items-center gap-1">
+            <div className="space-y-4 text-sm sm:text-base">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium">{formatPrice(subtotal)}</span>
+              </div>
+              
+              {eligibility.offerActive && eligibility.eligible && discount > 0 && (
+                <div className="py-3 my-2 border-y border-border/50">
+                  <div className="flex justify-between items-center text-primary/80 dark:text-blue-400">
+                    <span className="flex items-center gap-2 font-medium">
                       <Tag className="h-4 w-4" />
-                      Launch Offer ({eligibility.discountValue}% OFF)
+                      Launch Privilege
                     </span>
                     <span className="font-semibold">-{formatPrice(discount)}</span>
                   </div>
-                )}
-                
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-green-600 font-medium">FREE</span>
+                  <p className="text-xs text-muted-foreground mt-1.5 ml-6">
+                    {eligibility.discountValue}% OFF applied automatically
+                  </p>
                 </div>
-                <div className="border-t pt-2">
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span className="text-primary">
-                      {formatPrice(total)}
-                    </span>
-                  </div>
-                  {eligibility.offerActive && eligibility.eligible && discount > 0 && (
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                      You&apos;re saving {formatPrice(discount)}! 🎉
-                    </p>
-                  )}
-                </div>
+              )}
+              
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Shipping</span>
+                <span className="text-green-600 dark:text-green-400 font-medium tracking-wide">COMPLIMENTARY</span>
               </div>
+              
+              <div className="pt-6 mt-4 border-t border-border">
+                <div className="flex justify-between items-baseline mb-2">
+                  <span className="text-lg font-medium">Total</span>
+                  <span className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
+                    {formatPrice(total)}
+                  </span>
+                </div>
+                {eligibility.offerActive && eligibility.eligible && discount > 0 && (
+                  <AnimatePresence mode="popLayout">
+                    <motion.div 
+                      key={discount}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-right text-xs text-muted-foreground"
+                    >
+                      You're saving <span className="font-medium text-foreground">{formatPrice(discount)}</span> on this order
+                    </motion.div>
+                  </AnimatePresence>
+                )}
+              </div>
+            </div>
 
-              <Link href="/checkout" className="mt-6 block">
-                <Button className="w-full" size="lg">
-                  Proceed to Checkout
-                </Button>
+            {/* Desktop Checkout CTA */}
+            <div className="mt-8 hidden sm:block">
+              <Button 
+                onClick={handleCheckout}
+                disabled={isProcessing}
+                className="w-full h-14 text-base font-medium group relative overflow-hidden shadow-lg shadow-primary/20 transition-all duration-300"
+              >
+                {isProcessing ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <span className="relative z-10 flex items-center gap-2">
+                    Proceed to Checkout
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                )}
+              </Button>
+              
+              <div className="mt-6 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4" /> Secure payment
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Package className="w-4 h-4" /> Carefully packaged
+                </span>
+              </div>
+            </div>
+            
+            {/* Mobile continue shopping link in normal flow */}
+            <div className="mt-6 sm:hidden text-center">
+              <Link href="/frames" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="w-4 h-4" />
+                Continue shopping
               </Link>
+            </div>
+          </motion.div>
+        </div>
+      </div>
 
-              <Link href="/frames" className="mt-4 block">
-                <Button variant="outline" className="w-full">
-                  Continue Shopping
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+      {/* Scrolling Benefit Animations Below Cart Grid */}
+      <CartBenefits />
+      <CartOfferBanner />
+
+      {/* Mobile Sticky Checkout Bar */}
+      <div className="sm:hidden fixed bottom-16 left-0 right-0 z-40 bg-background/90 backdrop-blur-md border-t border-border/50 px-4 py-3 shadow-[0_-8px_16px_-6px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Total</span>
+            <span className="text-lg font-bold leading-none">{formatPrice(total)}</span>
+          </div>
+          <Button 
+            onClick={handleCheckout}
+            disabled={isProcessing}
+            className="flex-1 h-12 max-w-[200px] text-sm group"
+          >
+            {isProcessing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <span className="flex items-center gap-2">
+                Checkout
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            )}
+          </Button>
         </div>
       </div>
     </div>

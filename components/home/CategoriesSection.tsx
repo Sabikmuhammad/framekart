@@ -14,7 +14,7 @@ export default function CategoriesSection() {
     wedding: "/images/categories/p3.png",
     calligraphy: "/images/categories/p9.png",
     homeDecor: "/images/categories/p7.png",
-    customFrames: "/images/categories/custom-frames.jpg",
+    customFrames: "/images/categories/p2.png",
   };
 
   return (

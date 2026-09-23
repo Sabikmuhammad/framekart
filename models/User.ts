@@ -1,7 +1,6 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
 export interface IUser {
-  clerkId?: string; // Kept for legacy relation mapping
   email?: string;
   phoneNumber?: string;
   phoneVerified: boolean;
@@ -16,12 +15,6 @@ export interface IUser {
 
 const UserSchema = new Schema<IUser>(
   {
-    clerkId: {
-      type: String,
-      required: false,
-      unique: true,
-      sparse: true,
-    },
     email: {
       type: String,
       required: false,

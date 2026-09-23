@@ -11,7 +11,6 @@ import { CheckSquare, Mail, Megaphone, RefreshCw, Ticket } from "lucide-react";
 
 interface UserRecord {
   _id: string;
-  clerkId: string;
   name: string;
   email: string;
   role: "admin" | "user";
@@ -82,7 +81,7 @@ export default function AdminUsersPage() {
   }, []);
 
   const selectedUsers = useMemo(
-    () => users.filter((user) => selectedIds.includes(user.clerkId)),
+    () => users.filter((user) => selectedIds.includes(user._id)),
     [selectedIds, users]
   );
 
@@ -96,9 +95,9 @@ export default function AdminUsersPage() {
     setComposerOpen(true);
   };
 
-  const toggleSelected = (clerkId: string) => {
+  const toggleSelected = (_id: string) => {
     setSelectedIds((current) =>
-      current.includes(clerkId) ? current.filter((id) => id !== clerkId) : [...current, clerkId]
+      current.includes(_id) ? current.filter((id) => id !== _id) : [...current, _id]
     );
   };
 
@@ -108,7 +107,7 @@ export default function AdminUsersPage() {
       return;
     }
 
-    setSelectedIds(users.map((user) => user.clerkId));
+    setSelectedIds(users.map((user) => user._id));
   };
 
   const selectedCount = selectedIds.length;
@@ -129,11 +128,11 @@ export default function AdminUsersPage() {
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
-          <Button variant="outline" onClick={() => openComposer("all", users.map((user) => ({ userId: user.clerkId, email: user.email, name: user.name })), "all")}>
+          <Button variant="outline" onClick={() => openComposer("all", users.map((user) => ({ userId: user._id, email: user.email, name: user.name })), "all")}>
             <Megaphone className="mr-2 h-4 w-4" />
             Send to All Users
           </Button>
-          <Button onClick={() => openComposer("bulk", selectedUsers.map((user) => ({ userId: user.clerkId, email: user.email, name: user.name })), "selected")} disabled={selectedCount === 0}>
+          <Button onClick={() => openComposer("bulk", selectedUsers.map((user) => ({ userId: user._id, email: user.email, name: user.name })), "selected")} disabled={selectedCount === 0}>
             <Mail className="mr-2 h-4 w-4" />
             Send Bulk Campaign ({selectedCount})
           </Button>
@@ -175,8 +174,8 @@ export default function AdminUsersPage() {
                 </TableHeader>
                 <TableBody>
                   {users.map((user) => {
-                    const isSelected = selectedIds.includes(user.clerkId);
-                    const recipient = { userId: user.clerkId, email: user.email, name: user.name };
+                    const isSelected = selectedIds.includes(user._id);
+                    const recipient = { userId: user._id, email: user.email, name: user.name };
 
                     return (
                       <TableRow key={user._id} className={isSelected ? "bg-primary/5" : undefined}>
@@ -185,7 +184,7 @@ export default function AdminUsersPage() {
                             type="checkbox"
                             aria-label={`Select ${user.name}`}
                             checked={isSelected}
-                            onChange={() => toggleSelected(user.clerkId)}
+                            onChange={() => toggleSelected(user._id)}
                             className="h-4 w-4 rounded border-border accent-primary"
                           />
                         </TableCell>

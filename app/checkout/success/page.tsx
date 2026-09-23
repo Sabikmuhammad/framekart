@@ -14,6 +14,7 @@ export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderId = searchParams?.get("orderId");
+  const token = searchParams?.get("token");
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { clearCart } = useCartStore();
@@ -28,8 +29,12 @@ export default function CheckoutSuccessPage() {
     }
 
     console.log('📦 Fetching order details from API...');
+    
+    // Use tracking API if token is present, otherwise fallback to standard API
+    const apiUrl = token ? `/api/orders/track/${token}` : `/api/orders/${orderId}`;
+    
     // Fetch order details
-    fetch(`/api/orders/${orderId}`)
+    fetch(apiUrl)
       .then((res) => {
         console.log('📡 API Response status:', res.status);
         return res.json();
@@ -139,7 +144,7 @@ export default function CheckoutSuccessPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Order ID</p>
                   <p className="font-mono font-semibold text-sm sm:text-base">
-                    #{orderId?.slice(-8).toUpperCase()}
+                    #{order.orderNumber || orderId?.slice(-8).toUpperCase()}
                   </p>
                 </div>
                 <div>
@@ -170,7 +175,7 @@ export default function CheckoutSuccessPage() {
                     <p className="text-sm text-muted-foreground">
                       Order confirmation has been sent to{" "}
                       <span className="font-medium text-foreground">
-                        {order.customerEmail}
+                        {order.customerEmail || (order.customer && order.customer.email)}
                       </span>
                     </p>
                   </div>
@@ -180,13 +185,15 @@ export default function CheckoutSuccessPage() {
               <div className="pt-4 border-t">
                 <p className="text-sm font-medium mb-2">Delivery Address</p>
                 <div className="text-sm text-muted-foreground">
-                  <p>{order.address.fullName}</p>
-                  <p>{order.address.addressLine1}</p>
-                  {order.address.addressLine2 && <p>{order.address.addressLine2}</p>}
-                  <p>
-                    {order.address.city}, {order.address.state} - {order.address.pincode}
-                  </p>
-                  <p className="mt-1">Phone: {order.address.phone}</p>
+                  <p>{order.address?.fullName || order.customerName}</p>
+                  <p>{order.address?.addressLine1 || order.shippingLocation}</p>
+                  {order.address?.addressLine2 && <p>{order.address.addressLine2}</p>}
+                  {order.address?.city && (
+                    <p>
+                      {order.address.city}, {order.address.state} - {order.address.pincode}
+                    </p>
+                  )}
+                  {order.address?.phone && <p className="mt-1">Phone: {order.address.phone}</p>}
                 </div>
               </div>
 
@@ -209,10 +216,10 @@ export default function CheckoutSuccessPage() {
           transition={{ delay: 0.4 }}
           className="flex flex-col sm:flex-row gap-3"
         >
-          <Link href={`/orders/${orderId}`} className="flex-1">
+          <Link href={token ? `/track/${token}` : `/orders/${orderId}`} className="flex-1">
             <Button variant="default" className="w-full" size="lg">
               <Package className="w-4 h-4 mr-2" />
-              View Order Details
+              {token ? "Track Order" : "View Order Details"}
             </Button>
           </Link>
           <Link href="/frames" className="flex-1">

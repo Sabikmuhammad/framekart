@@ -1,48 +1,66 @@
-export interface SendWhatsAppOtpOptions {
-  phoneNumber: string;
-  otp: string;
-}
-
 export interface WhatsAppApiResponse {
   success: boolean;
   messageId?: string;
   error?: any;
 }
 
+export interface SendWhatsAppWelcomeOptions {
+  phoneNumber: string;
+  name: string;
+}
+
 /**
- * Sends an OTP using the Meta WhatsApp Cloud API.
+ * Sends a welcome message to captured visitors.
  */
-export async function sendWhatsAppOtp({
+export async function sendVisitorWelcomeMessage({
   phoneNumber,
-  otp,
-}: SendWhatsAppOtpOptions): Promise<WhatsAppApiResponse> {
+  name,
+}: SendWhatsAppWelcomeOptions): Promise<WhatsAppApiResponse> {
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const templateName = process.env.WHATSAPP_WELCOME_TEMPLATE_NAME || "welcome_framekart";
+  const templateLanguage = process.env.WHATSAPP_WELCOME_TEMPLATE_LANGUAGE || "en";
+  const apiVersion = process.env.WHATSAPP_API_VERSION || "v19.0";
 
   if (!accessToken || !phoneNumberId) {
-    console.error("Missing WhatsApp Meta API credentials.");
-    return { success: false, error: "Missing configuration" };
+    console.warn("Skipping WhatsApp welcome: missing credentials");
+    return { success: false, error: "Missing credentials" };
   }
 
-  // Remove the "+" from E.164 for Meta API
-  const to = phoneNumber.startsWith("+") ? phoneNumber.slice(1) : phoneNumber;
+  // Normalize phone number: remove all non-digits
+  let to = phoneNumber.replace(/\D/g, "");
+  // Default to +91 if only 10 digits were provided
+  if (to.length === 10) {
+    to = "91" + to;
+  }
 
   const payload = {
     messaging_product: "whatsapp",
     to: to,
     type: "template",
     template: {
-      name: "auth_otp", // Replace with your actual approved template name
+      name: templateName,
       language: {
-        code: "en", // Replace with your template's language code (e.g. en_US)
+        code: templateLanguage,
       },
       components: [
+        {
+          type: "header",
+          parameters: [
+            {
+              type: "image",
+              image: {
+                link: "https://framekart.co.in/images/branding/Frame-2.png"
+              }
+            }
+          ]
+        },
         {
           type: "body",
           parameters: [
             {
               type: "text",
-              text: otp,
+              text: name || "Customer",
             },
           ],
         },
@@ -53,7 +71,7 @@ export async function sendWhatsAppOtp({
           parameters: [
             {
               type: "text",
-              text: otp,
+              text: "https://framekart.co.in",
             },
           ],
         },
@@ -63,7 +81,7 @@ export async function sendWhatsAppOtp({
 
   try {
     const response = await fetch(
-      `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`,
+      `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`,
       {
         method: "POST",
         headers: {
@@ -77,16 +95,22 @@ export async function sendWhatsAppOtp({
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("WhatsApp API Error:", JSON.stringify(data));
-      return { success: false, error: data.error };
+      console.error("[WhatsApp Welcome] Failed", {
+        status: response.status,
+        errorCode: data?.error?.code,
+        errorMessage: data?.error?.message,
+      });
+      return { success: false, error: data?.error?.message || "API Error" };
     }
 
-    return {
-      success: true,
+    console.log("[WhatsApp Welcome] Success", {
       messageId: data.messages?.[0]?.id,
-    };
+    });
+    return { success: true, messageId: data.messages?.[0]?.id };
   } catch (error: any) {
-    console.error("Failed to call WhatsApp API:", error);
+    console.error("[WhatsApp Welcome] Failed", {
+      errorMessage: error.message,
+    });
     return { success: false, error: error.message };
   }
 }
