@@ -5,6 +5,8 @@ import VisitorLead from "@/models/VisitorLead";
 
 const VISITOR_COOKIE_NAME = "framekart_visitor_token";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const cookieStore = cookies();
