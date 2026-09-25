@@ -91,9 +91,11 @@ export async function POST(req: NextRequest) {
       }).then(async (result) => {
         if (result.success) {
           visitor.whatsappWelcomeSent = true;
+          visitor.whatsappWelcomeSentAt = new Date();
           if (result.messageId) visitor.whatsappWelcomeMessageId = result.messageId;
         } else {
           visitor.whatsappWelcomeSent = false;
+          visitor.whatsappWelcomeSentAt = new Date(); // To know when the failure occurred
           visitor.whatsappWelcomeError = result.error;
         }
         await visitor.save();

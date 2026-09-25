@@ -19,6 +19,7 @@ import {
   BarChart3,
   FileText,
   Mail,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -29,6 +30,7 @@ const menuItems = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/users", label: "Customers", icon: Users },
   { href: "/admin/campaigns", label: "Campaigns", icon: Mail },
+  { href: "/admin/whatsapp", label: "WhatsApp Chat", icon: MessageCircle },
 ];
 
 export function AdminSidebar() {

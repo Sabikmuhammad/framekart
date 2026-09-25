@@ -2,6 +2,7 @@ export interface WhatsAppApiResponse {
   success: boolean;
   messageId?: string;
   error?: any;
+  errorCode?: string | number;
 }
 
 export interface SendWhatsAppWelcomeOptions {
@@ -18,7 +19,7 @@ export async function sendVisitorWelcomeMessage({
 }: SendWhatsAppWelcomeOptions): Promise<WhatsAppApiResponse> {
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const templateName = process.env.WHATSAPP_WELCOME_TEMPLATE_NAME || "welcome_framekart";
+  const templateName = process.env.WHATSAPP_WELCOME_TEMPLATE_NAME || "framekart_welcome";
   const templateLanguage = process.env.WHATSAPP_WELCOME_TEMPLATE_LANGUAGE || "en";
   const apiVersion = process.env.WHATSAPP_API_VERSION || "v19.0";
 
@@ -64,17 +65,6 @@ export async function sendVisitorWelcomeMessage({
             },
           ],
         },
-        {
-          type: "button",
-          sub_type: "url",
-          index: "0",
-          parameters: [
-            {
-              type: "text",
-              text: "https://framekart.co.in",
-            },
-          ],
-        },
       ],
     },
   };
@@ -100,7 +90,7 @@ export async function sendVisitorWelcomeMessage({
         errorCode: data?.error?.code,
         errorMessage: data?.error?.message,
       });
-      return { success: false, error: data?.error?.message || "API Error" };
+      return { success: false, error: data?.error?.message || "API Error", errorCode: data?.error?.code };
     }
 
     console.log("[WhatsApp Welcome] Success", {

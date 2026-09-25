@@ -42,6 +42,34 @@ export async function POST(req: Request) {
 
     // Process WhatsApp Webhook Event
     if (payload.object) {
+      // Connect to DB once if we have actionable changes
+      if (payload.entry?.[0]?.changes?.[0]?.value?.statuses) {
+        const { default: dbConnect } = await import("@/lib/db");
+        const { default: VisitorLead } = await import("@/models/VisitorLead");
+        await dbConnect();
+        
+        for (const status of payload.entry[0].changes[0].value.statuses) {
+          console.log(`WhatsApp Message Status: ${status.status} for ID: ${status.id}`);
+          
+          let deliveryStatus = "PENDING";
+          if (status.status === "sent") deliveryStatus = "SENT";
+          if (status.status === "delivered") deliveryStatus = "DELIVERED";
+          if (status.status === "read") deliveryStatus = "READ";
+          if (status.status === "failed") deliveryStatus = "FAILED";
+
+          const updatePayload: any = { whatsappDeliveryStatus: deliveryStatus };
+          
+          if (status.status === "failed" && status.errors && status.errors.length > 0) {
+            updatePayload.whatsappWelcomeError = `[${status.errors[0].code}] ${status.errors[0].title}: ${status.errors[0].message || ""}`;
+          }
+
+          await VisitorLead.updateOne(
+            { whatsappWelcomeMessageId: status.id },
+            { $set: updatePayload }
+          );
+        }
+      }
+
       if (
         payload.entry &&
         payload.entry[0].changes &&
@@ -56,16 +84,6 @@ export async function POST(req: Request) {
         // For OTP, we only send messages out, but we might receive replies.
         // If integrating a WhatsApp bot, handle it here.
         console.log(`Received WhatsApp message ID: ${messageId}`);
-      }
-      
-      if (
-        payload.entry &&
-        payload.entry[0].changes &&
-        payload.entry[0].changes[0] &&
-        payload.entry[0].changes[0].value.statuses
-      ) {
-        const status = payload.entry[0].changes[0].value.statuses[0];
-        console.log(`WhatsApp Message Status: ${status.status} for ID: ${status.id}`);
       }
 
       return new NextResponse("EVENT_RECEIVED", { status: 200 });

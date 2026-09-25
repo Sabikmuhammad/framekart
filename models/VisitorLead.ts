@@ -23,8 +23,10 @@ export interface IVisitorLead {
     referrer?: string;
   };
   whatsappWelcomeSent?: boolean;
+  whatsappWelcomeSentAt?: Date;
   whatsappWelcomeMessageId?: string;
   whatsappWelcomeError?: string;
+  whatsappDeliveryStatus?: "PENDING" | "SENT" | "DELIVERED" | "READ" | "FAILED";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -98,8 +100,14 @@ const VisitorLeadSchema = new Schema<IVisitorLead>(
       type: Boolean,
       default: false,
     },
+    whatsappWelcomeSentAt: Date,
     whatsappWelcomeMessageId: String,
     whatsappWelcomeError: String,
+    whatsappDeliveryStatus: {
+      type: String,
+      enum: ["PENDING", "SENT", "DELIVERED", "READ", "FAILED"],
+      default: "PENDING"
+    },
   },
   {
     timestamps: true,
