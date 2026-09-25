@@ -4,7 +4,7 @@ const apiKey = process.env.GEMINI_API_KEY;
 
 export const aiClient = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
-export const geminiModel = "gemini-2.5-flash";
+export const geminiModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 // Helper to convert our DB message role to GenAI role
 export function toGenAiRole(role: string): "user" | "model" {

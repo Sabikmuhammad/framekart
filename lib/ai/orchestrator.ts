@@ -61,6 +61,8 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
   });
 
   try {
+    console.log(`[FrameKart AI] model: ${geminiModel}`);
+
     const chatSession = aiClient.chats.create({
       model: geminiModel,
       config: {
@@ -114,7 +116,7 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
     return finalReply;
 
   } catch (error: any) {
-    console.error("[FrameKartWhatsAppAgent] Error generating response:", error);
+    console.log(`[FrameKart AI] FAILED\nerrorCode: ${error?.status || ''}\nerrorMessage: ${error?.message || error}`);
     return "Sorry, I'm having trouble processing that right now. Please try again in a moment.";
   }
 }
