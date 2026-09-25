@@ -56,6 +56,19 @@ export async function GET(req: NextRequest) {
         .lean(),
     ]);
 
+    // Fetch AI conversations for the returned leads
+    const { default: WhatsAppConversation } = await import("@/models/WhatsAppConversation");
+    const phones = messages.map((m: any) => m.phone).filter(Boolean);
+    const conversations = await WhatsAppConversation.find({ phone: { $in: phones } }).lean();
+    
+    const messagesWithConversations = messages.map((msg: any) => {
+      const convo = conversations.find((c: any) => c.phone === msg.phone);
+      if (convo) {
+        msg.aiConversation = convo;
+      }
+      return msg;
+    });
+
     // Aggregate summary stats
     const [totalStats, sentStats, deliveredStats, readStats, failedStats] = await Promise.all([
       VisitorLead.countDocuments({ phone: { $exists: true, $ne: null } }),
@@ -68,7 +81,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      messages,
+      messages: messagesWithConversations,
       summary: {
         total: totalStats,
         sent: sentStats,

@@ -103,11 +103,37 @@ export async function POST(req: Request) {
       ) {
         const message = payload.entry[0].changes[0].value.messages[0];
         const messageId = message.id;
+        const senderPhone = message.from;
         
-        // You could store messageId in a database to ensure idempotency.
-        // For OTP, we only send messages out, but we might receive replies.
-        // If integrating a WhatsApp bot, handle it here.
-        console.log(`Received WhatsApp message ID: ${messageId}`);
+        console.log(`Received WhatsApp message ID: ${messageId} from ${senderPhone}`);
+
+        // Handle text messages
+        if (message.type === "text" && message.text && message.text.body) {
+          const textContent = message.text.body;
+
+          // Deduplication check: You would typically check if messageId exists in DB.
+          // For now, we process asynchronously.
+          
+          // Fire and forget orchestrator to prevent webhook timeout
+          const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
+          const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
+          
+          handleIncomingWhatsAppMessage(senderPhone, messageId, textContent)
+            .then(async (aiReply) => {
+              if (aiReply) {
+                // Send the reply back to the user
+                const sendResult = await sendWhatsAppText(senderPhone, aiReply);
+                if (sendResult.success) {
+                  console.log(`[WhatsApp Webhook] Sent AI reply to ${senderPhone}, MessageID: ${sendResult.messageId}`);
+                  // Note: Delivery status of this outbound message will be tracked by the same webhook logic above
+                  // If we wanted to track AI responses in VisitorLead, we could link sendResult.messageId.
+                }
+              }
+            })
+            .catch(err => {
+              console.error("[WhatsApp Webhook] AI handling failed:", err);
+            });
+        }
       }
 
       return new NextResponse("EVENT_RECEIVED", { status: 200 });

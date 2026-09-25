@@ -117,7 +117,9 @@ export function WhatsAppDetailDrawer({ open, onOpenChange, message }: WhatsAppDe
                   {"\n\n"}
                   Turn your moments into timeless art.
                 </p>
-                <div className="text-[10px] text-slate-400 text-right mt-1">10:32 PM</div>
+                <div className="text-[10px] text-slate-400 text-right mt-1">
+                  {message.whatsappWelcomeSentAt ? new Date(message.whatsappWelcomeSentAt).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' }) : "10:32 PM"}
+                </div>
               </div>
               <div className="mt-2 bg-white rounded-lg py-2 flex items-center justify-center text-[#00a884] font-medium text-sm shadow-sm">
                 <ExternalLink className="h-4 w-4 mr-2" />
@@ -125,6 +127,38 @@ export function WhatsAppDetailDrawer({ open, onOpenChange, message }: WhatsAppDe
               </div>
             </div>
           </div>
+
+          {message.aiConversation && message.aiConversation.messages && message.aiConversation.messages.length > 0 && (
+            <div className="pt-6 border-t">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">AI Conversation History</span>
+                {message.aiConversation.conversationState === "HUMAN_HANDOFF" && (
+                  <Badge variant="destructive" className="text-[10px]">Human Handoff</Badge>
+                )}
+              </div>
+              <div className="bg-slate-50 rounded-xl p-4 flex flex-col gap-3 max-h-[400px] overflow-y-auto">
+                {message.aiConversation.messages.map((msg: any, i: number) => {
+                  const isUser = msg.role === "user";
+                  const isTool = msg.role === "tool";
+                  if (isTool) return null; // hide raw tool data from general chat view for cleaner UI
+                  return (
+                    <div key={i} className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
+                      <div className={`px-3 py-2 rounded-2xl max-w-[85%] text-sm ${
+                        isUser 
+                          ? "bg-[#d9fdd3] text-slate-800 rounded-tr-none shadow-sm" 
+                          : "bg-white text-slate-800 rounded-tl-none shadow-sm border border-slate-100"
+                      }`}>
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                        <span className="text-[9px] opacity-60 block mt-1 text-right">
+                          {new Date(msg.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

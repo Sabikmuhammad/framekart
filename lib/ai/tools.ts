@@ -1,0 +1,89 @@
+import dbConnect from "@/lib/db";
+import Frame from "@/models/Frame";
+import Order from "@/models/Order";
+import VisitorLead from "@/models/VisitorLead";
+
+export async function searchProducts(args: { category?: string; color?: string; maxPrice?: number; query?: string }) {
+  await dbConnect();
+  
+  const query: any = {};
+  
+  if (args.category && args.category.toLowerCase() !== "all") {
+    query.category = { $regex: new RegExp(args.category, "i") };
+  }
+  
+  if (args.color) {
+    // Assuming color might be in tags, title, or frame_material
+    const colorRegex = new RegExp(args.color, "i");
+    query.$or = [
+      { tags: { $in: [colorRegex] } },
+      { title: colorRegex },
+      { frame_material: colorRegex }
+    ];
+  }
+  
+  if (args.maxPrice) {
+    query.price = { $lte: args.maxPrice };
+  }
+  
+  if (args.query) {
+    const qRegex = new RegExp(args.query, "i");
+    if (query.$or) {
+      query.$and = [
+        { $or: query.$or },
+        { $or: [{ title: qRegex }, { description: qRegex }, { tags: { $in: [qRegex] } }] }
+      ];
+      delete query.$or;
+    } else {
+      query.$or = [{ title: qRegex }, { description: qRegex }, { tags: { $in: [qRegex] } }];
+    }
+  }
+
+  const products = await Frame.find(query).limit(5).select("title price slug category imageUrl").lean();
+
+  if (!products || products.length === 0) {
+    return { results: [], message: "No products found matching the criteria." };
+  }
+
+  return {
+    results: products.map(p => ({
+      name: p.title,
+      price: p.price,
+      url: `https://framekart.co.in/frames/${p.slug}`,
+      image: p.imageUrl,
+    })),
+  };
+}
+
+export async function getOrderStatus(args: { orderNumber: string }) {
+  await dbConnect();
+  
+  const order: any = await Order.findOne({ orderNumber: args.orderNumber }).select("status totalAmount paymentStatus createdAt").lean();
+  
+  if (!order) {
+    return { error: "Order not found. Please check the order number." };
+  }
+
+  return {
+    orderNumber: args.orderNumber,
+    status: order.status,
+    paymentStatus: order.paymentStatus,
+    total: order.totalAmount,
+    date: order.createdAt
+  };
+}
+
+export async function getCustomFrameInformation() {
+  return {
+    message: "Custom frames allow you to upload your own photo. You can choose frame size, style (Black, White, Wooden), and the occasion. You can create a custom frame directly on our website.",
+    url: "https://framekart.co.in/custom-frame",
+    pricing: "Starts at ₹899 depending on frame size."
+  };
+}
+
+export async function humanHandoff() {
+  return {
+    message: "I will connect you to our support team. A representative will get back to you shortly.",
+    status: "HUMAN_HANDOFF"
+  };
+}

@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { LayoutDashboard, Mail, Package, ShoppingCart, Tag, Upload, Users, PhoneCall } from "lucide-react";
+import { LayoutDashboard, Mail, Package, ShoppingCart, Tag, Upload, Users, PhoneCall, MessageCircle } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/authorization";
 import { redirect } from "next/navigation";
 
@@ -17,6 +17,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/visitor-tracking", label: "Custom Frame Leads", icon: PhoneCall },
+    { href: "/admin/whatsapp", label: "WhatsApp Chat", icon: MessageCircle },
     { href: "/admin/campaigns", label: "Campaigns", icon: Mail },
     { href: "/admin/uploads", label: "Uploads", icon: Upload },
     { href: "/admin/offers", label: "Offers", icon: Tag },

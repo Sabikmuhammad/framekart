@@ -22,6 +22,7 @@ interface WhatsAppMessage {
   whatsappWelcomeMessageId?: string;
   whatsappWelcomeError?: string;
   whatsappDeliveryStatus?: "PENDING" | "SENT" | "DELIVERED" | "READ" | "FAILED";
+  aiConversation?: any;
   createdAt: string;
 }
 
@@ -234,8 +235,8 @@ export default function AdminWhatsAppPage() {
                     <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
                       <TableHead>Customer</TableHead>
                       <TableHead>Phone</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Template</TableHead>
+                      <TableHead>Welcome Status</TableHead>
+                      <TableHead>AI Chat</TableHead>
                       <TableHead>Sent At</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -249,7 +250,17 @@ export default function AdminWhatsAppPage() {
                         </TableCell>
                         <TableCell className="font-mono text-sm">{msg.phone}</TableCell>
                         <TableCell>{renderStatusBadge(msg)}</TableCell>
-                        <TableCell className="text-sm text-slate-500">framekart_welcome</TableCell>
+                        <TableCell>
+                          {msg.aiConversation ? (
+                            msg.aiConversation.conversationState === "HUMAN_HANDOFF" ? (
+                              <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-200">Human Handoff</Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-purple-100 text-purple-800 hover:bg-purple-200">AI Active ({msg.aiConversation.messages?.length || 0})</Badge>
+                            )
+                          ) : (
+                            <span className="text-xs text-slate-400">None</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-sm text-slate-500">
                           {msg.whatsappWelcomeSentAt
                             ? new Date(msg.whatsappWelcomeSentAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })
@@ -285,6 +296,15 @@ export default function AdminWhatsAppPage() {
                             : new Date(msg.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
                     </div>
+                    {msg.aiConversation && (
+                      <div className="mt-1">
+                        {msg.aiConversation.conversationState === "HUMAN_HANDOFF" ? (
+                          <Badge variant="destructive" className="bg-red-100 text-red-800 text-[10px]">Human Handoff</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-[10px]">AI Chat ({msg.aiConversation.messages?.length || 0})</Badge>
+                        )}
+                      </div>
+                    )}
                     <Button variant="outline" className="w-full text-xs h-8" onClick={(e) => { e.stopPropagation(); openMessageDetail(msg); }}>
                       View message <Eye className="ml-2 h-3 w-3" />
                     </Button>
