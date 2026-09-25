@@ -24,6 +24,7 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
 
   // 1. Get Conversation
   const conversation = await getConversation(phone, waId);
+  console.log(`[WhatsApp Conversation] conversation loaded/created`);
 
   if (conversation.conversationState === "HUMAN_HANDOFF") {
     // We are in human handoff mode, do not auto-reply.
@@ -79,10 +80,15 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
       const toolArgs = call.args;
 
       if (!toolName) break;
+      
+      console.log(`[FrameKart AI] intent detected, tool: ${toolName}`);
+      console.log(`[FrameKart AI] tool args:`, toolArgs);
 
       // Execute tool
       const toolResult = await executeTool(toolName, toolArgs);
       
+      console.log(`[FrameKart AI] tool completed`);
+
       // Store tool response in DB for context
       await appendMessage(phone, { role: "tool", name: toolName, content: JSON.stringify(toolResult) });
 
@@ -100,6 +106,7 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
     }
 
     const finalReply = response.text || "I'm sorry, I couldn't understand that.";
+    console.log(`[FrameKart AI] response generated`);
 
     // Append AI Response to DB
     await appendMessage(phone, { role: "model", content: finalReply });

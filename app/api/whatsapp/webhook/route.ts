@@ -105,34 +105,48 @@ export async function POST(req: Request) {
         const messageId = message.id;
         const senderPhone = message.from;
         
-        console.log(`Received WhatsApp message ID: ${messageId} from ${senderPhone}`);
+        console.log(`\n[WhatsApp Incoming]`);
+        console.log(`messageId: ${messageId}`);
+        console.log(`sender: ${senderPhone}`);
+        console.log(`text: ${message?.text?.body}\n`);
 
         // Handle text messages
         if (message.type === "text" && message.text && message.text.body) {
           const textContent = message.text.body;
 
-          // Deduplication check: You would typically check if messageId exists in DB.
-          // For now, we process asynchronously.
-          
-          // Fire and forget orchestrator to prevent webhook timeout
-          const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
           const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
-          
-          handleIncomingWhatsAppMessage(senderPhone, messageId, textContent)
-            .then(async (aiReply) => {
+
+          if (textContent.trim().toLowerCase() === "hi") {
+            const deterministicReply = "Hi! Welcome to FrameKart. How can I help you today?";
+            console.log(`[FrameKart AI] deterministic response triggered`);
+            
+            console.log(`[WhatsApp Outgoing] sending response`);
+            const sendResult = await sendWhatsAppText(senderPhone, deterministicReply);
+            if (sendResult.success) {
+              console.log(`[WhatsApp Outgoing] Success\nmessageId: ${sendResult.messageId}`);
+            } else {
+              console.log(`[WhatsApp Outgoing] FAILED\nerrorCode: ${sendResult.errorCode}\nerrorMessage: ${sendResult.error}`);
+            }
+          } else {
+            const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
+            
+            // Await AI so Vercel doesn't kill execution
+            try {
+              console.log(`[FrameKart AI] starting orchestration`);
+              const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, textContent);
               if (aiReply) {
-                // Send the reply back to the user
+                console.log(`[WhatsApp Outgoing] sending response`);
                 const sendResult = await sendWhatsAppText(senderPhone, aiReply);
                 if (sendResult.success) {
-                  console.log(`[WhatsApp Webhook] Sent AI reply to ${senderPhone}, MessageID: ${sendResult.messageId}`);
-                  // Note: Delivery status of this outbound message will be tracked by the same webhook logic above
-                  // If we wanted to track AI responses in VisitorLead, we could link sendResult.messageId.
+                  console.log(`[WhatsApp Outgoing] Success\nmessageId: ${sendResult.messageId}`);
+                } else {
+                  console.log(`[WhatsApp Outgoing] FAILED\nerrorCode: ${sendResult.errorCode}\nerrorMessage: ${sendResult.error}`);
                 }
               }
-            })
-            .catch(err => {
+            } catch (err) {
               console.error("[WhatsApp Webhook] AI handling failed:", err);
-            });
+            }
+          }
         }
       }
 
