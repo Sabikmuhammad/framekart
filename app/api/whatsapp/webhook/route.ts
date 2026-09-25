@@ -48,26 +48,50 @@ export async function POST(req: Request) {
         const { default: VisitorLead } = await import("@/models/VisitorLead");
         await dbConnect();
         
-        for (const status of payload.entry[0].changes[0].value.statuses) {
-          console.log(`WhatsApp Message Status: ${status.status} for ID: ${status.id}`);
-          
-          let deliveryStatus = "PENDING";
-          if (status.status === "sent") deliveryStatus = "SENT";
-          if (status.status === "delivered") deliveryStatus = "DELIVERED";
-          if (status.status === "read") deliveryStatus = "READ";
-          if (status.status === "failed") deliveryStatus = "FAILED";
+          for (const status of payload.entry[0].changes[0].value.statuses) {
+            let deliveryStatus = "PENDING";
+            if (status.status === "sent") deliveryStatus = "SENT";
+            if (status.status === "delivered") deliveryStatus = "DELIVERED";
+            if (status.status === "read") deliveryStatus = "READ";
+            if (status.status === "failed") deliveryStatus = "FAILED";
 
-          const updatePayload: any = { whatsappDeliveryStatus: deliveryStatus };
-          
-          if (status.status === "failed" && status.errors && status.errors.length > 0) {
-            updatePayload.whatsappWelcomeError = `[${status.errors[0].code}] ${status.errors[0].title}: ${status.errors[0].message || ""}`;
+            const updatePayload: any = { whatsappDeliveryStatus: deliveryStatus };
+
+            if (status.status === "failed") {
+              const err = status.errors && status.errors[0] ? status.errors[0] : null;
+              
+              const errorCode = err?.code || "UNKNOWN_CODE";
+              const errorTitle = err?.title || "Unknown Error";
+              const errorMessage = err?.message || "";
+              const errorDetails = err?.error_data?.details || "";
+
+              // Build a formatted error string for the frontend drawer
+              let formattedError = `Code: ${errorCode}\nTitle: ${errorTitle}`;
+              if (errorMessage) formattedError += `\nMessage: ${errorMessage}`;
+              if (errorDetails) formattedError += `\nDetails: ${errorDetails}`;
+              formattedError += `\nRecipient: ${status.recipient_id || "unknown"}`;
+              formattedError += `\nTimestamp: ${status.timestamp || "unknown"}`;
+
+              updatePayload.whatsappWelcomeError = formattedError;
+
+              // Log safe diagnostic message
+              console.log(`\n[WhatsApp Message Status] FAILED`);
+              console.log(`messageId: ${status.id}`);
+              console.log(`recipient: ${status.recipient_id || "unknown"}`);
+              console.log(`timestamp: ${status.timestamp || "unknown"}`);
+              console.log(`errorCode: ${errorCode}`);
+              console.log(`errorTitle: ${errorTitle}`);
+              console.log(`errorMessage: ${errorMessage}`);
+              console.log(`errorDetails: ${errorDetails}\n`);
+            } else {
+              console.log(`[WhatsApp Message Status] ${status.status.toUpperCase()} for ID: ${status.id}`);
+            }
+
+            await VisitorLead.updateOne(
+              { whatsappWelcomeMessageId: status.id },
+              { $set: updatePayload }
+            );
           }
-
-          await VisitorLead.updateOne(
-            { whatsappWelcomeMessageId: status.id },
-            { $set: updatePayload }
-          );
-        }
       }
 
       if (
