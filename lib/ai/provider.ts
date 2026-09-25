@@ -1,13 +1,39 @@
-import { GoogleGenAI, Type } from "@google/genai";
+export const groqModel = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+export const groqApiKey = process.env.GROQ_API_KEY || "";
 
-const apiKey = process.env.GEMINI_API_KEY;
+export async function callGroq(messages: any[], tools: any[] = []) {
+  if (!groqApiKey) {
+    throw new Error("Missing GROQ_API_KEY");
+  }
 
-export const aiClient = apiKey ? new GoogleGenAI({ apiKey }) : null;
+  const payload: any = {
+    model: groqModel,
+    messages: messages,
+    temperature: 0.2,
+  };
 
-export const geminiModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+  if (tools.length > 0) {
+    payload.tools = tools.map((t) => ({
+      type: "function",
+      function: t,
+    }));
+    payload.tool_choice = "auto";
+  }
 
-// Helper to convert our DB message role to GenAI role
-export function toGenAiRole(role: string): "user" | "model" {
-  if (role === "tool") return "user"; // In Gemini, tool responses can sometimes be modeled as user responses or function responses depending on SDK version, but GenAI SDK often handles it in specific ways. Wait, standard Gemini expects role: "user" | "model". Tool responses have role: "user" (or "function"). Let's stick to the exact types.
-  return role as "user" | "model";
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${groqApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    const errorObj = { status: response.status, message: errorText };
+    throw errorObj;
+  }
+
+  return response.json();
 }

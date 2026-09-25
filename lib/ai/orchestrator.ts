@@ -1,8 +1,8 @@
-import { aiClient, geminiModel, toGenAiRole } from "./provider";
+import { callGroq, groqModel } from "./provider";
 import { toolDeclarations, executeTool } from "./registry";
 import { getConversation, appendMessage, setConversationState } from "./conversation";
 
-const SYSTEM_PROMPT = `You are FrameKart's official AI shopping assistant on WhatsApp.
+const SYSTEM_PROMPT = `You are FrameKart's official AI shopping and customer-support assistant on WhatsApp.
 Tone: Premium, friendly, concise, professional, helpful, natural. Handle spelling mistakes gracefully.
 You understand Indian customers, INR prices (use ₹ symbol), and common WhatsApp shorthand (e.g., "hi", "price?", "thx").
 
@@ -17,18 +17,12 @@ RULES:
 `;
 
 export async function handleIncomingWhatsAppMessage(phone: string, waId: string, text: string): Promise<string | null> {
-  if (!aiClient) {
-    console.error("[FrameKartWhatsAppAgent] No AI client configured.");
-    return null;
-  }
-
   // 1. Get Conversation
   const conversation = await getConversation(phone, waId);
-  console.log(`[WhatsApp Conversation] conversation loaded/created`);
+  console.log(`[WhatsApp Conversation]\nconversation loaded/created`);
 
   if (conversation.conversationState === "HUMAN_HANDOFF") {
     // We are in human handoff mode, do not auto-reply.
-    // If the user says "restart" or something, maybe we can reset it, but for now ignore.
     console.log(`[FrameKartWhatsAppAgent] Conversation with ${phone} is in HUMAN_HANDOFF. Skipping AI.`);
     return null;
   }
@@ -36,60 +30,53 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
   // 2. Append User Message to DB
   await appendMessage(phone, { role: "user", content: text });
 
-  // 3. Build History for GenAI
+  // 3. Build History for Groq
   // Filter history to last 10 messages for token efficiency
   const recentHistory = conversation.messages.slice(-10);
   
-  // Create chat session
-  const chat = aiClient.chats.create({
-    model: geminiModel,
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      tools: [{ functionDeclarations: toolDeclarations as any }],
-      temperature: 0.2, // Low temp for more factual/deterministic responses
-    }
-  });
+  // Convert custom conversation format to Groq/OpenAI format
+  const groqHistory: any[] = [
+    { role: "system", content: SYSTEM_PROMPT }
+  ];
 
-  const genAiHistory = recentHistory.map(m => {
+  for (const m of recentHistory) {
     if (m.role === "tool") {
-       return { role: "user", parts: [{ text: `[Tool Result for ${m.name}]: ${m.content}` }] };
+       groqHistory.push({ role: "user", content: `[Tool Result for ${m.name}]: ${m.content}` });
+    } else if (m.role === "model") {
+       groqHistory.push({ role: "assistant", content: m.content });
+    } else {
+       groqHistory.push({ role: "user", content: m.content });
     }
-    return {
-      role: toGenAiRole(m.role),
-      parts: [{ text: m.content }]
-    };
-  });
+  }
 
   try {
-    console.log(`[FrameKart AI] model: ${geminiModel}`);
+    console.log(`[FrameKart AI]\nstarting orchestration`);
+    console.log(`[FrameKart AI]\nprovider: Groq`);
+    console.log(`[FrameKart AI]\nmodel: ${groqModel}`);
 
-    const chatSession = aiClient.chats.create({
-      model: geminiModel,
-      config: {
-        systemInstruction: SYSTEM_PROMPT,
-        tools: [{ functionDeclarations: toolDeclarations as any }],
-        temperature: 0.2,
-      },
-      history: genAiHistory as any
-    });
-
-    let response = await chatSession.sendMessage({ message: text } as any);
+    let responseData = await callGroq(groqHistory, toolDeclarations);
     
     // Handle potential tool calls
-    while (response.functionCalls && response.functionCalls.length > 0) {
-      const call = response.functionCalls[0];
-      const toolName = call.name;
-      const toolArgs = call.args;
-
-      if (!toolName) break;
+    let messageResponse = responseData.choices[0].message;
+    
+    while (messageResponse.tool_calls && messageResponse.tool_calls.length > 0) {
+      const call = messageResponse.tool_calls[0];
+      const toolName = call.function.name;
+      const toolArgsString = call.function.arguments;
+      let toolArgs = {};
       
-      console.log(`[FrameKart AI] intent detected, tool: ${toolName}`);
-      console.log(`[FrameKart AI] tool args:`, toolArgs);
+      try {
+        toolArgs = JSON.parse(toolArgsString);
+      } catch (e) {
+        // failed to parse
+      }
 
+      console.log(`[FrameKart AI]\ntool call: ${toolName}`);
+      
       // Execute tool
       const toolResult = await executeTool(toolName, toolArgs);
       
-      console.log(`[FrameKart AI] tool completed`);
+      console.log(`[FrameKart AI]\ntool completed`);
 
       // Store tool response in DB for context
       await appendMessage(phone, { role: "tool", name: toolName, content: JSON.stringify(toolResult) });
@@ -98,17 +85,22 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
         await setConversationState(phone, "HUMAN_HANDOFF", "SUPPORT");
       }
 
-      // Send result back to AI
-      response = await chatSession.sendMessage({ message: [{
-        functionResponse: {
-          name: toolName,
-          response: toolResult
-        }
-      }] } as any);
+      // Add to current conversation array for the follow-up AI call
+      groqHistory.push(messageResponse); // Assistant's request to call the tool
+      groqHistory.push({ 
+        role: "tool", 
+        tool_call_id: call.id, 
+        name: toolName, 
+        content: JSON.stringify(toolResult) 
+      });
+
+      // Call Groq again with the tool result
+      responseData = await callGroq(groqHistory, toolDeclarations);
+      messageResponse = responseData.choices[0].message;
     }
 
-    const finalReply = response.text || "I'm sorry, I couldn't understand that.";
-    console.log(`[FrameKart AI] response generated`);
+    const finalReply = messageResponse.content || "I'm sorry, I couldn't understand that.";
+    console.log(`[FrameKart AI]\nresponse generated`);
 
     // Append AI Response to DB
     await appendMessage(phone, { role: "model", content: finalReply });
@@ -116,7 +108,7 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
     return finalReply;
 
   } catch (error: any) {
-    console.log(`[FrameKart AI] FAILED\nerrorCode: ${error?.status || ''}\nerrorMessage: ${error?.message || error}`);
-    return "Sorry, I'm having trouble processing that right now. Please try again in a moment.";
+    console.log(`[FrameKart AI] Groq request failed\nstatus: ${error?.status || ''}\nerrorCode: ${error?.status || ''}\nerrorMessage: ${error?.message || error}`);
+    return "Sorry, I'm having a temporary issue processing your request. Please try again in a moment.";
   }
 }

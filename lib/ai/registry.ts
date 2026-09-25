@@ -1,4 +1,3 @@
-import { Type } from "@google/genai";
 import * as ToolImpls from "./tools";
 
 export const toolDeclarations = [
@@ -6,22 +5,22 @@ export const toolDeclarations = [
     name: "searchProducts",
     description: "Search the FrameKart product catalog based on user requirements.",
     parameters: {
-      type: Type.OBJECT,
+      type: "object",
       properties: {
         category: {
-          type: Type.STRING,
+          type: "string",
           description: "Category of the product (e.g., frames, custom, birthday)",
         },
         color: {
-          type: Type.STRING,
+          type: "string",
           description: "Color of the frame (e.g., black, white, gold, wooden)",
         },
         maxPrice: {
-          type: Type.NUMBER,
+          type: "number",
           description: "Maximum price in INR",
         },
         query: {
-          type: Type.STRING,
+          type: "string",
           description: "General search query if no specific category or color is provided",
         },
       },
@@ -31,10 +30,10 @@ export const toolDeclarations = [
     name: "getOrderStatus",
     description: "Check the status of a specific customer order. Require the order number from the user before calling this.",
     parameters: {
-      type: Type.OBJECT,
+      type: "object",
       properties: {
         orderNumber: {
-          type: Type.STRING,
+          type: "string",
           description: "The FrameKart order number (e.g. ORD-12345)",
         },
       },

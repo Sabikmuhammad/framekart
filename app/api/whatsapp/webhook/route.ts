@@ -116,31 +116,33 @@ export async function POST(req: Request) {
 
           const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
 
-          if (textContent.trim().toLowerCase() === "hi") {
+          const normalizedText = textContent.trim().toLowerCase();
+          const greetings = ["hi", "hii", "hello", "hey", "heyy", "hi there", "hello framekart"];
+
+          if (greetings.includes(normalizedText)) {
             const deterministicReply = "Hi! Welcome to FrameKart. How can I help you today?";
             console.log(`[FrameKart AI] deterministic response triggered`);
             
-            console.log(`[WhatsApp Outgoing] sending response`);
+            console.log(`[WhatsApp Outgoing]\nsending response`);
             const sendResult = await sendWhatsAppText(senderPhone, deterministicReply);
             if (sendResult.success) {
-              console.log(`[WhatsApp Outgoing] Success\nmessageId: ${sendResult.messageId}`);
+              console.log(`[WhatsApp Outgoing]\nSuccess\nmessageId: ${sendResult.messageId}`);
             } else {
-              console.log(`[WhatsApp Outgoing] FAILED\nerrorCode: ${sendResult.errorCode}\nerrorMessage: ${sendResult.error}`);
+              console.log(`[WhatsApp Outgoing]\nFAILED\nerrorCode: ${sendResult.errorCode}\nerrorMessage: ${sendResult.error}`);
             }
           } else {
             const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
             
             // Await AI so Vercel doesn't kill execution
             try {
-              console.log(`[FrameKart AI] starting orchestration`);
               const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, textContent);
               if (aiReply) {
-                console.log(`[WhatsApp Outgoing] sending response`);
+                console.log(`[WhatsApp Outgoing]\nsending response`);
                 const sendResult = await sendWhatsAppText(senderPhone, aiReply);
                 if (sendResult.success) {
-                  console.log(`[WhatsApp Outgoing] Success\nmessageId: ${sendResult.messageId}`);
+                  console.log(`[WhatsApp Outgoing]\nSuccess\nmessageId: ${sendResult.messageId}`);
                 } else {
-                  console.log(`[WhatsApp Outgoing] FAILED\nerrorCode: ${sendResult.errorCode}\nerrorMessage: ${sendResult.error}`);
+                  console.log(`[WhatsApp Outgoing]\nFAILED\nerrorCode: ${sendResult.errorCode}\nerrorMessage: ${sendResult.error}`);
                 }
               }
             } catch (err) {
