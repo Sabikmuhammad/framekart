@@ -243,6 +243,11 @@ export async function sendProductCarousel(
   };
 
   try {
+    console.log("[WA PRODUCT] message type: interactive / carousel");
+    console.log("[WA PRODUCT] catalog ID configured: " + (process.env.WHATSAPP_CATALOG_ID || "NONE"));
+    console.log("[WA PRODUCT] product count: " + products.length);
+    console.log("[WA PRODUCT] product/catalog ID: " + products.map(p => p.slug).join(", "));
+
     const response = await fetch(
       `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`,
       {
@@ -256,10 +261,11 @@ export async function sendProductCarousel(
     );
 
     const data = await response.json();
+    console.log("[WA PRODUCT] Meta response status: " + response.status);
 
     if (!response.ok) {
-      console.error("[WA DEBUG] CAROUSEL FAILED", JSON.stringify(data?.error));
-      console.log(`[WA DEBUG] META PRODUCT RESPONSE:\nstatus: ${response.status}\nerror.code: ${data?.error?.code}\nerror.message: ${data?.error?.message}\nerror.details: ${data?.error?.error_data?.details || ''}`);
+      console.log("[WA PRODUCT] Meta error code: " + data?.error?.code);
+      console.log("[WA PRODUCT] Meta error message: " + data?.error?.message);
       console.log(`[WA DEBUG] FALLING BACK TO INTERACTIVE LIST`);
       return await sendProductList(phoneNumber, bodyText, products);
     }
