@@ -226,10 +226,15 @@ export async function POST(req: Request) {
              }
           } else if (selectedId.startsWith("DETAILS|")) {
              const slug = selectedId.split("|")[1];
-             const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
-             const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, `Tell me more about the product with slug ${slug}`);
-             if (aiReply && aiReply.text) {
-               await sendWhatsAppText(senderPhone, aiReply.text);
+             const { getProductBySlug } = await import("@/lib/ai/tools");
+             const product = await getProductBySlug(slug);
+             
+             if (product) {
+               const { sendProductDetailCard } = await import("@/lib/whatsapp/interactive");
+               await sendProductDetailCard(senderPhone, product);
+             } else {
+               const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
+               await sendWhatsAppText(senderPhone, "Sorry, we couldn't find the details for this product.");
              }
           } else if (selectedId.startsWith("ADD_CART|")) {
              const slug = selectedId.split("|")[1];

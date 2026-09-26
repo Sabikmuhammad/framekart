@@ -273,3 +273,69 @@ export async function sendProductCarousel(
   }
 }
 
+export async function sendProductDetailCard(
+  phoneNumber: string,
+  product: any
+): Promise<WhatsAppApiResponse> {
+  const config = getBaseConfig(phoneNumber);
+  if (config.error) return { success: false, error: config.error };
+  const { accessToken, phoneNumberId, apiVersion, to } = config;
+
+  const slug = product.url ? product.url.split("/").pop() : product.slug;
+  const imageUrl = product.image || product.imageUrl || "https://framekart.co.in/images/branding/Frame-2.png";
+  
+  const payload = {
+    messaging_product: "whatsapp",
+    to: to,
+    type: "interactive",
+    interactive: {
+      type: "button",
+      header: {
+        type: "image",
+        image: { link: imageUrl }
+      },
+      body: {
+        text: `${product.name}\n₹${product.price}\n\n${product.description ? product.description.substring(0, 100) + '...' : 'Beautiful frame for your home.'}`
+      },
+      action: {
+        buttons: [
+          {
+            type: "reply",
+            reply: {
+              id: `VIEW_SITE|${slug}`,
+              title: "View Product"
+            }
+          },
+          {
+            type: "reply",
+            reply: {
+              id: `ADD_CART|${slug}`,
+              title: "Add to Cart"
+            }
+          }
+        ]
+      }
+    }
+  };
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, error: data?.error?.message || "API Error" };
+    }
+    return { success: true, messageId: data.messages?.[0]?.id };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}

@@ -62,6 +62,29 @@ export async function searchProducts(args: { category?: string; color?: string; 
   };
 }
 
+export async function getProductBySlug(slug: string) {
+  await dbConnect();
+  const Frame = (await import("@/models/Frame")).default;
+  const product = await Frame.findOne({ slug }).lean() as any;
+  if (!product) return null;
+
+  const normalizeImage = (url: string) => {
+    if (!url) return "https://framekart.co.in/images/branding/Frame-2.png";
+    if (url.startsWith("http://") || url.startsWith("https://")) return url.replace("http://", "https://");
+    if (url.startsWith("/")) return "https://framekart.co.in" + url;
+    return "https://framekart.co.in/" + url;
+  };
+
+  return {
+    name: product.title,
+    price: product.price,
+    slug: product.slug,
+    description: product.description,
+    image: normalizeImage(product.imageUrl),
+    url: `https://framekart.co.in/frames/${product.slug}`
+  };
+}
+
 export async function getOrderStatus(args: { orderNumber: string }) {
   await dbConnect();
   
