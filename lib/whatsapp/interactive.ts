@@ -187,3 +187,85 @@ export async function sendProductList(
      ]
   );
 }
+
+export async function sendProductCarousel(
+  phoneNumber: string,
+  bodyText: string,
+  products: any[]
+): Promise<WhatsAppApiResponse> {
+  const config = getBaseConfig(phoneNumber);
+  if (config.error) {
+    return { success: false, error: config.error };
+  }
+  const { accessToken, phoneNumberId, apiVersion, to } = config;
+
+  const payload: any = {
+    messaging_product: "whatsapp",
+    to: to,
+    type: "interactive",
+    interactive: {
+      type: "carousel",
+      carousel: {
+        cards: products.map((p) => {
+          const slug = p.url ? p.url.split("/").pop() : p.slug;
+          return {
+            header: {
+              type: "image",
+              image: {
+                link: p.image || "https://framekart.co.in/images/branding/Frame-2.png" // Ensure valid image
+              }
+            },
+            body: {
+              text: `${p.name}\n₹${p.price}\n\nTap below to view or add to cart.`
+            },
+            action: {
+              buttons: [
+                {
+                  type: "reply",
+                  reply: {
+                    id: `DETAILS|${slug}`,
+                    title: "View Product"
+                  }
+                },
+                {
+                  type: "reply",
+                  reply: {
+                    id: `ADD_CART|${slug}`,
+                    title: "Add to Cart"
+                  }
+                }
+              ]
+            }
+          };
+        }).slice(0, 10) // Max 10 cards usually
+      }
+    }
+  };
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.warn("[WhatsApp Interactive] Carousel not supported or failed. Falling back to Product List.", data?.error);
+      return await sendProductList(phoneNumber, bodyText, products);
+    }
+
+    return { success: true, messageId: data.messages?.[0]?.id };
+  } catch (error: any) {
+    console.warn("[WhatsApp Interactive] Carousel request failed. Falling back to Product List.", error.message);
+    return await sendProductList(phoneNumber, bodyText, products);
+  }
+}
+

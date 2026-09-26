@@ -156,8 +156,8 @@ export async function POST(req: Request) {
                 }
                 
                 if (aiReply.interactiveResults && aiReply.interactiveResults.length > 0) {
-                   const { sendProductList } = await import("@/lib/whatsapp/interactive");
-                   await sendProductList(senderPhone, "Tap below to view details or add to cart:", aiReply.interactiveResults);
+                   const { sendProductCarousel } = await import("@/lib/whatsapp/interactive");
+                   await sendProductCarousel(senderPhone, "Tap below to view details or add to cart:", aiReply.interactiveResults);
                 }
               }
             } catch (err) {
@@ -208,8 +208,8 @@ export async function POST(req: Request) {
              if (aiReply) {
                await sendWhatsAppText(senderPhone, aiReply.text);
                if (aiReply.interactiveResults && aiReply.interactiveResults.length > 0) {
-                 const { sendProductList } = await import("@/lib/whatsapp/interactive");
-                 await sendProductList(senderPhone, "Tap below to view details or add to cart:", aiReply.interactiveResults);
+                 const { sendProductCarousel } = await import("@/lib/whatsapp/interactive");
+                 await sendProductCarousel(senderPhone, "Tap below to view details or add to cart:", aiReply.interactiveResults);
                }
              }
           } else if (selectedId.startsWith("DETAILS|")) {
