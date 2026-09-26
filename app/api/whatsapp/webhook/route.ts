@@ -230,7 +230,7 @@ export async function POST(req: Request) {
                  console.log(`[WA DEBUG] PRODUCT PRESENTATION PATH`);
                  console.log(`[WA DEBUG] presentation function: sendProductCarousel`);
                  const { sendProductCarousel } = await import("@/lib/whatsapp/interactive");
-                 const textInt = "Here are some frames matching your request:";
+                 const textInt = `Swipe to explore our ${category} 👇`;
                  await sendProductCarousel(senderPhone, textInt, toolResult.results);
              } else {
                  const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");

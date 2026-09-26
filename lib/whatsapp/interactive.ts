@@ -205,34 +205,28 @@ export async function sendProductCarousel(
     to: to,
     type: "interactive",
     interactive: {
-      type: "product_list",
-      header: {
-        type: "text",
-        text: "FrameKart Products"
-      },
+      type: "carousel",
       body: {
         text: bodyText || "Here are the products you requested:"
       },
-      footer: {
-        text: "Tap below to view products"
-      },
       action: {
-        catalog_id: catalogId || "123456789", // Will intentionally fail if catalog missing, triggering fallback
-        sections: [
-          {
-            title: "Available Frames",
-            product_items: products.slice(0, 30).map((p) => {
-              const slug = p.url ? p.url.split("/").pop() : p.slug;
-              return { product_retailer_id: slug };
-            })
-          }
-        ]
+        cards: products.slice(0, 10).map((p, index) => {
+          const slug = p.url ? p.url.split("/").pop() : p.slug;
+          return {
+            card_index: index,
+            type: "product",
+            action: {
+              product_retailer_id: slug,
+              catalog_id: catalogId || "123456789"
+            }
+          };
+        })
       }
     }
   };
 
   try {
-    console.log("[WA PRODUCT] message type: interactive / product_list (Catalog MPM)");
+    console.log("[WA PRODUCT] message type: interactive / carousel (Native Swipeable)");
     console.log("[WA PRODUCT] catalog ID configured: " + (process.env.WHATSAPP_CATALOG_ID || "NONE"));
     console.log("[WA PRODUCT] product count: " + products.length);
     console.log("[WA PRODUCT] product/catalog ID: " + products.map(p => p.slug).join(", "));
