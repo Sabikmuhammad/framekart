@@ -188,41 +188,38 @@ export async function POST(req: Request) {
           const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
           const { sendInteractiveButtons, sendInteractiveList } = await import("@/lib/whatsapp/interactive");
 
-          if (selectedId === "MENU_SHOP_FRAMES" || selectedId === "SHOP_FRAMES") {
+          if (selectedId === "MENU_SHOP_FRAMES") {
+             const { categories } = await import("@/lib/categories");
+             const shopCategories = categories
+               .filter(c => c.href.startsWith("/frames"))
+               .slice(0, 10)
+               .map(c => ({
+                 id: `SHOP_CATEGORY|${c.fullName || c.name}`,
+                 title: (c.fullName || c.name).substring(0, 24)
+               }));
+
              await sendInteractiveList(
                 senderPhone,
                 "What kind of frame are you looking for?",
                 "Select Category",
                 [{
                   title: "Categories",
-                  rows: [
-                    { id: "CAT|photo frames", title: "Photo Frames" },
-                    { id: "CAT|wall frames", title: "Wall Frames" },
-                    { id: "CAT|birthday frames", title: "Birthday Frames" },
-                    { id: "CAT|calligraphy frames", title: "Calligraphy Frames" }
-                  ]
+                  rows: shopCategories
                 }]
              );
-          } else if (selectedId === "MENU_CUSTOM_FRAMES" || selectedId === "CUSTOM_FRAME") {
-             await sendWhatsAppText(senderPhone, "Create a frame using your own favourite photo.\n\nClick here to create a custom frame:\nhttps://framekart.co.in/custom-frame");
-          } else if (selectedId === "MENU_ORDERS_SUPPORT") {
+          } else if (selectedId === "MENU_CUSTOM_FRAMES") {
              await sendInteractiveButtons(
-               senderPhone,
-               "Sure. What would you like help with?",
-               [
-                 { id: "ORDERS_TRACK", title: "Track Order" },
-                 { id: "ORDERS_QUERY", title: "Order Query" }
-               ]
+                senderPhone,
+                "Let's create something special.\n\nWhat type of frame are you looking for?",
+                [
+                  { id: "CUSTOM_CATEGORY|custom_frames", title: "Custom Frames" },
+                  { id: "CUSTOM_CATEGORY|wedding_frames", title: "Wedding Frames" },
+                  { id: "CUSTOM_CATEGORY|birthday_frames", title: "Birthday Frames" }
+                ]
              );
-          } else if (selectedId === "ORDERS_TRACK" || selectedId === "TRACK_ORDER") {
-             await sendWhatsAppText(senderPhone, "Please reply with your order number to track your order.");
-          } else if (selectedId === "ORDERS_QUERY") {
-             const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
-             const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, "I have an order query. Please help me.");
-             if (aiReply && aiReply.text) {
-               await sendWhatsAppText(senderPhone, aiReply.text);
-             }
-          } else if (selectedId.startsWith("CAT|")) {
+          } else if (selectedId === "MENU_ORDERS_SUPPORT") {
+             await sendWhatsAppText(senderPhone, "Sure, I'm here to help.\n\nYou can ask me about your order, delivery, products, payments, returns, or anything else related to FrameKart.\n\nHow can I help you?");
+          } else if (selectedId.startsWith("SHOP_CATEGORY|")) {
              const category = selectedId.split("|")[1];
              const { searchProducts } = await import("@/lib/ai/tools");
              
@@ -238,6 +235,15 @@ export async function POST(req: Request) {
              } else {
                  const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
                  await sendWhatsAppText(senderPhone, "Sorry, we couldn't find any frames in that category.");
+             }
+          } else if (selectedId.startsWith("CUSTOM_CATEGORY|")) {
+             const customType = selectedId.split("|")[1];
+             if (customType === "custom_frames") {
+                await sendWhatsAppText(senderPhone, "Create a frame using your own favourite photo.\n\nClick here to create a custom frame:\nhttps://framekart.co.in/custom-frame");
+             } else if (customType === "wedding_frames") {
+                await sendWhatsAppText(senderPhone, "Create a beautiful wedding frame.\n\nClick here to explore:\nhttps://framekart.co.in/custom-frame/wedding");
+             } else if (customType === "birthday_frames") {
+                await sendWhatsAppText(senderPhone, "Create a perfect birthday frame.\n\nClick here to explore:\nhttps://framekart.co.in/custom-frame/birthday");
              }
           } else if (selectedId.startsWith("DETAILS|")) {
              const slug = selectedId.split("|")[1];
