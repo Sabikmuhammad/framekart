@@ -147,17 +147,19 @@ export async function POST(req: Request) {
             try {
               const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, textContent);
               if (aiReply) {
-                console.log(`[WhatsApp Outgoing]\nsending response`);
-                const sendResult = await sendWhatsAppText(senderPhone, aiReply.text);
-                if (sendResult.success) {
-                  console.log(`[WhatsApp Outgoing]\nSuccess\nmessageId: ${sendResult.messageId}`);
-                } else {
-                  console.log(`[WhatsApp Outgoing]\nFAILED\nerrorCode: ${sendResult.errorCode}\nerrorMessage: ${sendResult.error}`);
-                }
-                
-                if (aiReply.interactiveResults && aiReply.interactiveResults.length > 0) {
+                if (aiReply.responseType === "products" && aiReply.products && aiReply.products.length > 0) {
+                   console.log(`[WhatsApp Outgoing] sending product carousel/list`);
                    const { sendProductCarousel } = await import("@/lib/whatsapp/interactive");
-                   await sendProductCarousel(senderPhone, "Tap below to view details or add to cart:", aiReply.interactiveResults);
+                   const textInt = aiReply.text || "Here are some frames matching your request:";
+                   await sendProductCarousel(senderPhone, textInt, aiReply.products);
+                } else if (aiReply.text) {
+                   console.log(`[WhatsApp Outgoing]\nsending text response`);
+                   const sendResult = await sendWhatsAppText(senderPhone, aiReply.text);
+                   if (sendResult.success) {
+                     console.log(`[WhatsApp Outgoing]\nSuccess\nmessageId: ${sendResult.messageId}`);
+                   } else {
+                     console.log(`[WhatsApp Outgoing]\nFAILED\nerrorCode: ${sendResult.errorCode}\nerrorMessage: ${sendResult.error}`);
+                   }
                 }
               }
             } catch (err) {
@@ -206,17 +208,19 @@ export async function POST(req: Request) {
              const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
              const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, `Show me ${category}`);
              if (aiReply) {
-               await sendWhatsAppText(senderPhone, aiReply.text);
-               if (aiReply.interactiveResults && aiReply.interactiveResults.length > 0) {
+               if (aiReply.responseType === "products" && aiReply.products && aiReply.products.length > 0) {
                  const { sendProductCarousel } = await import("@/lib/whatsapp/interactive");
-                 await sendProductCarousel(senderPhone, "Tap below to view details or add to cart:", aiReply.interactiveResults);
+                 const textInt = aiReply.text || "Here are some frames matching your request:";
+                 await sendProductCarousel(senderPhone, textInt, aiReply.products);
+               } else if (aiReply.text) {
+                 await sendWhatsAppText(senderPhone, aiReply.text);
                }
              }
           } else if (selectedId.startsWith("DETAILS|")) {
              const slug = selectedId.split("|")[1];
              const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
              const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, `Tell me more about the product with slug ${slug}`);
-             if (aiReply) {
+             if (aiReply && aiReply.text) {
                await sendWhatsAppText(senderPhone, aiReply.text);
              }
           } else if (selectedId.startsWith("ADD_CART|")) {

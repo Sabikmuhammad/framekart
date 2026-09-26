@@ -18,7 +18,7 @@ RULES:
 9. Avoid repetitive generic responses. Understand the customer's intent and continue naturally.
 `;
 
-export async function handleIncomingWhatsAppMessage(phone: string, waId: string, text: string): Promise<{ text: string, interactiveResults?: any } | null> {
+export async function handleIncomingWhatsAppMessage(phone: string, waId: string, text: string): Promise<{ responseType: string, text?: string, products?: any[] } | null> {
   // 1. Get Conversation
   const conversation = await getConversation(phone, waId);
   console.log(`[WhatsApp Conversation]\nconversation loaded/created`);
@@ -76,20 +76,26 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
 
       console.log(`[FrameKart AI]\ntool call: ${toolName}`);
       
+      console.log(`[FrameKart AI] tool called: ${toolName}`);
+      
       // Execute tool
       const toolResult = await executeTool(toolName, toolArgs, { phone });
       
-      if (toolName === "searchProducts" && toolResult.results && toolResult.results.length > 0) {
-        latestSearchResults = toolResult.results;
-      }
-      
-      console.log(`[FrameKart AI]\ntool completed`);
+      console.log(`[FrameKart AI] tool completed: ${toolName}`);
 
       // Store tool response in DB for context
       await appendMessage(phone, { role: "tool", name: toolName, content: JSON.stringify(toolResult) });
 
       if (toolResult.status === "HUMAN_HANDOFF") {
         await setConversationState(phone, "HUMAN_HANDOFF", "SUPPORT");
+      }
+
+      if (toolName === "searchProducts" && toolResult.results && toolResult.results.length > 0) {
+        console.log(`[FrameKart AI] product count: ${toolResult.results.length}`);
+        console.log(`[FrameKart AI] presentation mode: products`);
+        // Immediately return products instead of asking Groq to generate a text summary
+        // This prevents Groq from generating Markdown tables or bulleted lists.
+        return { responseType: "products", products: toolResult.results, text: "Here are some frames matching your request:" };
       }
 
       // Add to current conversation array for the follow-up AI call
@@ -107,15 +113,16 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
     }
 
     const finalReply = messageResponse.content || "I'm sorry, I couldn't understand that.";
-    console.log(`[FrameKart AI]\nresponse generated`);
+    console.log(`[FrameKart AI] response generated`);
+    console.log(`[FrameKart AI] presentation mode: text`);
 
     // Append AI Response to DB
     await appendMessage(phone, { role: "model", content: finalReply });
 
-    return { text: finalReply, interactiveResults: latestSearchResults };
+    return { responseType: "text", text: finalReply };
 
   } catch (error: any) {
     console.log(`[FrameKart AI] Groq request failed\nstatus: ${error?.status || ''}\nerrorCode: ${error?.status || ''}\nerrorMessage: ${error?.message || error}`);
-    return { text: "Sorry, I'm having a temporary issue processing your request. Please try again in a moment." };
+    return { responseType: "text", text: "Sorry, I'm having a temporary issue processing your request. Please try again in a moment." };
   }
 }

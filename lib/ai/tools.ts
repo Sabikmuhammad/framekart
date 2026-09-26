@@ -45,12 +45,19 @@ export async function searchProducts(args: { category?: string; color?: string; 
     return { results: [], message: "No products found matching the criteria." };
   }
 
+  const normalizeImage = (url: string) => {
+    if (!url) return "https://framekart.co.in/images/branding/Frame-2.png";
+    if (url.startsWith("http://") || url.startsWith("https://")) return url.replace("http://", "https://");
+    if (url.startsWith("/")) return "https://framekart.co.in" + url;
+    return "https://framekart.co.in/" + url;
+  };
+
   return {
     results: products.map(p => ({
       name: p.title,
       price: p.price,
       url: `https://framekart.co.in/frames/${p.slug}`,
-      image: p.imageUrl,
+      image: normalizeImage(p.imageUrl),
     })),
   };
 }
