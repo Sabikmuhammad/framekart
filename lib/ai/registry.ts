@@ -48,9 +48,27 @@ export const toolDeclarations = [
     name: "humanHandoff",
     description: "Call this tool if the user explicitly asks to speak to a human, customer support, or if you cannot help them.",
   },
+  {
+    name: "addToCart",
+    description: "Add a specific product to the customer's cart. You must provide the product slug.",
+    parameters: {
+      type: "object",
+      properties: {
+        productSlug: {
+          type: "string",
+          description: "The slug of the product to add to cart (e.g. golden-minimalist-frame)",
+        },
+        quantity: {
+          type: "number",
+          description: "The quantity to add (default to 1 if not specified)",
+        }
+      },
+      required: ["productSlug", "quantity"],
+    },
+  },
 ];
 
-export async function executeTool(name: string, args: any): Promise<any> {
+export async function executeTool(name: string, args: any, context?: any): Promise<any> {
   console.log(`[AI Tool] Executing ${name}`, args);
   switch (name) {
     case "searchProducts":
@@ -61,6 +79,8 @@ export async function executeTool(name: string, args: any): Promise<any> {
       return await ToolImpls.getCustomFrameInformation();
     case "humanHandoff":
       return await ToolImpls.humanHandoff();
+    case "addToCart":
+      return await ToolImpls.addToCart({ ...args, sessionId: context?.phone });
     default:
       return { error: `Tool ${name} not found or not implemented.` };
   }

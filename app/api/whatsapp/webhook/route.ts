@@ -120,11 +120,21 @@ export async function POST(req: Request) {
           const greetings = ["hi", "hii", "hello", "hey", "heyy", "hi there", "hello framekart"];
 
           if (greetings.includes(normalizedText)) {
-            const deterministicReply = "Hi! Welcome to FrameKart. How can I help you today?";
+            const deterministicReply = "Hi! 👋 Welcome to FrameKart.\n\nWe turn your favourite moments into timeless frames.\n\nWhat would you like to explore?";
             console.log(`[FrameKart AI] deterministic response triggered`);
             
             console.log(`[WhatsApp Outgoing]\nsending response`);
-            const sendResult = await sendWhatsAppText(senderPhone, deterministicReply);
+            const { sendInteractiveButtons } = await import("@/lib/whatsapp/interactive");
+            const sendResult = await sendInteractiveButtons(
+              senderPhone,
+              deterministicReply,
+              [
+                { id: "SHOP_FRAMES", title: "Shop Frames" },
+                { id: "CUSTOM_FRAME", title: "Custom Frame" },
+                { id: "TRACK_ORDER", title: "Track Order" },
+              ]
+            );
+
             if (sendResult.success) {
               console.log(`[WhatsApp Outgoing]\nSuccess\nmessageId: ${sendResult.messageId}`);
             } else {
@@ -138,16 +148,96 @@ export async function POST(req: Request) {
               const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, textContent);
               if (aiReply) {
                 console.log(`[WhatsApp Outgoing]\nsending response`);
-                const sendResult = await sendWhatsAppText(senderPhone, aiReply);
+                const sendResult = await sendWhatsAppText(senderPhone, aiReply.text);
                 if (sendResult.success) {
                   console.log(`[WhatsApp Outgoing]\nSuccess\nmessageId: ${sendResult.messageId}`);
                 } else {
                   console.log(`[WhatsApp Outgoing]\nFAILED\nerrorCode: ${sendResult.errorCode}\nerrorMessage: ${sendResult.error}`);
                 }
+                
+                if (aiReply.interactiveResults && aiReply.interactiveResults.length > 0) {
+                   const { sendProductList } = await import("@/lib/whatsapp/interactive");
+                   await sendProductList(senderPhone, "Tap below to view details or add to cart:", aiReply.interactiveResults);
+                }
               }
             } catch (err) {
               console.error("[WhatsApp Webhook] AI handling failed:", err);
             }
+          }
+        } else if (message.type === "interactive") {
+          const interactiveData = message.interactive;
+          let selectedId = "";
+          let selectedTitle = "";
+          
+          if (interactiveData.type === "button_reply") {
+             selectedId = interactiveData.button_reply.id;
+             selectedTitle = interactiveData.button_reply.title;
+          } else if (interactiveData.type === "list_reply") {
+             selectedId = interactiveData.list_reply.id;
+             selectedTitle = interactiveData.list_reply.title;
+          }
+
+          console.log(`\n[WhatsApp Incoming Interactive]\nID: ${selectedId}\nTitle: ${selectedTitle}\n`);
+
+          const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
+          const { sendInteractiveButtons, sendInteractiveList } = await import("@/lib/whatsapp/interactive");
+
+          if (selectedId === "SHOP_FRAMES") {
+             await sendInteractiveList(
+                senderPhone,
+                "Absolutely. What kind of frame are you looking for?",
+                "Select Category",
+                [{
+                  title: "Categories",
+                  rows: [
+                    { id: "CAT|photo frames", title: "Photo Frames" },
+                    { id: "CAT|wall frames", title: "Wall Frames" },
+                    { id: "CAT|birthday frames", title: "Birthday Frames" },
+                    { id: "CAT|calligraphy frames", title: "Calligraphy Frames" }
+                  ]
+                }]
+             );
+          } else if (selectedId === "CUSTOM_FRAME") {
+             await sendWhatsAppText(senderPhone, "Create a frame using your own favourite photo.\n\nClick here to create a custom frame:\nhttps://framekart.co.in/custom-frame");
+          } else if (selectedId === "TRACK_ORDER") {
+             await sendWhatsAppText(senderPhone, "Please reply with your order number to track your order.");
+          } else if (selectedId.startsWith("CAT|")) {
+             const category = selectedId.split("|")[1];
+             const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
+             const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, `Show me ${category}`);
+             if (aiReply) {
+               await sendWhatsAppText(senderPhone, aiReply.text);
+               if (aiReply.interactiveResults && aiReply.interactiveResults.length > 0) {
+                 const { sendProductList } = await import("@/lib/whatsapp/interactive");
+                 await sendProductList(senderPhone, "Tap below to view details or add to cart:", aiReply.interactiveResults);
+               }
+             }
+          } else if (selectedId.startsWith("DETAILS|")) {
+             const slug = selectedId.split("|")[1];
+             const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
+             const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, `Tell me more about the product with slug ${slug}`);
+             if (aiReply) {
+               await sendWhatsAppText(senderPhone, aiReply.text);
+             }
+          } else if (selectedId.startsWith("ADD_CART|")) {
+             const slug = selectedId.split("|")[1];
+             const { addToCart } = await import("@/lib/ai/tools");
+             const result = await addToCart({ productSlug: slug, quantity: 1, sessionId: senderPhone });
+             
+             if (result.success) {
+               await sendInteractiveButtons(
+                 senderPhone,
+                 result.message + `\nTotal: ₹${result.cartTotal}`,
+                 [
+                   { id: "VIEW_CART", title: "View Cart" },
+                   { id: "SHOP_FRAMES", title: "Continue Shopping" }
+                 ]
+               );
+             } else {
+               await sendWhatsAppText(senderPhone, result.error || "Failed to add to cart.");
+             }
+          } else if (selectedId === "VIEW_CART") {
+             await sendWhatsAppText(senderPhone, "You can view your cart and checkout here:\nhttps://framekart.co.in/cart");
           }
         }
       }

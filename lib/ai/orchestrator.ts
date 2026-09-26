@@ -16,7 +16,7 @@ RULES:
 7. If the user explicitly asks for human help or support, use the humanHandoff tool.
 `;
 
-export async function handleIncomingWhatsAppMessage(phone: string, waId: string, text: string): Promise<string | null> {
+export async function handleIncomingWhatsAppMessage(phone: string, waId: string, text: string): Promise<{ text: string, interactiveResults?: any } | null> {
   // 1. Get Conversation
   const conversation = await getConversation(phone, waId);
   console.log(`[WhatsApp Conversation]\nconversation loaded/created`);
@@ -58,6 +58,7 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
     
     // Handle potential tool calls
     let messageResponse = responseData.choices[0].message;
+    let latestSearchResults = null;
     
     while (messageResponse.tool_calls && messageResponse.tool_calls.length > 0) {
       const call = messageResponse.tool_calls[0];
@@ -74,7 +75,11 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
       console.log(`[FrameKart AI]\ntool call: ${toolName}`);
       
       // Execute tool
-      const toolResult = await executeTool(toolName, toolArgs);
+      const toolResult = await executeTool(toolName, toolArgs, { phone });
+      
+      if (toolName === "searchProducts" && toolResult.results && toolResult.results.length > 0) {
+        latestSearchResults = toolResult.results;
+      }
       
       console.log(`[FrameKart AI]\ntool completed`);
 
@@ -105,10 +110,10 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
     // Append AI Response to DB
     await appendMessage(phone, { role: "model", content: finalReply });
 
-    return finalReply;
+    return { text: finalReply, interactiveResults: latestSearchResults };
 
   } catch (error: any) {
     console.log(`[FrameKart AI] Groq request failed\nstatus: ${error?.status || ''}\nerrorCode: ${error?.status || ''}\nerrorMessage: ${error?.message || error}`);
-    return "Sorry, I'm having a temporary issue processing your request. Please try again in a moment.";
+    return { text: "Sorry, I'm having a temporary issue processing your request. Please try again in a moment." };
   }
 }

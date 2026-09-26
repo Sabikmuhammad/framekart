@@ -87,3 +87,54 @@ export async function humanHandoff() {
     status: "HUMAN_HANDOFF"
   };
 }
+
+export async function addToCart(args: { productSlug: string; quantity: number; sessionId: string }) {
+  await dbConnect();
+  
+  const frame: any = await Frame.findOne({ slug: args.productSlug }).select("_id title price imageUrl").lean();
+  if (!frame) {
+    return { error: "Product not found. Cannot add to cart." };
+  }
+
+  const { default: CartSession } = await import("@/models/CartSession");
+
+  // Fetch existing cart to append
+  let cartSession = await CartSession.findOne({ sessionId: args.sessionId });
+  let products = cartSession ? cartSession.products : [];
+
+  const existingIndex = products.findIndex((p: any) => p.productId === frame._id.toString());
+  if (existingIndex > -1) {
+    products[existingIndex].quantity += args.quantity;
+  } else {
+    products.push({
+      productId: frame._id.toString(),
+      name: frame.title,
+      price: frame.price,
+      quantity: args.quantity,
+      image: frame.imageUrl,
+    });
+  }
+
+  const total = products.reduce((sum: number, p: any) => sum + p.price * p.quantity, 0);
+
+  await CartSession.findOneAndUpdate(
+    { sessionId: args.sessionId },
+    {
+      $set: {
+        products,
+        total,
+        orderCompleted: false,
+        abandoned: false,
+        recoveryEmailSent: false,
+      }
+    },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+
+  return {
+    success: true,
+    message: `Added ${frame.title} to your cart. 🛒`,
+    cartTotal: total,
+    productName: frame.title,
+  };
+}
