@@ -36,9 +36,39 @@ export async function GET(req: NextRequest) {
       if (imgLink.startsWith("/")) {
         imgLink = `${baseUrl}${imgLink}`;
       }
+      
       if (!imgLink) {
-        imgLink = `${baseUrl}/images/branding/Frame-2.png`;
+        console.warn(`[WA CATALOG FEED] Validation Failure: Product '${frame.slug}' is missing an image.`);
+        continue;
       }
+
+      // Validate Image URL
+      try {
+        const imgRes = await fetch(imgLink, { method: "HEAD", signal: AbortSignal.timeout(5000) });
+        if (!imgRes.ok) {
+          console.warn(`[WA CATALOG FEED] Validation Failure: Image for '${frame.slug}' returned HTTP ${imgRes.status} (${imgLink})`);
+          continue;
+        }
+      } catch (e: any) {
+        console.warn(`[WA CATALOG FEED] Validation Failure: Could not reach image for '${frame.slug}' (${imgLink}) - ${e.message}`);
+        continue;
+      }
+
+      // Validate Product Link URL
+      const productLink = `${baseUrl}/frames/${frame.slug}`;
+      try {
+        const linkRes = await fetch(productLink, { method: "HEAD", signal: AbortSignal.timeout(5000) });
+        if (!linkRes.ok) {
+          console.warn(`[WA CATALOG FEED] Validation Failure: Link for '${frame.slug}' returned HTTP ${linkRes.status} (${productLink})`);
+          continue;
+        }
+      } catch (e: any) {
+        console.warn(`[WA CATALOG FEED] Validation Failure: Could not reach link for '${frame.slug}' (${productLink}) - ${e.message}`);
+        continue;
+      }
+
+      // Determine availability
+      const availability = (frame.stock && frame.stock > 0) ? "in stock" : "out of stock";
 
       // Escape quotes and commas in fields for CSV
       const escapeCsv = (str: string) => {
@@ -50,16 +80,16 @@ export async function GET(req: NextRequest) {
         return stringified;
       };
 
-      const title = escapeCsv(frame.name);
+      const title = escapeCsv(frame.title || frame.name || "Untitled Product");
       const desc = escapeCsv(frame.description || "Premium frame by FrameKart");
-      const link = escapeCsv(`${baseUrl}/frames/${frame.slug}`);
+      const link = escapeCsv(productLink);
       const imageLink = escapeCsv(imgLink);
 
       const row = [
         frame.slug,            // id (mapped to product_retailer_id)
         title,                 // title
         desc,                  // description
-        "in stock",            // availability
+        availability,          // availability
         "new",                 // condition
         priceString,           // price
         link,                  // link
