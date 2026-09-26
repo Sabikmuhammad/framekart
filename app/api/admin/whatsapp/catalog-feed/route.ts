@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
 
       // Determine availability
       const availability = (frame.stock && frame.stock > 0) ? "in stock" : "out of stock";
+      const productLink = `${baseUrl}/frames/${frame.slug}`;
 
       // Escape quotes and commas in fields for CSV
       const escapeCsv = (str: string) => {

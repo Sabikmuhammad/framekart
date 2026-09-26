@@ -29,8 +29,8 @@ export default function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background md:hidden">
-      <div className="flex items-center justify-around h-16">
+    <nav className="fixed bottom-0 left-0 right-0 z-[9000] border-t bg-background md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex items-center justify-around h-[64px]">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const isCart = item.href === "/cart";
