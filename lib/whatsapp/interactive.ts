@@ -200,66 +200,96 @@ export async function sendProductCarousel(
   const { accessToken, phoneNumberId, apiVersion, to } = config;
 
   const catalogId = process.env.WHATSAPP_CATALOG_ID;
-  const payload: any = {
-    messaging_product: "whatsapp",
-    to: to,
-    type: "interactive",
-    interactive: {
-      type: "carousel",
-      body: {
-        text: bodyText || "Here are the products you requested:"
-      },
-      action: {
-        cards: products.slice(0, 10).map((p, index) => {
-          const slug = p.url ? p.url.split("/").pop() : p.slug;
-          return {
-            card_index: index,
-            type: "product",
-            action: {
-              product_retailer_id: slug,
-              catalog_id: catalogId || "123456789"
-            }
-          };
-        })
-      }
-    }
-  };
-
   try {
-    console.log("[WA PRODUCT] message type: interactive / carousel (Native Swipeable)");
-    console.log("[WA PRODUCT] catalog ID configured: " + (process.env.WHATSAPP_CATALOG_ID || "NONE"));
-    console.log("[WA PRODUCT] product count: " + products.length);
-    console.log("[WA PRODUCT] product/catalog ID: " + products.map(p => p.slug).join(", "));
+    let currentProducts = [...products.slice(0, 10)];
+    
+    while (currentProducts.length > 0) {
+      const payload: any = {
+        messaging_product: "whatsapp",
+        to: to,
+        type: "interactive",
+        interactive: {
+          type: "carousel",
+          body: {
+            text: bodyText || "Here are the products you requested:"
+          },
+          action: {
+            cards: currentProducts.map((p, index) => {
+              const slug = p.url ? p.url.split("/").pop() : p.slug;
+              return {
+                card_index: index,
+                type: "product",
+                action: {
+                  product_retailer_id: slug,
+                  catalog_id: catalogId || "123456789"
+                }
+              };
+            })
+          }
+        }
+      };
 
-    const response = await fetch(
-      `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      console.log("[WA PRODUCT] message type: interactive / carousel (Native Swipeable)");
+      console.log("[WA PRODUCT] catalog ID configured: " + (process.env.WHATSAPP_CATALOG_ID || "NONE"));
+      console.log("[WA PRODUCT] product count: " + currentProducts.length);
+      console.log("[WA PRODUCT] product/catalog ID: " + currentProducts.map(p => p.slug).join(", "));
+
+      const response = await fetch(
+        `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await response.json();
+      console.log("[WA PRODUCT] Meta response status: " + response.status);
+
+      if (response.ok) {
+        console.log(`[WA DEBUG] META PRODUCT RESPONSE: SUCCESS`);
+        return { success: true, messageId: data.messages?.[0]?.id };
       }
+
+      console.log(`[WA PRODUCT] HTTP status: ${response.status}`);
+      console.log(`[WA PRODUCT] Meta error code: ${data?.error?.code || 'N/A'}`);
+      console.log(`[WA PRODUCT] Meta error message: ${data?.error?.message || 'N/A'}`);
+      
+      const errorDetails = data?.error?.error_data?.details || "";
+      console.log(`[WA PRODUCT] Meta error details: ${errorDetails}`);
+      
+      // Auto-recover from missing catalog items
+      if (data?.error?.code === 131009 && errorDetails.includes("product not found for product_retailer_id")) {
+         const match = errorDetails.match(/product_retailer_id,\s*([^,]+),/);
+         if (match && match[1]) {
+            const missingSlug = match[1].trim();
+            console.log(`[WA PRODUCT] Auto-excluding missing catalog product: ${missingSlug}`);
+            currentProducts = currentProducts.filter(p => {
+               const pSlug = p.url ? p.url.split("/").pop() : p.slug;
+               return pSlug !== missingSlug;
+            });
+            if (currentProducts.length > 0) {
+               console.log(`[WA PRODUCT] Retrying carousel with ${currentProducts.length} valid products...`);
+               continue;
+            }
+         }
+      }
+
+      // If we reach here, it's a fatal error or we ran out of products
+      break;
+    }
+    
+    // Fallback if the loop breaks (all products invalid or other error)
+    console.log("[WA PRODUCT] Native catalog unavailable or all products invalid");
+    const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
+    return await sendWhatsAppText(
+      phoneNumber, 
+      "We are currently upgrading our store's catalog experience! 🚀\n\nPlease check back shortly, or type 'Orders & Support' to speak with me."
     );
 
-    const data = await response.json();
-    console.log("[WA PRODUCT] Meta response status: " + response.status);
-
-    if (!response.ok) {
-      console.log("[WA PRODUCT] Native catalog unavailable");
-      console.log("[WA PRODUCT] Catalog ID: " + (process.env.WHATSAPP_CATALOG_ID || "NONE"));
-      console.log("[WA PRODUCT] Meta response: " + JSON.stringify(data));
-      
-      const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
-      return await sendWhatsAppText(
-        phoneNumber, 
-        "We are currently upgrading our store's catalog experience! 🚀\n\nPlease check back shortly, or type 'Orders & Support' to speak with me."
-      );
-    }
-
-    console.log(`[WA DEBUG] META PRODUCT RESPONSE: SUCCESS`);
-    return { success: true, messageId: data.messages?.[0]?.id };
   } catch (error: any) {
     console.log("[WA PRODUCT] Native catalog unavailable");
     console.log("[WA PRODUCT] Catalog ID: " + (process.env.WHATSAPP_CATALOG_ID || "NONE"));

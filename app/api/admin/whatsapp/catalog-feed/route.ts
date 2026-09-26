@@ -42,30 +42,8 @@ export async function GET(req: NextRequest) {
         continue;
       }
 
-      // Validate Image URL
-      try {
-        const imgRes = await fetch(imgLink, { method: "HEAD", signal: AbortSignal.timeout(5000) });
-        if (!imgRes.ok) {
-          console.warn(`[WA CATALOG FEED] Validation Failure: Image for '${frame.slug}' returned HTTP ${imgRes.status} (${imgLink})`);
-          continue;
-        }
-      } catch (e: any) {
-        console.warn(`[WA CATALOG FEED] Validation Failure: Could not reach image for '${frame.slug}' (${imgLink}) - ${e.message}`);
-        continue;
-      }
-
-      // Validate Product Link URL
-      const productLink = `${baseUrl}/frames/${frame.slug}`;
-      try {
-        const linkRes = await fetch(productLink, { method: "HEAD", signal: AbortSignal.timeout(5000) });
-        if (!linkRes.ok) {
-          console.warn(`[WA CATALOG FEED] Validation Failure: Link for '${frame.slug}' returned HTTP ${linkRes.status} (${productLink})`);
-          continue;
-        }
-      } catch (e: any) {
-        console.warn(`[WA CATALOG FEED] Validation Failure: Could not reach link for '${frame.slug}' (${productLink}) - ${e.message}`);
-        continue;
-      }
+      // Validation removed to prevent Vercel serverless timeouts during Meta sync.
+      // We rely on the DB fields being correct.
 
       // Determine availability
       const availability = (frame.stock && frame.stock > 0) ? "in stock" : "out of stock";
