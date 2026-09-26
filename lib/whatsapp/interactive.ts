@@ -149,13 +149,10 @@ export async function sendProductList(
   bodyText: string,
   products: any[]
 ): Promise<WhatsAppApiResponse> {
-  let fullBody = bodyText + "\n\n";
   const rows = [];
   
   for (let i = 0; i < products.length; i++) {
      const p = products[i];
-     fullBody += `${i + 1}. ${p.name} — ₹${p.price}\n`;
-     
      // Extract slug from URL if possible, or assume it's passed as slug
      const slug = p.url ? p.url.split("/").pop() : p.slug;
      
@@ -177,7 +174,7 @@ export async function sendProductList(
 
   return sendInteractiveList(
      phoneNumber,
-     fullBody.trim(),
+     bodyText.trim() || "Here are some frames matching your request.",
      "View Options",
      [
        {

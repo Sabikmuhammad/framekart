@@ -209,16 +209,20 @@ export async function POST(req: Request) {
              await sendWhatsAppText(senderPhone, "Please reply with your order number to track your order.");
           } else if (selectedId.startsWith("CAT|")) {
              const category = selectedId.split("|")[1];
-             const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
-             const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, `Show me ${category}`);
-             if (aiReply) {
-               if (aiReply.responseType === "products" && aiReply.products && aiReply.products.length > 0) {
+             const { searchProducts } = await import("@/lib/ai/tools");
+             
+             console.log(`[WA DEBUG] route responseType: products (BYPASS GROQ)`);
+             const toolResult = await searchProducts({ category });
+             
+             if (toolResult.results && toolResult.results.length > 0) {
+                 console.log(`[WA DEBUG] PRODUCT PRESENTATION PATH`);
+                 console.log(`[WA DEBUG] presentation function: sendProductCarousel`);
                  const { sendProductCarousel } = await import("@/lib/whatsapp/interactive");
-                 const textInt = aiReply.text || "Here are some frames matching your request:";
-                 await sendProductCarousel(senderPhone, textInt, aiReply.products);
-               } else if (aiReply.text) {
-                 await sendWhatsAppText(senderPhone, aiReply.text);
-               }
+                 const textInt = "Here are some frames matching your request:";
+                 await sendProductCarousel(senderPhone, textInt, toolResult.results);
+             } else {
+                 const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
+                 await sendWhatsAppText(senderPhone, "Sorry, we couldn't find any frames in that category.");
              }
           } else if (selectedId.startsWith("DETAILS|")) {
              const slug = selectedId.split("|")[1];
