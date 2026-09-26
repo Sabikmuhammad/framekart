@@ -253,18 +253,29 @@ export async function sendProductCarousel(
     console.log("[WA PRODUCT] Meta response status: " + response.status);
 
     if (!response.ok) {
-      console.log("[WA PRODUCT] Meta error code: " + data?.error?.code);
-      console.log("[WA PRODUCT] Meta error message: " + data?.error?.message);
-      console.log(`[WA DEBUG] FALLING BACK TO INTERACTIVE LIST`);
-      return await sendProductList(phoneNumber, bodyText, products);
+      console.log("[WA PRODUCT] Native catalog unavailable");
+      console.log("[WA PRODUCT] Catalog ID: " + (process.env.WHATSAPP_CATALOG_ID || "NONE"));
+      console.log("[WA PRODUCT] Meta response: " + JSON.stringify(data));
+      
+      const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
+      return await sendWhatsAppText(
+        phoneNumber, 
+        "We are currently upgrading our store's catalog experience! 🚀\n\nPlease check back shortly, or type 'Orders & Support' to speak with me."
+      );
     }
 
     console.log(`[WA DEBUG] META PRODUCT RESPONSE: SUCCESS`);
     return { success: true, messageId: data.messages?.[0]?.id };
   } catch (error: any) {
-    console.error("[WA DEBUG] CAROUSEL FAILED", error.message);
-    console.log(`[WA DEBUG] FALLING BACK TO INTERACTIVE LIST`);
-    return await sendProductList(phoneNumber, bodyText, products);
+    console.log("[WA PRODUCT] Native catalog unavailable");
+    console.log("[WA PRODUCT] Catalog ID: " + (process.env.WHATSAPP_CATALOG_ID || "NONE"));
+    console.log("[WA PRODUCT] Meta response: " + error.message);
+    
+    const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
+    return await sendWhatsAppText(
+      phoneNumber, 
+      "We are currently upgrading our store's catalog experience! 🚀\n\nPlease check back shortly, or type 'Orders & Support' to speak with me."
+    );
   }
 }
 
