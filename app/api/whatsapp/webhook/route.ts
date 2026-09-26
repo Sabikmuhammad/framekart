@@ -121,7 +121,7 @@ export async function POST(req: Request) {
           const greetings = ["hi", "hii", "hello", "hey", "hello framekart"];
 
           if (greetings.includes(normalizedText)) {
-            const deterministicReply = "Hi! 👋 Welcome to FrameKart.\n\nTurn your favourite moments into timeless frames.\n\nWhether you're looking for a ready-made frame, a custom frame, or help with an existing order, I'm here to help.\n\nWhat would you like to do?";
+            const deterministicReply = "Hi! 👋 Welcome to FrameKart.\n\nTurn your favourite moments into timeless frames.\n\nWhat would you like to explore?";
             console.log(`[FrameKart AI] deterministic response triggered`);
             
             console.log(`[WhatsApp Outgoing]\nsending response`);

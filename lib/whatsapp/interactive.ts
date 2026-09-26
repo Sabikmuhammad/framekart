@@ -199,51 +199,40 @@ export async function sendProductCarousel(
   }
   const { accessToken, phoneNumberId, apiVersion, to } = config;
 
+  const catalogId = process.env.WHATSAPP_CATALOG_ID;
   const payload: any = {
     messaging_product: "whatsapp",
     to: to,
     type: "interactive",
     interactive: {
-      type: "carousel",
-      carousel: {
-        cards: products.map((p) => {
-          const slug = p.url ? p.url.split("/").pop() : p.slug;
-          return {
-            header: {
-              type: "image",
-              image: {
-                link: p.image || "https://framekart.co.in/images/branding/Frame-2.png" // Ensure valid image
-              }
-            },
-            body: {
-              text: `${p.name}\n₹${p.price}\n\nTap below to view or add to cart.`
-            },
-            action: {
-              buttons: [
-                {
-                  type: "reply",
-                  reply: {
-                    id: `DETAILS|${slug}`,
-                    title: "View Product"
-                  }
-                },
-                {
-                  type: "reply",
-                  reply: {
-                    id: `ADD_CART|${slug}`,
-                    title: "Add to Cart"
-                  }
-                }
-              ]
-            }
-          };
-        }).slice(0, 10) // Max 10 cards usually
+      type: "product_list",
+      header: {
+        type: "text",
+        text: "FrameKart Products"
+      },
+      body: {
+        text: bodyText || "Here are the products you requested:"
+      },
+      footer: {
+        text: "Tap below to view products"
+      },
+      action: {
+        catalog_id: catalogId || "123456789", // Will intentionally fail if catalog missing, triggering fallback
+        sections: [
+          {
+            title: "Available Frames",
+            product_items: products.slice(0, 30).map((p) => {
+              const slug = p.url ? p.url.split("/").pop() : p.slug;
+              return { product_retailer_id: slug };
+            })
+          }
+        ]
       }
     }
   };
 
   try {
-    console.log("[WA PRODUCT] message type: interactive / carousel");
+    console.log("[WA PRODUCT] message type: interactive / product_list (Catalog MPM)");
     console.log("[WA PRODUCT] catalog ID configured: " + (process.env.WHATSAPP_CATALOG_ID || "NONE"));
     console.log("[WA PRODUCT] product count: " + products.length);
     console.log("[WA PRODUCT] product/catalog ID: " + products.map(p => p.slug).join(", "));
@@ -309,7 +298,7 @@ export async function sendProductDetailCard(
             type: "reply",
             reply: {
               id: `VIEW_SITE|${slug}`,
-              title: "View Product"
+              title: "Shop Now"
             }
           },
           {
