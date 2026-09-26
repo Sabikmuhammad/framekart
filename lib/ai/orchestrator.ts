@@ -91,8 +91,10 @@ export async function handleIncomingWhatsAppMessage(phone: string, waId: string,
       }
 
       if (toolName === "searchProducts" && toolResult.results && toolResult.results.length > 0) {
-        console.log(`[FrameKart AI] product count: ${toolResult.results.length}`);
-        console.log(`[FrameKart AI] presentation mode: products`);
+        console.log(`[WA DEBUG] tool: ${toolName}`);
+        console.log(`[WA DEBUG] product count: ${toolResult.results.length}`);
+        console.log(`[WA DEBUG] PRODUCT RESULT INTERCEPTED`);
+        console.log(`[WA DEBUG] orchestrator responseType: products`);
         // Immediately return products instead of asking Groq to generate a text summary
         // This prevents Groq from generating Markdown tables or bulleted lists.
         return { responseType: "products", products: toolResult.results, text: "Here are some frames matching your request:" };

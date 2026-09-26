@@ -113,6 +113,7 @@ export async function POST(req: Request) {
         // Handle text messages
         if (message.type === "text" && message.text && message.text.body) {
           const textContent = message.text.body;
+          console.log(`[WA DEBUG] incoming text: ${textContent}`);
 
           const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
 
@@ -147,13 +148,16 @@ export async function POST(req: Request) {
             try {
               const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, textContent);
               if (aiReply) {
+                console.log(`[WA DEBUG] route responseType: ${aiReply.responseType || "text"}`);
                 if (aiReply.responseType === "products" && aiReply.products && aiReply.products.length > 0) {
-                   console.log(`[WhatsApp Outgoing] sending product carousel/list`);
+                   console.log(`[WA DEBUG] PRODUCT PRESENTATION PATH`);
+                   console.log(`[WA DEBUG] presentation function: sendProductCarousel`);
                    const { sendProductCarousel } = await import("@/lib/whatsapp/interactive");
                    const textInt = aiReply.text || "Here are some frames matching your request:";
                    await sendProductCarousel(senderPhone, textInt, aiReply.products);
                 } else if (aiReply.text) {
                    console.log(`[WhatsApp Outgoing]\nsending text response`);
+                   console.log(`[WA DEBUG] outgoing message type: text`);
                    const sendResult = await sendWhatsAppText(senderPhone, aiReply.text);
                    if (sendResult.success) {
                      console.log(`[WhatsApp Outgoing]\nSuccess\nmessageId: ${sendResult.messageId}`);

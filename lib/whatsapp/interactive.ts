@@ -193,6 +193,9 @@ export async function sendProductCarousel(
   bodyText: string,
   products: any[]
 ): Promise<WhatsAppApiResponse> {
+  console.log(`[WA DEBUG] sendProductCarousel CALLED`);
+  console.log(`[WA DEBUG] product count: ${products.length}`);
+
   const config = getBaseConfig(phoneNumber);
   if (config.error) {
     return { success: false, error: config.error };
@@ -258,13 +261,17 @@ export async function sendProductCarousel(
     const data = await response.json();
 
     if (!response.ok) {
-      console.warn("[WhatsApp Interactive] Carousel not supported or failed. Falling back to Product List.", data?.error);
+      console.error("[WA DEBUG] CAROUSEL FAILED", JSON.stringify(data?.error));
+      console.log(`[WA DEBUG] META PRODUCT RESPONSE:\nstatus: ${response.status}\nerror.code: ${data?.error?.code}\nerror.message: ${data?.error?.message}\nerror.details: ${data?.error?.error_data?.details || ''}`);
+      console.log(`[WA DEBUG] FALLING BACK TO INTERACTIVE LIST`);
       return await sendProductList(phoneNumber, bodyText, products);
     }
 
+    console.log(`[WA DEBUG] META PRODUCT RESPONSE: SUCCESS`);
     return { success: true, messageId: data.messages?.[0]?.id };
   } catch (error: any) {
-    console.warn("[WhatsApp Interactive] Carousel request failed. Falling back to Product List.", error.message);
+    console.error("[WA DEBUG] CAROUSEL FAILED", error.message);
+    console.log(`[WA DEBUG] FALLING BACK TO INTERACTIVE LIST`);
     return await sendProductList(phoneNumber, bodyText, products);
   }
 }
