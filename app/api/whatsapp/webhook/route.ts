@@ -118,10 +118,10 @@ export async function POST(req: Request) {
           const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
 
           const normalizedText = textContent.trim().toLowerCase();
-          const greetings = ["hi", "hii", "hello", "hey", "heyy", "hi there", "hello framekart"];
+          const greetings = ["hi", "hii", "hello", "hey", "hello framekart"];
 
           if (greetings.includes(normalizedText)) {
-            const deterministicReply = "Hi! 👋 Welcome to FrameKart.\n\nWe turn your favourite moments into timeless frames.\n\nWhat would you like to explore?";
+            const deterministicReply = "Hi! 👋 Welcome to FrameKart.\n\nTurn your favourite moments into timeless frames.\n\nWhether you're looking for a ready-made frame, a custom frame, or help with an existing order, I'm here to help.\n\nWhat would you like to do?";
             console.log(`[FrameKart AI] deterministic response triggered`);
             
             console.log(`[WhatsApp Outgoing]\nsending response`);
@@ -130,9 +130,9 @@ export async function POST(req: Request) {
               senderPhone,
               deterministicReply,
               [
-                { id: "SHOP_FRAMES", title: "Shop Frames" },
-                { id: "CUSTOM_FRAME", title: "Custom Frame" },
-                { id: "TRACK_ORDER", title: "Track Order" },
+                { id: "MENU_SHOP_FRAMES", title: "Shop Frames" },
+                { id: "MENU_CUSTOM_FRAMES", title: "Custom Frames" },
+                { id: "MENU_ORDERS_SUPPORT", title: "Orders & Support" },
               ]
             );
 
@@ -188,10 +188,10 @@ export async function POST(req: Request) {
           const { sendWhatsAppText } = await import("@/lib/whatsapp/sendText");
           const { sendInteractiveButtons, sendInteractiveList } = await import("@/lib/whatsapp/interactive");
 
-          if (selectedId === "SHOP_FRAMES") {
+          if (selectedId === "MENU_SHOP_FRAMES" || selectedId === "SHOP_FRAMES") {
              await sendInteractiveList(
                 senderPhone,
-                "Absolutely. What kind of frame are you looking for?",
+                "What kind of frame are you looking for?",
                 "Select Category",
                 [{
                   title: "Categories",
@@ -203,10 +203,25 @@ export async function POST(req: Request) {
                   ]
                 }]
              );
-          } else if (selectedId === "CUSTOM_FRAME") {
+          } else if (selectedId === "MENU_CUSTOM_FRAMES" || selectedId === "CUSTOM_FRAME") {
              await sendWhatsAppText(senderPhone, "Create a frame using your own favourite photo.\n\nClick here to create a custom frame:\nhttps://framekart.co.in/custom-frame");
-          } else if (selectedId === "TRACK_ORDER") {
+          } else if (selectedId === "MENU_ORDERS_SUPPORT") {
+             await sendInteractiveButtons(
+               senderPhone,
+               "Sure. What would you like help with?",
+               [
+                 { id: "ORDERS_TRACK", title: "Track Order" },
+                 { id: "ORDERS_QUERY", title: "Order Query" }
+               ]
+             );
+          } else if (selectedId === "ORDERS_TRACK" || selectedId === "TRACK_ORDER") {
              await sendWhatsAppText(senderPhone, "Please reply with your order number to track your order.");
+          } else if (selectedId === "ORDERS_QUERY") {
+             const { handleIncomingWhatsAppMessage } = await import("@/lib/ai/orchestrator");
+             const aiReply = await handleIncomingWhatsAppMessage(senderPhone, messageId, "I have an order query. Please help me.");
+             if (aiReply && aiReply.text) {
+               await sendWhatsAppText(senderPhone, aiReply.text);
+             }
           } else if (selectedId.startsWith("CAT|")) {
              const category = selectedId.split("|")[1];
              const { searchProducts } = await import("@/lib/ai/tools");
