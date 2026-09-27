@@ -50,7 +50,7 @@ export async function PUT(req: Request) {
 
     // Check if user is admin
     const dbUser = await User.findById(userId).lean() as any;
-    if (!dbUser || dbUser.role !== "admin") {
+    if (!dbUser || dbUser.role !== "ADMIN") {
       return NextResponse.json(
         { success: false, error: "Admin access required" },
         { status: 403 }

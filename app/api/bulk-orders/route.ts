@@ -5,11 +5,19 @@ import Frame from "@/models/Frame";
 import { getCurrentUser } from "@/lib/auth/authorization";
 import { BulkOrderValidationSchema } from "@/lib/validation";
 import { ZodError } from "zod";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
     const userId = user?._id?.toString() || undefined;
+
+    // Rate Limiting (10 requests per 60 minutes per IP)
+    const ip = req.ip ?? req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "127.0.0.1";
+    const isAllowed = await checkRateLimit(`bulk_order_${ip}`, 10, 60 * 60 * 1000);
+    if (!isAllowed) {
+      return NextResponse.json({ success: false, error: "Too many bulk order requests. Please try again later." }, { status: 429 });
+    }
 
     await dbConnect();
     const body = await req.json();

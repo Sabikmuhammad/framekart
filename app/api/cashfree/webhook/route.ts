@@ -31,11 +31,13 @@ export const dynamic = 'force-dynamic';
 function verifyWebhookSignature(
   rawBody: string, 
   receivedSignature: string, 
-  clientSecret: string
+  clientSecret: string,
+  timestamp: string | null
 ): boolean {
   try {
+    const payload = timestamp ? timestamp + rawBody : rawBody;
     const expectedSignature = createHmac('sha256', clientSecret)
-      .update(rawBody)
+      .update(payload)
       .digest('base64');
     
     return expectedSignature === receivedSignature;
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
     
     // ===== Verify Signature =====
     const signature = req.headers.get('x-webhook-signature');
+    const timestamp = req.headers.get('x-webhook-timestamp');
     
     // Choose correct secret based on environment
     const environment = process.env.CASHFREE_ENV || "sandbox";
@@ -81,7 +84,7 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const isValidSignature = verifyWebhookSignature(rawBody, signature, clientSecret);
+    const isValidSignature = verifyWebhookSignature(rawBody, signature, clientSecret, timestamp);
     
     if (!isValidSignature) {
       console.error(`❌ [${webhookId}] Invalid webhook signature`);
@@ -113,9 +116,14 @@ export async function POST(req: NextRequest) {
       
       console.log(`💰 [${webhookId}] Payment SUCCESS for order: ${cashfreeOrderId}`);
       
+      // Extract order type from searchParams
+      const { searchParams } = new URL(req.url);
+      const orderType = searchParams.get("type") || "regular";
+
       // Find our order by Cashfree order ID
       await dbConnect();
-      const dbOrder = await Order.findOne({ cashfreeOrderId });
+      const Model = orderType === "bulk" ? (await import("@/models/BulkOrder")).BulkOrder : Order;
+      const dbOrder = await Model.findOne({ cashfreeOrderId });
       
       if (!dbOrder) {
         console.error(`❌ [${webhookId}] Order not found: ${cashfreeOrderId}`);
@@ -140,10 +148,18 @@ export async function POST(req: NextRequest) {
       const paymentId = payment?.cf_payment_id;
       const paymentMethod = payment?.payment_group;
       const paymentTime = payment?.payment_time;
+      const paymentAmount = payment?.payment_amount;
+
+      // Verify payment amount matches server amount
+      const expectedAmount = orderType === "bulk" ? dbOrder.pricing?.finalTotal : dbOrder.totalAmount;
+      if (expectedAmount && Math.abs(paymentAmount - expectedAmount) > 0.01) {
+        console.error(`❌ [${webhookId}] Amount mismatch! Expected: ${expectedAmount}, Got: ${paymentAmount}`);
+        return NextResponse.json({ success: false, error: "Amount mismatch" }, { status: 400 });
+      }
       
       // Update order
       dbOrder.paymentStatus = "completed";
-      dbOrder.status = "Processing";
+      dbOrder.status = orderType === "bulk" ? "PAID" : "Processing";
       dbOrder.paymentId = paymentId;
       dbOrder.paymentMethod = paymentMethod;
       dbOrder.paidAt = paymentTime ? new Date(paymentTime) : new Date();
@@ -152,7 +168,7 @@ export async function POST(req: NextRequest) {
 
       // Process customer account creation / association
       try {
-        await processCustomerForOrder(dbOrder._id.toString());
+        await processCustomerForOrder(dbOrder._id.toString(), orderType);
         console.log(`✅ [${webhookId}] Customer account processed for order`);
       } catch (custError) {
         console.error(`❌ [${webhookId}] Failed to process customer account:`, custError);

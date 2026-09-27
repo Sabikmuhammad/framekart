@@ -2,22 +2,58 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Frame from "@/models/Frame";
 import { generateSlug } from "@/lib/utils";
+import { getCurrentUser } from "@/lib/auth/authorization";
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+
     await dbConnect();
 
     const body = await req.json();
     
-    if (body.title) {
-      body.slug = generateSlug(body.title);
+    // Explicit allowlist to prevent mass assignment
+    const {
+      title,
+      description,
+      price,
+      category,
+      frame_material,
+      frame_size,
+      tags,
+      imageUrl,
+      stock,
+    } = body;
+
+    const updatePayload: any = {
+      title,
+      description,
+      price,
+      category,
+      frame_material,
+      frame_size,
+      tags,
+      imageUrl,
+      stock,
+    };
+
+    // Remove undefined fields
+    Object.keys(updatePayload).forEach(key => {
+      if (updatePayload[key] === undefined) delete updatePayload[key];
+    });
+
+    if (title) {
+      updatePayload.slug = generateSlug(title);
     }
 
     const { id } = await params;
-    const frame = await Frame.findByIdAndUpdate(id, body, {
+    const frame = await Frame.findByIdAndUpdate(id, updatePayload, {
       new: true,
       runValidators: true,
     });
@@ -43,6 +79,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+
     await dbConnect();
 
     const { id } = await params;

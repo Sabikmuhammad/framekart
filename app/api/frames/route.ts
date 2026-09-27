@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Frame from "@/models/Frame";
 import { generateSlug } from "@/lib/utils";
+import { getCurrentUser } from "@/lib/auth/authorization";
 
 export async function GET(req: NextRequest) {
   try {
@@ -43,6 +44,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+
     await dbConnect();
 
     const body = await req.json();

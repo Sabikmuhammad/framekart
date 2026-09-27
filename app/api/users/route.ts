@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     await dbConnect();
 
     const currentUser = await User.findById(userId);
-    if (!currentUser || currentUser.role !== "admin") {
+    if (!currentUser || currentUser.role !== "ADMIN") {
       return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 

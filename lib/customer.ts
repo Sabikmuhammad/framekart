@@ -31,30 +31,22 @@ export async function processCustomerForOrder(orderId: string, orderType: string
     normalizedPhone = normalizedPhone.slice(-10);
   }
 
-  // 1. Try to find existing user by phone
-  let user = await User.findOne({ phoneNumber: { $regex: new RegExp(`${normalizedPhone}$`) } });
-
-  // 2. If no user by phone, try by email if provided
-  if (!user && customerDetails.email) {
-    user = await User.findOne({ email: customerDetails.email });
-  }
-
-  // 3. Create user if doesn't exist
-  if (!user) {
-    user = await User.create({
-      name: customerDetails.name || "Customer",
-      phoneNumber: `+91${normalizedPhone}`, // Standardizing format
-      email: customerDetails.email || undefined,
-      role: "CUSTOMER",
-      status: "ACTIVE",
-    });
-  } else {
-    // Optionally update email if not present
-    if (!user.email && customerDetails.email) {
-      user.email = customerDetails.email;
-      await user.save();
-    }
-  }
+  // 3. Atomically upsert user (find existing or create) to prevent race conditions
+  const phoneNumber = `+91${normalizedPhone}`;
+  let user = await User.findOneAndUpdate(
+    { phoneNumber },
+    {
+      $setOnInsert: {
+        name: customerDetails.name || "Customer",
+        role: "CUSTOMER",
+        status: "ACTIVE",
+      },
+      $set: {
+        ...(customerDetails.email && { email: customerDetails.email }),
+      }
+    },
+    { new: true, upsert: true }
+  );
 
   // 4. Associate order with user
   order.userId = user._id;

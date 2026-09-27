@@ -10,3 +10,4 @@ export { default as StatsSection } from "./StatsSection";
 export { default as NewsletterSection } from "./NewsletterSection";
 export { default as CTASection } from "./CTASection";
 export { default as LaunchOfferBanner } from "./LaunchOfferBanner";
+export { default as BulkOrdersPromotion } from "./BulkOrdersPromotion";

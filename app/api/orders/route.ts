@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     // Check if user is admin
     const dbUser = await User.findById(userId);
     
-    if (!dbUser || dbUser.role !== "admin") {
+    if (!dbUser || dbUser.role !== "ADMIN") {
       return NextResponse.json(
         { success: false, error: "Admin access required" },
         { status: 403 }

@@ -71,7 +71,8 @@ export async function POST(req: NextRequest) {
         .upload_stream(
           {
             folder: "framekart/custom-frames",
-            resource_type: "auto",
+            resource_type: "image",
+            allowed_formats: ["jpg", "jpeg", "png", "webp"],
             transformation: [
               { width: 2000, height: 2000, crop: "limit" },
               { quality: "auto:good" }

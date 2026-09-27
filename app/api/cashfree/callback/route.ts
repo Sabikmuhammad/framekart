@@ -108,6 +108,13 @@ export async function GET(req: NextRequest) {
           console.error('❌ Order not found:', orderId);
           return NextResponse.redirect(`${baseUrl}/checkout?error=missing_order_id`);
         }
+
+        // Verify payment amount matches server amount
+        const expectedAmount = orderType === "bulk" ? existingOrder.pricing?.finalTotal : existingOrder.totalAmount;
+        if (expectedAmount && Math.abs(payment.payment_amount - expectedAmount) > 0.01) {
+          console.error(`❌ Amount mismatch! Expected: ${expectedAmount}, Got: ${payment.payment_amount}`);
+          return NextResponse.redirect(`${baseUrl}/checkout?error=payment_amount_mismatch`);
+        }
         
         if (existingOrder.paymentStatus === "completed") {
           console.log('⚠️ Order already processed, redirecting to success');

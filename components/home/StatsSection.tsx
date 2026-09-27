@@ -5,7 +5,7 @@ import { Users, Package, Star, MessageCircle } from "lucide-react";
 
 export default function StatsSection() {
   return (
-    <section className="py-16 sm:py-20 md:py-24 bg-white text-[#111827] relative overflow-hidden">
+    <section className="pt-16 sm:pt-20 md:pt-24 pb-8 sm:pb-12 bg-white text-[#111827] relative overflow-hidden">
       {/* Subtle Background Glow */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(59,130,246,0.05)_0%,_transparent_50%)] pointer-events-none" />
@@ -13,8 +13,8 @@ export default function StatsSection() {
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 max-w-5xl mx-auto">
           {[
-            { value: "10K+", label: "Happy Customers", icon: Users },
-            { value: "50K+", label: "Frames Crafted", icon: Package },
+            { value: "1K+", label: "Happy Customers", icon: Users },
+            { value: "2K+", label: "Frames Crafted", icon: Package },
             { value: "4.9/5", label: "Average Rating", icon: Star },
             { value: "24/7", label: "Expert Support", icon: MessageCircle },
           ].map((stat, index) => (

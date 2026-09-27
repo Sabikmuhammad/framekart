@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/auth/authorization";
 // Update custom order status
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -25,7 +25,7 @@ export async function PATCH(
     // Check if user is admin
     const dbUser = await User.findById(userId);
     
-    if (!dbUser || dbUser.role !== "admin") {
+    if (!dbUser || dbUser.role !== "ADMIN") {
       return NextResponse.json(
         { success: false, error: "Admin access required" },
         { status: 403 }
@@ -35,8 +35,10 @@ export async function PATCH(
     const body = await req.json();
     const { status } = body;
 
+    const { id } = await params;
+
     const order = await Order.findByIdAndUpdate(
-      params.id,
+      id,
       { status },
       { new: true }
     );

@@ -10,6 +10,7 @@ import {
   LimitedOfferBanner,
   BestSellerSection,
   WeddingBirthdaySection,
+  BulkOrdersPromotion,
   InstagramSection,
   StatsSection,
   CTASection,
@@ -69,7 +70,8 @@ export default function HomePage() {
         eligibility={eligibility}
       />
       <CustomFrameBanner />
-      <LimitedOfferBanner eligibility={eligibility} />
+      {/* <LimitedOfferBanner eligibility={eligibility} /> */}
+      <BulkOrdersPromotion />
       <BestSellerSection frames={frames} eligibility={eligibility} />
       <WeddingBirthdaySection />
       <InstagramSection />

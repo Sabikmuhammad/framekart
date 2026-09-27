@@ -5,11 +5,19 @@ import Order from "@/models/Order";
 import { calculateOrderTotal } from "@/lib/launchOffer";
 import { validateCustomCart } from "@/lib/cartValidation";
 import crypto from "crypto";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     const userId = user?._id?.toString() || undefined;
+
+    // Rate Limiting (10 requests per 60 minutes per IP)
+    const ip = request.ip ?? request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "127.0.0.1";
+    const isAllowed = await checkRateLimit(`template_order_${ip}`, 10, 60 * 60 * 1000);
+    if (!isAllowed) {
+      return NextResponse.json({ success: false, error: "Too many template order requests. Please try again later." }, { status: 429 });
+    }
 
     await dbConnect();
 
