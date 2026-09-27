@@ -412,9 +412,9 @@ export default function BulkOrderBuilder() {
                                 <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Size" /></SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="A4">A4 (21x29.7cm)</SelectItem>
-                                  <SelectItem value="12x18">A3 (12x18")</SelectItem>
-                                  <SelectItem value="18x24">A2 (18x24")</SelectItem>
-                                  <SelectItem value="24x36">A1 (24x36")</SelectItem>
+                                  <SelectItem value="12x18">A3 (12x18&quot;)</SelectItem>
+                                  <SelectItem value="18x24">A2 (18x24&quot;)</SelectItem>
+                                  <SelectItem value="24x36">A1 (24x36&quot;)</SelectItem>
                                 </SelectContent>
                               </Select>
                               

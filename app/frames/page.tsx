@@ -373,7 +373,7 @@ function FramesList() {
               </div>
               <h3 className="text-[17px] md:text-[20px] font-[600] text-[#111827] mb-2">No frames found</h3>
               <p className="text-[13px] md:text-[14px] text-[#64748B] mb-6">
-                Try adjusting your search or category filters to find what you're looking for.
+                Try adjusting your search or category filters to find what you&apos;re looking for.
               </p>
               <button 
                 onClick={clearAllFilters}

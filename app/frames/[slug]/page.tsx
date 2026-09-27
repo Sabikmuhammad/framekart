@@ -420,7 +420,7 @@ export default function FrameDetailPage() {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.6 }}
             className="mt-4 md:mt-12 mb-8 px-4 md:px-0"
           >
-            <h2 className="text-[18px] md:text-[22px] font-[600] mb-5 text-[#111827]">Similar Frames You'll Love</h2>
+            <h2 className="text-[18px] md:text-[22px] font-[600] mb-5 text-[#111827]">Similar Frames You&apos;ll Love</h2>
             
             <div className="flex md:grid md:grid-cols-4 gap-[12px] md:gap-4 overflow-x-auto hide-scrollbar pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 snap-x">
               {similarFrames.map((similarFrame, idx) => {

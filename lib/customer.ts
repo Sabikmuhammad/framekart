@@ -35,8 +35,8 @@ export async function processCustomerForOrder(orderId: string, orderType: string
   let user = await User.findOne({ phoneNumber: { $regex: new RegExp(`${normalizedPhone}$`) } });
 
   // 2. If no user by phone, try by email if provided
-  if (!user && customer.email) {
-    user = await User.findOne({ email: customer.email });
+  if (!user && customerDetails.email) {
+    user = await User.findOne({ email: customerDetails.email });
   }
 
   // 3. Create user if doesn't exist
