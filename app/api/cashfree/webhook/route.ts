@@ -20,6 +20,7 @@ import { createHmac } from "crypto";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import { markCartSessionCompleted } from "@/lib/cart/recovery";
+import { processCustomerForOrder } from "@/lib/customer";
 
 export const dynamic = 'force-dynamic';
 
@@ -148,6 +149,15 @@ export async function POST(req: NextRequest) {
       dbOrder.paidAt = paymentTime ? new Date(paymentTime) : new Date();
       
       await dbOrder.save();
+
+      // Process customer account creation / association
+      try {
+        await processCustomerForOrder(dbOrder._id.toString());
+        console.log(`✅ [${webhookId}] Customer account processed for order`);
+      } catch (custError) {
+        console.error(`❌ [${webhookId}] Failed to process customer account:`, custError);
+        // Do not fail the webhook, order is already paid
+      }
       await markCartSessionCompleted({
         email: dbOrder.customerEmail,
       });

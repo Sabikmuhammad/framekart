@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
+import { processCustomerForOrder } from "@/lib/customer";
+import { createSession } from "@/lib/auth/session";
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +24,9 @@ export async function GET(req: NextRequest) {
     
     // Tracking token for guest checkout
     const token = searchParams.get("token");
+    
+    // Order type (regular or bulk)
+    const orderType = searchParams.get("type") || "regular";
     
     // Cashfree's order ID (they send it as order_id)
     let cashfreeOrderId = searchParams.get("order_id");
@@ -46,7 +51,8 @@ export async function GET(req: NextRequest) {
       console.error('❌ Missing cashfree order_id parameter');
       // Try to fetch order from database and use its cashfreeOrderId
       await dbConnect();
-      const order = await Order.findById(orderId);
+      const Model = orderType === "bulk" ? (await import("@/models/BulkOrder")).BulkOrder : Order;
+      const order = await Model.findById(orderId);
       
       if (order && order.cashfreeOrderId) {
         cashfreeOrderId = order.cashfreeOrderId;
@@ -96,7 +102,8 @@ export async function GET(req: NextRequest) {
         await dbConnect();
         
         // Check if order is already processed
-        const existingOrder = await Order.findById(orderId);
+        const Model = orderType === "bulk" ? (await import("@/models/BulkOrder")).BulkOrder : Order;
+        const existingOrder = await Model.findById(orderId);
         if (!existingOrder) {
           console.error('❌ Order not found:', orderId);
           return NextResponse.redirect(`${baseUrl}/checkout?error=missing_order_id`);
@@ -104,30 +111,52 @@ export async function GET(req: NextRequest) {
         
         if (existingOrder.paymentStatus === "completed") {
           console.log('⚠️ Order already processed, redirecting to success');
+          try {
+            const userId = await processCustomerForOrder(orderId, orderType);
+            if (userId) {
+              await createSession(userId);
+            }
+          } catch (err) {
+            console.error("Error creating session for already processed order:", err);
+          }
           let successUrl = `${baseUrl}/checkout/success?orderId=${orderId}`;
           if (token) successUrl += `&token=${token}`;
           return NextResponse.redirect(successUrl);
         }
         
-        const updatedOrder = await Order.findByIdAndUpdate(
+        const updatedOrder = await Model.findByIdAndUpdate(
           orderId,
           {
             paymentStatus: "completed",
             paymentId: payment.cf_payment_id,
             cashfreeOrderId: cashfreeOrderId,
-            status: "Processing",
+            status: orderType === "bulk" ? "PAID" : "Processing",
           },
           { new: true }
         );
         
         console.log('✅ Order updated successfully:', updatedOrder?._id);
 
+        // Process customer account creation / association and log them in
+        try {
+          const userId = await processCustomerForOrder(orderId, orderType);
+          if (userId) {
+            await createSession(userId);
+            console.log('✅ User session created:', userId);
+          }
+        } catch (custError) {
+          console.error('❌ Failed to process customer account/session:', custError);
+          // Do not fail the callback, order is already paid
+        }
+
         // Send order confirmation email
         try {
-          console.log('📧 Sending confirmation email...');
-          const { sendOrderConfirmationEmail } = await import('@/lib/email');
-          await sendOrderConfirmationEmail(updatedOrder);
-          console.log('✅ Email sent successfully');
+          if (orderType !== "bulk") {
+            console.log('📧 Sending confirmation email...');
+            const { sendOrderConfirmationEmail } = await import('@/lib/email');
+            await sendOrderConfirmationEmail(updatedOrder);
+            console.log('✅ Email sent successfully');
+          }
         } catch (emailError) {
           // Log error but don't block the success flow
           console.error('❌ Failed to send confirmation email:', emailError);

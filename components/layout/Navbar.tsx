@@ -62,6 +62,12 @@ export default function Navbar() {
             Custom Frame
           </Link>
           <Link
+            href="/bulk-orders"
+            className="text-sm font-medium transition-colors hover:text-primary"
+          >
+            Bulk Orders
+          </Link>
+          <Link
             href="/about"
             className="text-sm font-medium transition-colors hover:text-primary"
           >
@@ -145,6 +151,13 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Custom Frame
+            </Link>
+            <Link
+              href="/bulk-orders"
+              className="text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Bulk Orders
             </Link>
             <Link
               href="/about"

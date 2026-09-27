@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Package, ShoppingCart, User, Palette } from "lucide-react";
+import { Home, Package, ShoppingCart, User, Palette, MessageCircle, Building2 } from "lucide-react";
 import { useCartStore } from "@/store/cart";
+import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useKeyboardVisible } from "@/hooks/useKeyboardVisible";
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const { isAuthenticated, isLoading } = useAuth();
   const items = useCartStore((state) => state.items);
   const [mounted, setMounted] = useState(false);
+  const isKeyboardVisible = useKeyboardVisible();
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
   
   useEffect(() => {
@@ -21,22 +25,49 @@ export default function MobileNav() {
     return null;
   }
 
-  const navItems = [
+  const baseNavItems = [
     { href: "/", label: "Home", icon: Home },
     { href: "/frames", label: "Frames", icon: Package },
     { href: "/custom-frame", label: "Custom", icon: Palette },
+    { href: "/bulk-orders", label: "Bulk", icon: Building2 },
+    { href: "https://wa.me/919480632085?text=Hi", label: "WhatsApp", icon: MessageCircle, external: true },
     { href: "/cart", label: "Cart", icon: ShoppingCart },
-    { href: "/profile", label: "Profile", icon: User },
   ];
 
+  const navItems = isAuthenticated 
+    ? [...baseNavItems, { href: "/profile", label: "Profile", icon: User }] 
+    : baseNavItems;
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[9000] border-t bg-background md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className="flex items-center justify-around h-[62px]">
+    <AnimatePresence>
+      {!isKeyboardVisible && (
+        <motion.nav 
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="fixed bottom-0 left-0 right-0 z-[9000] border-t bg-background md:hidden" 
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          <div className="flex items-center justify-around h-[62px]">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const isCart = item.href === "/cart";
           
-          return (
+          return item.external ? (
+            <a
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex flex-col items-center justify-center flex-1 h-full gap-1 relative text-[#64748B]`}
+            >
+              <motion.div className="relative">
+                <item.icon className="h-[22px] w-[22px] stroke-[1.5]" />
+              </motion.div>
+              <span className="text-[10px] font-medium">{item.label}</span>
+            </a>
+          ) : (
             <Link
               key={item.href}
               href={item.href}
@@ -70,6 +101,8 @@ export default function MobileNav() {
           );
         })}
       </div>
-    </nav>
+        </motion.nav>
+      )}
+    </AnimatePresence>
   );
 }

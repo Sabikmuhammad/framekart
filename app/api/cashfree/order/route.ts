@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
     // Parse and validate request body
     const body = await req.json();
     const validatedData = CashfreeOrderSchema.parse(body);
-    const { amount, customerPhone, customerEmail, customerName, orderId, trackingToken } = validatedData;
+    const { amount, customerPhone, customerEmail, customerName, orderId, trackingToken, orderType } = validatedData;
 
-    console.log("📦 Creating Cashfree order for:", { orderId, amount, customerEmail });
+    console.log("📦 Creating Cashfree order for:", { orderId, amount, customerEmail, orderType });
 
     // ===== Environment Configuration =====
     const environment = process.env.CASHFREE_ENV || "sandbox";
@@ -72,21 +72,43 @@ export async function POST(req: NextRequest) {
     if (trackingToken) {
       returnUrl += `&token=${trackingToken}`;
     }
-    const notifyUrl = `${baseUrl}/api/cashfree/webhook`;
+    if (orderType === "bulk") {
+      returnUrl += `&type=bulk`;
+    }
+    const notifyUrl = `${baseUrl}/api/cashfree/webhook${orderType === "bulk" ? "?type=bulk" : ""}`;
 
     // ===== Verify Order & Amount Server-Side =====
     const dbConnect = (await import("@/lib/db")).default;
-    const Order = (await import("@/models/Order")).default;
     await dbConnect();
     
-    const dbOrder = await Order.findById(orderId);
+    let dbOrder;
+    if (orderType === "bulk") {
+      const BulkOrder = (await import("@/models/BulkOrder")).BulkOrder;
+      dbOrder = await BulkOrder.findById(orderId);
+      if (dbOrder) {
+        dbOrder.totalAmount = dbOrder.pricing?.finalTotal || amount; // For compatibility
+      }
+    } else {
+      const Order = (await import("@/models/Order")).default;
+      dbOrder = await Order.findById(orderId);
+    }
+
     if (!dbOrder) {
       console.error("❌ Order not found for Cashfree payment:", orderId);
       return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
     }
     
     // Security: Do NOT trust frontend amount. Use server-calculated amount.
-    const serverAmount = dbOrder.totalAmount || amount;
+    let serverAmount;
+    if (orderType === "bulk") {
+      serverAmount = dbOrder.pricing.finalTotal;
+    } else {
+      serverAmount = dbOrder.totalAmount;
+    }
+
+    if (!serverAmount || serverAmount <= 0) {
+      return NextResponse.json({ success: false, error: "Invalid order amount" }, { status: 400 });
+    }
 
     // Normalize phone number (digits only, max 10 for India)
     let normalizedPhone = customerPhone.replace(/\D/g, '');
@@ -180,10 +202,9 @@ export async function POST(req: NextRequest) {
 
     // ===== Update Database with Cashfree Order ID =====
     try {
-      await Order.findByIdAndUpdate(orderId, {
-        cashfreeOrderId: responseData.order_id,
-        paymentStatus: "pending",
-      });
+      dbOrder.cashfreeOrderId = responseData.order_id;
+      dbOrder.paymentStatus = "pending";
+      await dbOrder.save();
       
       console.log("✅ Database updated with Cashfree order ID");
     } catch (dbError) {

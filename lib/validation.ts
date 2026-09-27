@@ -38,6 +38,7 @@ export const CashfreeOrderSchema = z.object({
   customerName: z.string().min(2).max(100),
   orderId: z.string().min(1),
   trackingToken: z.string().optional(),
+  orderType: z.enum(['regular', 'bulk']).optional().default('regular'),
 });
 
 // Custom frame order validation
@@ -79,4 +80,40 @@ export const ContactFormSchema = z.object({
 export const VisitorSchema = z.object({
   name: z.string().max(100).optional().or(z.literal("")),
   phone: z.string().regex(/^\d{10}$/, "Mobile number must be exactly 10 digits consisting of numbers only"),
+});
+
+// Bulk Order validation schema
+export const BulkOrderValidationSchema = z.object({
+  items: z.array(z.object({
+    productId: z.string().optional().or(z.literal('')),
+    title: z.string().min(1).max(200),
+    quantity: z.number().int().min(1),
+    type: z.enum(['PRODUCT', 'CUSTOM_PHOTO', 'REGULAR', 'CUSTOM', 'TEMPLATE']).default('PRODUCT'),
+    imageUrl: z.string().url().optional(),
+    configuration: z.any().optional(),
+  })).min(1),
+  customer: z.object({
+    firstName: z.string().min(2).max(100),
+    lastName: z.string().max(100).optional().or(z.literal('')),
+    phone: z.string().min(10).max(15),
+    email: z.string().email(),
+  }),
+  organisation: z.object({
+    name: z.string().max(200).optional(),
+    gstNumber: z.string().max(50).optional(),
+    designation: z.string().max(100).optional(),
+  }).optional(),
+  delivery: z.object({
+    addressLine1: z.string().min(3).max(200),
+    addressLine2: z.string().max(200).optional().or(z.literal('')),
+    area: z.string().max(100).optional().or(z.literal('')),
+    city: z.string().min(2).max(100),
+    state: z.string().min(2).max(100),
+    pincode: z.string().min(4).max(10),
+  }),
+  orderType: z.string().min(1),
+  requiredDate: z.string().optional().or(z.literal('')),
+  specialInstructions: z.string().max(1000).optional().or(z.literal('')),
+  attachments: z.array(z.string().url()).optional(),
+  isQuoteRequest: z.boolean().default(false),
 });

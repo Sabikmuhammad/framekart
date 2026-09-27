@@ -187,6 +187,45 @@ export default function ProfilePage() {
     { href: "/privacy", label: "Privacy Policy", icon: Lock, color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/20" },
   ];
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 md:pb-8 flex flex-col items-center justify-center px-4">
+        <div className="w-20 h-20 mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+          <User className="h-10 w-10 text-primary" />
+        </div>
+        <h1 className="text-2xl font-bold mb-2 text-center uppercase tracking-wider">Welcome to FrameKart</h1>
+        <p className="text-center text-gray-600 dark:text-gray-400 max-w-sm mb-8">
+          Sign in after placing your first order to view:
+        </p>
+        
+        <div className="space-y-4 mb-10 w-full max-w-xs">
+          <div className="flex items-center gap-3">
+            <Package className="h-5 w-5 text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300 font-medium">Orders</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Truck className="h-5 w-5 text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300 font-medium">Delivery details</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <MapPin className="h-5 w-5 text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300 font-medium">Saved information</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Settings className="h-5 w-5 text-gray-400" />
+            <span className="text-gray-700 dark:text-gray-300 font-medium">Account details</span>
+          </div>
+        </div>
+
+        <Link href="/frames">
+          <Button size="lg" className="w-full max-w-xs h-12 rounded-xl text-base">
+            Start Shopping
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 md:pb-8">
       <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">

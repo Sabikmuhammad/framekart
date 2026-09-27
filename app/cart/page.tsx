@@ -322,7 +322,7 @@ export default function CartPage() {
               
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Shipping</span>
-                <span className="text-green-600 dark:text-green-400 font-medium tracking-wide">COMPLIMENTARY</span>
+                <span className="text-primary font-semibold tracking-wide uppercase">FREE</span>
               </div>
               
               <div className="pt-6 mt-4 border-t border-border">
@@ -390,7 +390,7 @@ export default function CartPage() {
       <CartOfferBanner />
 
       {/* Mobile Sticky Checkout Bar */}
-      <div className="sm:hidden fixed bottom-16 left-0 right-0 z-40 bg-background/90 backdrop-blur-md border-t border-border/50 px-4 py-3 shadow-[0_-8px_16px_-6px_rgba(0,0,0,0.05)]">
+      <div className="sm:hidden fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-0 right-0 z-40 bg-white/90 dark:bg-background/90 backdrop-blur-xl border-t border-[#E2E8F0] dark:border-border/50 p-4 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Total</span>

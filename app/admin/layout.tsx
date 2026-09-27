@@ -15,6 +15,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/frames", label: "Frames", icon: Package },
     { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+    { href: "/admin/bulk-orders", label: "Bulk Orders", icon: Package },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/visitor-tracking", label: "Custom Frame Leads", icon: PhoneCall },
     { href: "/admin/whatsapp", label: "WhatsApp Chat", icon: MessageCircle },
