@@ -2,18 +2,20 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, Loader2, ShoppingCart, Info, Cake, Heart, ArrowLeft, AlertCircle, Crop } from "lucide-react";
+import { Upload, Loader2, ShoppingCart, Info, Cake, Heart, ArrowLeft, AlertCircle, Crop, Check, Image as ImageIcon2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/store/cart";
+import { useFlyCartStore } from "@/store/fly-cart";
 import { useRouter } from "next/navigation";
 import { useAuth as useCustomAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
 import { OccasionPromo } from "@/components/custom-frames/OccasionPromo";
+import { CustomMarquee } from "@/components/custom-frames/CustomMarquee";
 import { ImageCropModal } from "@/components/custom-frames/ImageCropModal";
 import { detectImageOrientation, loadImage, blobToDataURL } from "@/lib/utils/image-utils";
 import type { UploadedImage, CropData } from "@/lib/types/custom-frame";
@@ -80,6 +82,7 @@ export default function OccasionFramePage({ params }: PageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { addItem } = useCartStore();
+  const addFlyItem = useFlyCartStore((state) => state.addFlyItem);
   const { isAuthenticated: isSignedIn } = useCustomAuth();
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -317,6 +320,11 @@ export default function OccasionFramePage({ params }: PageProps) {
 
       addItem(templateItem);
 
+      const imageEl = document.querySelector('[data-product-image="occasion"]') as HTMLElement;
+      if (imageEl && templateImage) {
+        addFlyItem(templateImage, imageEl.getBoundingClientRect());
+      }
+
       toast({
         title: "Added to cart!",
         description: `Your ${occasion} frame has been added to the cart.`,
@@ -337,143 +345,40 @@ export default function OccasionFramePage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 relative overflow-hidden">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_1px_1px,rgb(0_0_0/0.05)_1px,transparent_0)] [background-size:40px_40px] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.05)_1px,transparent_0)] pointer-events-none" />
+    <div className="min-h-screen bg-[#FAFAFA] text-[#111827] pb-[170px] lg:pb-10 font-sans relative">
+      <CustomMarquee className="border-t-0" />
       
-      {/* Floating background gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-[-10%] left-[-10%] w-[350px] h-[350px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[80px]"
-          animate={{
-            x: [0, 40, -20, 0],
-            y: [0, -40, 20, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute top-[5%] right-[-10%] w-[300px] h-[300px] bg-secondary/15 dark:bg-secondary/25 rounded-full blur-[70px]"
-          animate={{
-            x: [0, -30, 40, 0],
-            y: [0, 30, -30, 0],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Back Button */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-6"
+      {/* HERO SECTION */}
+      <motion.section 
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}
+        className="pt-8 pb-6 px-4 max-w-7xl mx-auto flex flex-col items-center text-center lg:pt-16 lg:pb-12"
+      >
+        <motion.h1 
+          initial={{ y: 15, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, type: "spring" }}
+          className="text-[28px] sm:text-4xl md:text-5xl font-semibold tracking-tight text-[#111827] max-w-2xl mb-2"
         >
-          <Link href="/">
-            <Button variant="ghost" className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Button>
-          </Link>
-        </motion.div>
-
-        {/* Header */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: {
-                staggerChildren: 0.1,
-              },
-            },
-          }}
-          className="text-center mb-8 sm:mb-12"
+          {title}
+        </motion.h1>
+        <motion.p 
+          initial={{ y: 15, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, type: "spring" }}
+          className="text-sm sm:text-base text-[#64748B] max-w-2xl mx-auto"
         >
-          <motion.div
-            variants={{
-              hidden: { opacity: 0, y: -10 },
-              visible: { opacity: 1, y: 0 }
-            }}
-          >
-            <motion.div 
-              animate={{ y: [0, -5, 0] }}
-              transition={{
-                repeat: Infinity,
-                duration: 4,
-                ease: "easeInOut",
-              }}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/10 to-secondary/10 px-5 py-2.5 rounded-full text-sm font-semibold mb-6 border border-primary/20 shadow-sm text-primary"
-            >
-              
-            </motion.div>
-          </motion.div>
-          
-          <motion.h1
-            variants={{
-              hidden: { opacity: 0, y: 15 },
-              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-            }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight"
-          >
-            {title}
-          </motion.h1>
-          
-          <motion.p 
-            variants={{
-              hidden: { opacity: 0, y: 15 },
-              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-            }}
-            className="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed mb-6"
-          >
-            {description}
-          </motion.p>
-          
-          {/* Important Info Banner */}
-          <motion.div
-            variants={{
-              hidden: { opacity: 0, y: 10 },
-              visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-            }}
-            className="mx-auto max-w-3xl"
-          >
-            <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
-              <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-gray-700 dark:text-gray-300 text-left">
-                  <p className="font-semibold mb-1">This is a sample template</p>
-                  <p>Our design team will professionally prepare your frame after order placement, incorporating your details and photo beautifully.</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
+          {description}
+        </motion.p>
+      </motion.section>
 
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* Left: Template Preview */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800 lg:sticky lg:top-8">
-              <div className="mb-4">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
-                  <Icon className="h-6 w-6 text-primary" />
-                  Preview
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Sample design - Final design will be customized</p>
-              </div>
+      {/* FRAME STUDIO */}
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12 mb-16">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
+          
+          {/* LEFT: LIVE PREVIEW & UPLOAD (Sticky on Desktop) */}
+          <div className="w-full lg:w-[55%] lg:sticky lg:top-24 flex flex-col gap-4">
+            
+            {/* Live Preview */}
+            <div className="relative aspect-square sm:aspect-[4/3] lg:aspect-square bg-white rounded-2xl border border-gray-200 overflow-hidden flex items-center justify-center p-6 sm:p-16 shadow-sm">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,1)_0%,rgba(240,240,240,1)_100%)] pointer-events-none" />
               
-              <div className="relative aspect-[210/297] max-w-xs mx-auto lg:max-w-none bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden shadow-2xl">
+              <div className="relative aspect-[210/297] w-full max-w-xs shadow-2xl overflow-hidden rounded-md" data-product-image="occasion">
                 <Image
                   src={templateImage}
                   alt={`${title} Template`}
@@ -481,191 +386,188 @@ export default function OccasionFramePage({ params }: PageProps) {
                   className="object-contain"
                 />
               </div>
-
-              <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <div className="flex items-center gap-2 text-sm">
-                  <AlertCircle className="h-4 w-4 text-primary" />
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-semibold">Frame Size:</span> A4 (Fixed) • <span className="font-semibold">Price:</span> ₹{FIXED_PRICE}
-                  </p>
-                </div>
-              </div>
             </div>
-          </motion.div>
 
-          {/* Right: Form */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-6"
-          >
-            {/* Upload Photo (Optional) */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">
-                  {isBirthday ? "Upload Photo" : "Upload Couple Photo"}
-                </h3>
-                <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-600 dark:text-gray-400">Optional</span>
+            {/* UPLOAD CONTROLS */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-gray-900 tracking-wide mb-1">UPLOAD PHOTO (OPTIONAL)</span>
+                <span className="text-[11px] text-gray-500">{uploadedPhoto ? "Photo uploaded" : "Choose a photo for your frame"}</span>
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/webp"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="w-full mb-3"
-                size="lg"
-                variant={uploadedPhoto ? "outline" : "default"}
-              >
-                {isUploading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Upload className="h-5 w-5 mr-2" />}
-                {uploadedPhoto ? "Change Photo" : "Upload Photo"}
-              </Button>
-              {uploadedPhoto && (
-                <>
-                  <div className="mt-3 relative aspect-video rounded-lg overflow-hidden">
-                    <Image src={uploadedPhoto} alt="Uploaded" fill className="object-cover" />
-                  </div>
-                  <Button
-                    onClick={handleCropImage}
-                    variant="outline"
-                    className="w-full mt-3"
-                  >
-                    <Crop className="h-4 w-4 mr-2" />
-                    Crop Image
+              <div className="flex items-center gap-2">
+                {uploadedPhoto && (
+                  <Button variant="outline" size="sm" onClick={handleCropImage} className="h-9 rounded-lg text-xs font-medium text-[#3B82F6] border-[#3B82F6]/30 hover:bg-blue-50">
+                    Edit Photo
                   </Button>
-                </>
-              )}
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
-                Photo upload is optional. You can also share images later via WhatsApp or Email.
-              </p>
+                )}
+                <Button 
+                  size="sm" 
+                  onClick={() => fileInputRef.current?.click()} 
+                  disabled={isUploading}
+                  className={`h-9 rounded-lg text-xs font-medium ${uploadedPhoto ? 'bg-blue-50 text-[#3B82F6] hover:bg-blue-100' : 'bg-[#3B82F6] text-white hover:bg-[#2563EB]'}`}
+                >
+                  {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+                  {uploadedPhoto ? "Change" : "Upload Photo"}
+                </Button>
+              </div>
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/webp" onChange={handleFileSelect} className="hidden" />
+          </div>
+
+          {/* RIGHT: CONFIGURATION */}
+          <div className="w-full lg:w-[45%] flex flex-col gap-10">
+            
+            {/* 01. SIZE */}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-gray-400 tracking-widest">01</span>
+                <h3 className="text-base font-semibold text-[#111827]">CHOOSE YOUR SIZE</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                 <button
+                    className="flex flex-col items-start p-3 rounded-xl border border-blue-500 bg-[#F8FBFF] shadow-[0_0_0_1px_rgba(59,130,246,1)] h-[78px] justify-center text-left"
+                  >
+                    <div className="flex w-full justify-between items-start">
+                      <span className="font-semibold text-[13px] text-[#111827]">A4</span>
+                      <Check className="w-4 h-4 text-blue-500 absolute top-2 right-2" />
+                    </div>
+                    <span className="text-[10px] text-[#64748B]">21 × 29.7 cm</span>
+                    <span className="font-semibold text-[13px] text-[#111827] mt-0.5">₹999</span>
+                  </button>
+              </div>
             </div>
 
-            {/* Frame Style */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800">
-              <h3 className="text-lg font-semibold mb-4">Frame Style</h3>
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {/* 02. FRAME */}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-gray-400 tracking-widest">02</span>
+                <h3 className="text-base font-semibold text-[#111827]">CHOOSE YOUR FRAME</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 {FRAME_STYLES.map((style) => (
                   <button
                     key={style.value}
                     onClick={() => setFrameStyle(style.value)}
-                    className={`p-2.5 sm:p-4 rounded-lg border-2 transition-all ${
-                      frameStyle === style.value
-                        ? "border-primary bg-primary/5"
-                        : "border-gray-200 dark:border-gray-700 hover:border-primary/30"
+                    className={`p-3 rounded-xl border text-left flex flex-col h-[100px] transition-all duration-300 ${
+                      frameStyle === style.value 
+                      ? "border-blue-500 bg-blue-50/50 shadow-[0_0_0_1px_rgba(59,130,246,1)]" 
+                      : "border-gray-200 bg-white hover:border-gray-300"
                     }`}
                   >
-                    <div
-                      className="w-8 h-8 sm:w-12 sm:h-12 rounded-full mx-auto mb-2 border-2"
-                      style={{ backgroundColor: style.color }}
-                    />
-                    <div className="text-xs sm:text-sm font-semibold">{style.label}</div>
-                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">{style.description}</div>
+                    <div className="w-full h-8 rounded shadow-inner border border-black/10 mb-auto" style={{ backgroundColor: style.color }} />
+                    <div className="flex items-center justify-between w-full mt-2">
+                      <span className="font-semibold text-xs tracking-wide text-[#111827]">{style.label}</span>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${frameStyle === style.value ? 'bg-blue-500 border-blue-500' : 'border-gray-300'}`}>
+                         {frameStyle === style.value && <Check className="w-2.5 h-2.5 text-white" />}
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Occasion Details */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800">
-              <h3 className="text-lg font-semibold mb-4">
-                {isBirthday ? "Birthday Details" : "Wedding Details"}
-              </h3>
-              <div className="space-y-4">
+            {/* 03. OCCASION DETAILS */}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-gray-400 tracking-widest">03</span>
+                <h3 className="text-base font-semibold text-[#111827] uppercase">
+                  {isBirthday ? "BIRTHDAY DETAILS" : "WEDDING DETAILS"}
+                </h3>
+              </div>
+              
+              <div className="space-y-4 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
                 {isBirthday ? (
                   <>
                     <div>
-                      <Label htmlFor="name">Name *</Label>
+                      <Label htmlFor="name" className="text-xs font-semibold text-gray-700">Name *</Label>
                       <Input
                         id="name"
                         placeholder="Birthday person's name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="mt-2"
+                        className="mt-1.5 h-10 bg-gray-50/50"
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="age">Age *</Label>
+                      <Label htmlFor="age" className="text-xs font-semibold text-gray-700">Age *</Label>
                       <Input
                         id="age"
                         type="number"
                         placeholder="Age"
                         value={age}
                         onChange={(e) => setAge(e.target.value)}
-                        className="mt-2"
+                        className="mt-1.5 h-10 bg-gray-50/50"
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="date">Birthday Date *</Label>
+                      <Label htmlFor="date" className="text-xs font-semibold text-gray-700">Birthday Date *</Label>
                       <Input
                         id="date"
                         type="date"
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
-                        className="mt-2"
+                        className="mt-1.5 h-10 bg-gray-50/50"
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="message">Special Message (Optional)</Label>
+                      <Label htmlFor="message" className="text-xs font-semibold text-gray-700">Special Message (Optional)</Label>
                       <Textarea
                         id="message"
                         placeholder="Add a special birthday message..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        className="mt-2"
+                        className="mt-1.5 resize-none bg-gray-50/50"
+                        rows={3}
                       />
                     </div>
                   </>
                 ) : (
                   <>
                     <div>
-                      <Label htmlFor="brideName">Bride&apos;s Name *</Label>
+                      <Label htmlFor="brideName" className="text-xs font-semibold text-gray-700">Bride&apos;s Name *</Label>
                       <Input
                         id="brideName"
                         placeholder="Bride's name"
                         value={brideName}
                         onChange={(e) => setBrideName(e.target.value)}
-                        className="mt-2"
+                        className="mt-1.5 h-10 bg-gray-50/50"
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="groomName">Groom&apos;s Name *</Label>
+                      <Label htmlFor="groomName" className="text-xs font-semibold text-gray-700">Groom&apos;s Name *</Label>
                       <Input
                         id="groomName"
                         placeholder="Groom's name"
                         value={groomName}
                         onChange={(e) => setGroomName(e.target.value)}
-                        className="mt-2"
+                        className="mt-1.5 h-10 bg-gray-50/50"
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="weddingDate">Wedding Date *</Label>
+                      <Label htmlFor="weddingDate" className="text-xs font-semibold text-gray-700">Wedding Date *</Label>
                       <Input
                         id="weddingDate"
                         type="date"
                         value={weddingDate}
                         onChange={(e) => setWeddingDate(e.target.value)}
-                        className="mt-2"
+                        className="mt-1.5 h-10 bg-gray-50/50"
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="quote">Special Quote (Optional)</Label>
+                      <Label htmlFor="quote" className="text-xs font-semibold text-gray-700">Special Quote (Optional)</Label>
                       <Textarea
                         id="quote"
                         placeholder="Add a romantic quote or message..."
                         value={quote}
                         onChange={(e) => setQuote(e.target.value)}
-                        className="mt-2"
+                        className="mt-1.5 resize-none bg-gray-50/50"
+                        rows={3}
                       />
                     </div>
                   </>
@@ -673,29 +575,71 @@ export default function OccasionFramePage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Add to Cart */}
-            <Button
+            {/* ORDER SUMMARY (Desktop specific) */}
+            <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm mb-4">
+              <h4 className="text-xs font-bold text-gray-900 tracking-wider mb-4 border-b border-gray-100 pb-3">YOUR CUSTOM FRAME</h4>
+              <div className="space-y-3 text-sm text-gray-600 mb-6">
+                <div className="flex justify-between items-center"><span className="text-xs">Photo</span> <span className="font-medium text-gray-900 flex items-center gap-1">{uploadedPhoto ? <><Check className="w-3 h-3 text-green-500" /> Uploaded</> : "Not uploaded"}</span></div>
+                <div className="flex justify-between items-center"><span className="text-xs">Size</span> <span className="font-medium text-gray-900">A4</span></div>
+                <div className="flex justify-between items-center"><span className="text-xs">Frame</span> <span className="font-medium text-gray-900">{frameStyle}</span></div>
+              </div>
+              <div className="h-px w-full bg-gray-100 mb-4" />
+              <div className="flex justify-between items-end mb-6">
+                <span className="text-xs font-bold text-gray-900 tracking-widest">TOTAL</span>
+                <div className="flex flex-col items-end">
+                  <span className="text-2xl font-bold text-gray-900 leading-none">₹{FIXED_PRICE}</span>
+                </div>
+              </div>
+
+              {/* Desktop CTA */}
+              <div className="hidden lg:flex gap-3">
+                <Button 
+                  onClick={handleAddToCart}
+                  disabled={isAddingToCart}
+                  className="w-full h-12 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-medium text-sm shadow-md"
+                >
+                  {isAddingToCart ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Add to Cart"}
+                </Button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* SPECIAL OCCASIONS */}
+      <section className="pb-16 bg-[#FAFAFA] pt-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Frames For Life&apos;s Special Moments</h2>
+            <p className="text-sm text-gray-500">Preserve the memories that deserve a place on your wall.</p>
+          </div>
+          <OccasionPromo exclude={occasion} />
+        </div>
+      </section>
+
+      {/* MOBILE STICKY PURCHASE BAR */}
+      <div 
+        className="lg:hidden fixed left-0 right-0 bg-white/98 backdrop-blur-xl border-t border-gray-200 px-4 pt-3 pb-3 z-[10000] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]" 
+        style={{ bottom: 'calc(64px + env(safe-area-inset-bottom))' }}
+      >
+        <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
+          <div className="flex flex-col shrink-0">
+            <span className="text-[10px] text-gray-500 font-bold tracking-widest mb-0.5">TOTAL</span>
+            <span className="text-lg font-bold text-gray-900 leading-none">₹{FIXED_PRICE}</span>
+          </div>
+          
+          <div className="flex gap-2 flex-1 ml-2">
+            <Button 
               onClick={handleAddToCart}
               disabled={isAddingToCart}
-              className="w-full"
-              size="lg"
+              className="w-full h-[44px] min-h-[44px] rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-medium text-[13px] shadow-[0_4px_14px_rgba(59,130,246,0.25)] transition-transform active:scale-95"
             >
-              {isAddingToCart ? (
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              ) : (
-                <ShoppingCart className="h-5 w-5 mr-2" />
-              )}
-              Add to Cart - ₹{FIXED_PRICE}
+              {isAddingToCart ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add to Cart"}
             </Button>
-            <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-              Design will be handled by FrameKart&apos;s design team after order placement
-            </p>
-          </motion.div>
+          </div>
         </div>
       </div>
-
-      {/* Other Occasion Promotions */}
-      <OccasionPromo exclude={occasion} />
 
       {/* Crop Modal */}
       {uploadedImage && uploadedImage.width && uploadedImage.height && (

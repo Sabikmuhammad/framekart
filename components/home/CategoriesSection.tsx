@@ -18,56 +18,66 @@ export default function CategoriesSection() {
   };
 
   return (
-    <section className="py-12 sm:py-16 bg-background">
-      <div className="container mx-auto px-4">
-        <div className="mb-8 sm:mb-12 text-center">
+    <section className="py-12 sm:py-16 bg-[#FAFAFA]">
+      <style dangerouslySetInnerHTML={{__html: `
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}} />
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="mb-8 md:mb-12 text-left md:text-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             viewport={{ once: true }}
           >
-            <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl font-bold">Shop by Category</h2>
-            <p className="text-muted-foreground text-sm sm:text-base">
+            <h2 className="mb-2 text-[26px] md:text-3xl font-[800] tracking-[-0.02em] text-[#111827]">Shop by Category</h2>
+            <p className="text-[#6B7280] text-[15px] md:text-base font-medium">
               Discover the perfect frame for every occasion
             </p>
           </motion.div>
         </div>
 
-        {/* Mobile: Horizontal Scroll */}
-        <div className="overflow-x-auto pb-4 -mx-4 px-4 md:hidden">
-          <div className="flex gap-3 w-max">
+        {/* Mobile & Desktop: Horizontal Scroll */}
+        <div className="overflow-x-auto pb-6 -mx-4 px-4 md:mx-0 md:px-0 hide-scrollbar snap-x snap-mandatory">
+          <div className="flex gap-4 md:gap-5 w-max md:w-auto md:grid md:grid-cols-5 md:max-w-5xl md:mx-auto">
+            
             {/* Custom Frames - Featured */}
-            <Link href="/custom-frame">
+            <Link href="/custom-frame" className="snap-start shrink-0">
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true }}
-                className="group relative"
+                className="group relative w-[120px] md:w-auto md:h-full"
               >
-                <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 cursor-pointer w-32">
+                <Card className="relative overflow-hidden border border-gray-200/60 shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:border-[#3B82F6]/30 transition-all duration-300 cursor-pointer h-full rounded-2xl">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square overflow-hidden">
+                    <div className="relative aspect-[4/5] overflow-hidden">
                       <Image
                         src={categoryImages.customFrames}
                         alt="Custom Frames"
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
-                      <div className="absolute inset-0 flex items-center justify-center p-3">
-                        <div className="text-center">
-                          <Palette className="h-8 w-8 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform drop-shadow-lg" />
-                          <h3 className="text-xs font-bold mb-1 group-hover:text-primary transition-colors line-clamp-2 drop-shadow">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <div className="flex flex-col">
+                          <Palette className="h-6 w-6 text-white mb-2" />
+                          <h3 className="text-[14px] font-[700] text-white leading-tight drop-shadow-sm">
                             Custom Frames
                           </h3>
                         </div>
                       </div>
-                      <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                      <div className="absolute top-3 left-3 bg-[#3B82F6] text-white text-[9px] tracking-wider font-[700] px-2 py-0.5 rounded-full shadow-sm">
                         NEW
                       </div>
                     </div>
@@ -77,34 +87,31 @@ export default function CategoriesSection() {
             </Link>
 
             {/* Birthday Frames */}
-            <Link href="/custom-frame/birthday">
+            <Link href="/custom-frame/birthday" className="snap-start shrink-0">
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true }}
-                className="group relative"
+                className="group relative w-[120px] md:w-auto md:h-full"
               >
-                <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 cursor-pointer w-32">
+                <Card className="relative overflow-hidden border border-gray-200/60 shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:border-[#3B82F6]/30 transition-all duration-300 cursor-pointer h-full rounded-2xl">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square overflow-hidden">
+                    <div className="relative aspect-[4/5] overflow-hidden">
                       <Image
                         src={categoryImages.birthday}
                         alt="Birthday Frames"
                         fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
-                      <div className="absolute inset-0 flex items-center justify-center p-2">
-                        <div className="text-center">
-                          <Cake className="h-8 w-8 text-primary mx-auto mb-1 group-hover:scale-110 transition-transform drop-shadow-lg" />
-                          <h3 className="text-xs font-bold group-hover:text-primary transition-colors line-clamp-2 drop-shadow text-white">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <div className="flex flex-col">
+                          <Cake className="h-6 w-6 text-white mb-2" />
+                          <h3 className="text-[14px] font-[700] text-white leading-tight drop-shadow-sm">
                             Birthday Frames
                           </h3>
                         </div>
-                      </div>
-                      <div className="absolute top-1 right-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                        NEW
                       </div>
                     </div>
                   </CardContent>
@@ -113,34 +120,31 @@ export default function CategoriesSection() {
             </Link>
 
             {/* Wedding Frames */}
-            <Link href="/custom-frame/wedding">
+            <Link href="/custom-frame/wedding" className="snap-start shrink-0">
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.35 }}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true }}
-                className="group relative"
+                className="group relative w-[120px] md:w-auto md:h-full"
               >
-                <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 cursor-pointer w-32">
+                <Card className="relative overflow-hidden border border-gray-200/60 shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:border-[#3B82F6]/30 transition-all duration-300 cursor-pointer h-full rounded-2xl">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square overflow-hidden">
+                    <div className="relative aspect-[4/5] overflow-hidden">
                       <Image
                         src={categoryImages.wedding}
                         alt="Wedding Frames"
                         fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
-                      <div className="absolute inset-0 flex items-center justify-center p-2">
-                        <div className="text-center">
-                          <Heart className="h-8 w-8 text-primary mx-auto mb-1 group-hover:scale-110 transition-transform drop-shadow-lg" />
-                          <h3 className="text-xs font-bold group-hover:text-primary transition-colors line-clamp-2 drop-shadow text-white">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <div className="flex flex-col">
+                          <Heart className="h-6 w-6 text-white mb-2" />
+                          <h3 className="text-[14px] font-[700] text-white leading-tight drop-shadow-sm">
                             Wedding Frames
                           </h3>
                         </div>
-                      </div>
-                      <div className="absolute top-1 right-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                        NEW
                       </div>
                     </div>
                   </CardContent>
@@ -149,32 +153,32 @@ export default function CategoriesSection() {
             </Link>
 
             {/* Wall Frames */}
-            <Link href="/frames?category=Wall Frames">
+            <Link href="/frames?category=Wall Frames" className="snap-start shrink-0">
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true }}
-                className="group"
+                className="group relative w-[120px] md:w-auto md:h-full"
               >
-                <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 w-32">
+                <Card className="relative overflow-hidden border border-gray-200/60 shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:border-[#3B82F6]/30 transition-all duration-300 cursor-pointer h-full rounded-2xl">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square">
+                    <div className="relative aspect-[4/5] overflow-hidden">
                       <Image
                         src={categoryImages.wallFrames}
                         alt="Wall Frames"
                         fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Frame className="h-8 w-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <div className="flex flex-col">
+                          <Frame className="h-6 w-6 text-white mb-2" />
+                          <h3 className="text-[14px] font-[700] text-white leading-tight drop-shadow-sm">
+                            Wall Frames
+                          </h3>
+                        </div>
                       </div>
-                    </div>
-                    <div className="p-2 text-center">
-                      <h3 className="font-semibold text-xs group-hover:text-primary transition-colors line-clamp-2">
-                        Wall Frames
-                      </h3>
                     </div>
                   </CardContent>
                 </Card>
@@ -182,221 +186,39 @@ export default function CategoriesSection() {
             </Link>
 
             {/* Calligraphy Frames */}
-            <Link href="/frames?category=Calligraphy Frames">
+            <Link href="/frames?category=Calligraphy Frames" className="snap-start shrink-0">
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true }}
-                className="group"
+                className="group relative w-[120px] md:w-auto md:h-full"
               >
-                <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 w-32">
+                <Card className="relative overflow-hidden border border-gray-200/60 shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:border-[#3B82F6]/30 transition-all duration-300 cursor-pointer h-full rounded-2xl">
                   <CardContent className="p-0">
-                    <div className="relative aspect-square">
+                    <div className="relative aspect-[4/5] overflow-hidden">
                       <Image
                         src={categoryImages.calligraphy}
                         alt="Calligraphy Frames"
                         fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Palette className="h-8 w-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <div className="flex flex-col">
+                          <Palette className="h-6 w-6 text-white mb-2" />
+                          <h3 className="text-[14px] font-[700] text-white leading-tight drop-shadow-sm">
+                            Calligraphy
+                          </h3>
+                        </div>
                       </div>
-                    </div>
-                    <div className="p-2 text-center">
-                      <h3 className="font-semibold text-xs group-hover:text-primary transition-colors line-clamp-2">
-                        Calligraphy
-                      </h3>
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
             </Link>
+
           </div>
-        </div>
-
-        {/* Desktop/Tablet: Single Row Grid */}
-        <div className="hidden md:grid md:grid-cols-5 gap-4 max-w-3xl mx-auto">
-          {/* Custom Frames - Featured */}
-          <Link href="/custom-frame">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              className="group relative"
-            >
-              <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 hover:shadow-xl cursor-pointer h-full">
-                <CardContent className="p-0">
-                  <div className="relative aspect-square overflow-hidden">
-                    <Image
-                      src={categoryImages.customFrames}
-                      alt="Custom Frames"
-                      fill
-                      className="object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
-                    <div className="absolute inset-0 flex items-center justify-center p-4">
-                      <div className="text-center">
-                        <Palette className="h-10 w-10 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform drop-shadow-lg" />
-                        <h3 className="text-sm font-bold mb-1 group-hover:text-primary transition-colors drop-shadow">
-                          Custom Frames
-                        </h3>
-                        <p className="text-[10px] text-muted-foreground drop-shadow">Design Your Own</p>
-                      </div>
-                    </div>
-                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      NEW
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </Link>
-
-          {/* Birthday Frames */}
-          <Link href="/custom-frame/birthday">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              viewport={{ once: true }}
-              className="group relative"
-            >
-              <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 hover:shadow-xl cursor-pointer h-full">
-                <CardContent className="p-0">
-                  <div className="relative aspect-square overflow-hidden">
-                    <Image
-                      src={categoryImages.birthday}
-                      alt="Birthday Frames"
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
-                    <div className="absolute inset-0 flex items-center justify-center p-4">
-                      <div className="text-center">
-                        <Cake className="h-10 w-10 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform drop-shadow-lg" />
-                        <h3 className="text-sm font-bold group-hover:text-primary transition-colors drop-shadow text-white">
-                          Birthday Frames
-                        </h3>
-                        <p className="text-[10px] text-white/80 drop-shadow">Personalize It</p>
-                      </div>
-                    </div>
-                    <div className="absolute top-2 right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      NEW
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </Link>
-
-          {/* Wedding Frames */}
-          <Link href="/custom-frame/wedding">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.35 }}
-              viewport={{ once: true }}
-              className="group relative"
-            >
-              <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary transition-all duration-300 hover:shadow-xl cursor-pointer h-full">
-                <CardContent className="p-0">
-                  <div className="relative aspect-square overflow-hidden">
-                    <Image
-                      src={categoryImages.wedding}
-                      alt="Wedding Frames"
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent" />
-                    <div className="absolute inset-0 flex items-center justify-center p-4">
-                      <div className="text-center">
-                        <Heart className="h-10 w-10 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform drop-shadow-lg" />
-                        <h3 className="text-sm font-bold group-hover:text-primary transition-colors drop-shadow text-white">
-                          Wedding Frames
-                        </h3>
-                        <p className="text-[10px] text-white/80 drop-shadow">Celebrate Love</p>
-                      </div>
-                    </div>
-                    <div className="absolute top-2 right-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      NEW
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </Link>
-
-          {/* Wall Frames */}
-          <Link href="/frames?category=Wall Frames">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="group"
-            >
-              <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 h-full">
-                <CardContent className="p-0">
-                  <div className="relative aspect-square">
-                    <Image
-                      src={categoryImages.wallFrames}
-                      alt="Wall Frames"
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Frame className="h-10 w-10 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
-                    </div>
-                  </div>
-                  <div className="p-3 text-center">
-                    <h3 className="font-semibold text-sm group-hover:text-primary transition-colors">
-                      Wall Frames
-                    </h3>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </Link>
-
-          {/* Calligraphy Frames */}
-          <Link href="/frames?category=Calligraphy Frames">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              viewport={{ once: true }}
-              className="group"
-            >
-              <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 h-full">
-                <CardContent className="p-0">
-                  <div className="relative aspect-square">
-                    <Image
-                      src={categoryImages.calligraphy}
-                      alt="Calligraphy Frames"
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Palette className="h-10 w-10 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
-                    </div>
-                  </div>
-                  <div className="p-3 text-center">
-                    <h3 className="font-semibold text-sm group-hover:text-primary transition-colors">
-                      Calligraphy
-                    </h3>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </Link>
         </div>
       </div>
     </section>

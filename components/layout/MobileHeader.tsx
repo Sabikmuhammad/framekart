@@ -26,26 +26,26 @@ export default function MobileHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur md:hidden">
-      <div className="container mx-auto px-4 py-3">
+    <header className="sticky top-0 z-40 border-b border-[#E2E8F0] bg-[rgba(255,255,255,0.88)] backdrop-blur-[18px] md:hidden transition-colors">
+      <div className="container mx-auto px-4 py-2.5">
         <div className="flex items-center justify-between">
-          <div className="w-16">
-            {/* User icon removed */}
+          <div className="w-12">
+            {/* Left space */}
           </div>
-          <div className="text-center">
-            <Link href="/" className="inline-flex justify-center">
+          <div className="text-center flex flex-col items-center">
+            <Link href="/" className="inline-flex justify-center mb-0.5 outline-none">
               <Image
                 src="/images/branding/Frame-2.png"
                 alt="FrameKart"
-                width={250}
-                height={66}
+                width={180}
+                height={48}
                 priority
-                className="h-12 w-auto"
+                className="h-10 w-auto object-contain"
               />
             </Link>
-            <p className="text-xs text-muted-foreground">What are you framing today?</p>
+            <p className="text-[9px] font-[600] tracking-[0.1em] text-[#64748B] uppercase">What are you framing today?</p>
           </div>
-          <div className="w-16 flex justify-end">
+          <div className="w-12 flex justify-end">
             {!isSignedIn && null}
           </div>
         </div>

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, Package, ShoppingCart, User, Palette } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function MobileNav() {
   const pathname = usePathname();
@@ -30,7 +31,7 @@ export default function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-[9000] border-t bg-background md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className="flex items-center justify-around h-[64px]">
+      <div className="flex items-center justify-around h-[62px]">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const isCart = item.href === "/cart";
@@ -40,18 +41,31 @@ export default function MobileNav() {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center justify-center flex-1 h-full gap-1 relative ${
-                isActive ? "text-primary" : "text-muted-foreground"
+                isActive ? "text-primary" : "text-[#64748B]"
               }`}
             >
-              <div className="relative">
-                <item.icon className="h-5 w-5" />
-                {isCart && cartCount > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white font-semibold">
-                    {cartCount}
-                  </span>
-                )}
-              </div>
-              <span className="text-xs">{item.label}</span>
+              <motion.div 
+                className="relative"
+                {...(isCart ? { "data-cart-target": "mobile" } : {})}
+                key={isCart ? cartCount : 'icon'}
+                animate={isCart && cartCount > 0 ? { scale: [1, 1.15, 0.96, 1] } : {}}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              >
+                <item.icon className="h-[22px] w-[22px] stroke-[1.5]" />
+                <AnimatePresence>
+                  {isCart && cartCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: [1.15, 1], opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                      className="absolute -right-2 -top-2 flex h-[20px] w-[20px] items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold shadow-sm"
+                    >
+                      {cartCount}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+              <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );
         })}

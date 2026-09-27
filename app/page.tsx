@@ -12,7 +12,6 @@ import {
   WeddingBirthdaySection,
   InstagramSection,
   StatsSection,
-  NewsletterSection,
   CTASection,
 } from "@/components/home";
 
@@ -75,7 +74,6 @@ export default function HomePage() {
       <WeddingBirthdaySection />
       <InstagramSection />
       <StatsSection />
-      <NewsletterSection />
       <CTASection />
     </div>
   );

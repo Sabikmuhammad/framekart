@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ const CARDS = [
     href: "/custom-frame/wedding",
     image: "/images/templates/wedding-template.jpeg",
     alt: "Wedding Frame Template",
-    eyebrow: "For Couples",
+    eyebrow: "FOR COUPLES",
     title: "Wedding Frames",
     description:
       "Preserve your most cherished moments in a frame crafted with care. Our design team transforms your photo into a timeless keepsake.",
@@ -32,13 +33,12 @@ const CARDS = [
       { icon: Package, label: "A4 Size" },
     ],
     cta: "Create Wedding Frame",
-    accent: "from-blue-600 to-blue-500",
   },
   {
     href: "/custom-frame/birthday",
     image: "/images/templates/birthday-template.jpg",
     alt: "Birthday Frame Template",
-    eyebrow: "For Celebrations",
+    eyebrow: "FOR CELEBRATIONS",
     title: "Birthday Frames",
     description:
       "Turn a birthday into a memory that lasts forever. Upload a photo, add a message, and we'll handle the rest.",
@@ -49,7 +49,6 @@ const CARDS = [
       { icon: Gift, label: "A4 Size" },
     ],
     cta: "Create Birthday Frame",
-    accent: "from-blue-500 to-blue-400",
   },
 ];
 
@@ -61,136 +60,151 @@ const PROCESS = [
 ];
 
 export default function WeddingBirthdaySection() {
+  const containerRef = useRef<HTMLElement>(null);
+  
   return (
     <section
-      className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-white dark:bg-gray-950"
+      ref={containerRef}
+      className="relative py-12 sm:py-16 lg:py-24 overflow-hidden bg-[#FAFAFA] text-[#111827]"
       aria-labelledby="occasions-heading"
     >
-      {/* Background ambience */}
+      {/* Extremely subtle ambient background */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-300/50 dark:via-blue-700/40 to-transparent" />
-        <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-300/50 dark:via-blue-700/40 to-transparent" />
-        <div className="absolute -top-60 -right-60 w-[700px] h-[700px] rounded-full bg-blue-100/50 dark:bg-blue-950/25 blur-[120px]" />
-        <div className="absolute -bottom-60 -left-60 w-[600px] h-[600px] rounded-full bg-blue-50/60 dark:bg-blue-950/15 blur-[100px]" />
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
 
-        {/* ── Header ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          viewport={{ once: true }}
-          className="max-w-3xl mb-20 sm:mb-24 lg:mb-28"
-        >
+        {/* ── Section Header ── */}
+        <div className="max-w-[600px] mb-10 sm:mb-14 lg:mb-20 mx-auto text-center">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 mb-6"
+            className="inline-flex items-center justify-center mb-4 lg:mb-5"
           >
-            
+            <span className="text-[9px] lg:text-[10px] font-[600] tracking-[0.25em] uppercase text-[#64748B]">
+              Special Occasions
+            </span>
           </motion.div>
 
-          <h2
+          <motion.h2
             id="occasions-heading"
-            className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-[-0.03em] text-gray-950 dark:text-white leading-[1.05] mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true }}
+            className="text-[30px] sm:text-[34px] lg:text-[54px] font-[700] tracking-[-0.03em] leading-[1.1] mb-4 lg:mb-6"
           >
-            Frames made for{" "}
-            <span className="text-blue-600 dark:text-blue-400">
-              your moments
-            </span>
-          </h2>
-          <p className="text-lg sm:text-xl text-gray-500 dark:text-gray-400 leading-relaxed max-w-xl font-light">
-            Upload your photo, add a personal message, and our design team will
-            create a stunning custom frame delivered to your door.
-          </p>
-        </motion.div>
+            Frames made for <br className="hidden sm:block" />
+            <span className="text-[#3B82F6]">your moments.</span>
+          </motion.h2>
 
-        {/* ── Cards ── */}
-        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 max-w-5xl">
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true }}
+            className="text-[14px] sm:text-[15px] lg:text-[17px] text-[#64748B] leading-relaxed mx-auto font-medium"
+          >
+            Upload your photo, add a personal message, and our design team will
+            create a stunning custom frame.
+          </motion.p>
+        </div>
+
+        {/* ── Compact Editorial Occasion Cards ── */}
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 max-w-[1100px] mx-auto">
           {CARDS.map((card, i) => {
             const Icon = card.icon;
+            const numberStr = `0${i + 1}`;
+            
             return (
               <motion.div
                 key={card.href}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: i * 0.14, ease: [0.22, 1, 0.36, 1] }}
+                initial={{ opacity: 0, y: 15, scale: 0.99 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true }}
-                className="group"
+                className="w-full"
               >
-                <Link href={card.href} aria-label={card.cta}>
-                  <div className="overflow-hidden rounded-[28px] bg-white ring-1 ring-gray-200/80 group-hover:ring-blue-400/50 transition-all duration-500 shadow-sm group-hover:shadow-xl group-hover:shadow-blue-100/60">
-
-                    {/* Image */}
-                    <div className="relative aspect-[4/3] sm:aspect-[16/10] overflow-hidden">
-                      <Image
-                        src={card.image}
-                        alt={card.alt}
-                        fill
-                        className="object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                      />
-                      {/* Eyebrow + badge over image */}
-                      <div className="absolute top-5 left-5 right-5 flex items-center justify-between z-10">
-                        <span className="text-white/80 text-[11px] font-semibold tracking-[0.18em] uppercase drop-shadow">
-                          {card.eyebrow}
-                        </span>
-                        <span className="bg-blue-600 text-white text-[10px] font-bold tracking-[0.12em] uppercase px-3 py-1 rounded-full">
-                          New
-                        </span>
-                      </div>
+                <Link href={card.href} aria-label={card.cta} className="block w-full outline-none group">
+                  <div className="bg-white rounded-[20px] lg:rounded-[22px] border border-[#E5E7EB] overflow-hidden shadow-[0_12px_40px_rgba(15,23,42,0.06)] group-hover:shadow-[0_20px_50px_rgba(15,23,42,0.10)] transition-shadow duration-[600ms] flex flex-col mx-auto max-w-[380px] sm:max-w-[420px] lg:max-w-none h-[380px] sm:h-[400px] lg:h-[460px]">
+                    
+                    {/* Compact Image Area */}
+                    <div className="relative h-[180px] lg:h-[220px] w-full overflow-hidden shrink-0">
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        viewport={{ once: true }}
+                        className="w-full h-full bg-[#F1F5F9]"
+                      >
+                        <Image
+                          src={card.image}
+                          alt={card.alt}
+                          fill
+                          className="object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.035]"
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                        />
+                      </motion.div>
                     </div>
 
-                    {/* Content panel */}
-                    <div className="p-5 sm:p-6">
-                      {/* Icon + Title */}
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${card.accent} flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-500/20`}>
-                          <Icon className="h-3.5 w-3.5 text-white" aria-hidden="true" />
+                    {/* Clean Content Area */}
+                    <div className="p-4 sm:p-5 lg:p-6 flex flex-col flex-1 bg-white">
+                      
+                      {/* Top Meta */}
+                      <div className="flex items-center justify-between mb-2 lg:mb-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <Icon className="h-2.5 w-2.5 lg:h-3 lg:w-3 text-[#64748B]" />
+                          <span className="text-[9px] lg:text-[10px] text-[#64748B] font-[600] tracking-[0.18em] uppercase">
+                            {card.eyebrow}
+                          </span>
+                          <span className="bg-[#EFF6FF] text-[#3B82F6] border border-[#DBEAFE] text-[8px] lg:text-[9px] font-[700] tracking-wider uppercase px-1.5 py-[2px] rounded-full ml-1">
+                            NEW
+                          </span>
                         </div>
-                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-                          {card.title}
-                        </h3>
+                        <span className="text-[10px] text-[#CBD5E1] font-[600] tracking-wider">
+                          {numberStr}
+                        </span>
                       </div>
 
+                      {/* Title */}
+                      <h3 className="text-[20px] sm:text-[22px] lg:text-[26px] font-[600] text-[#111827] tracking-[-0.025em] leading-[1.1] mb-1.5">
+                        {card.title}
+                      </h3>
+
                       {/* Description */}
-                      <p className="text-gray-500 text-sm leading-relaxed mb-4 max-w-sm">
+                      <p className="text-[12px] lg:text-[13px] text-[#64748B] leading-[1.5] line-clamp-2 mb-3 lg:mb-3.5">
                         {card.description}
                       </p>
 
                       {/* Tags */}
-                      <div className="flex flex-wrap gap-1.5 mb-5">
-                        {card.tags.map((tag) => {
+                      <div className="flex flex-wrap gap-1.5 lg:gap-2 mb-auto">
+                        {card.tags.map((tag, tagIdx) => {
                           const TagIcon = tag.icon;
+                          const displayClass = tagIdx > 1 ? "hidden lg:inline-flex" : "inline-flex";
                           return (
                             <span
-                              key={tag.label}
-                              className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 text-[11px] font-medium px-2.5 py-1 rounded-full border border-blue-100"
+                              key={tagIdx}
+                              className={`${displayClass} items-center gap-1 bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] text-[9px] lg:text-[10px] font-medium px-2 py-1 lg:px-2.5 lg:py-1.5 rounded-full`}
                             >
-                              <TagIcon className="h-2.5 w-2.5" aria-hidden="true" />
+                              <TagIcon className="h-2.5 w-2.5" />
                               {tag.label}
                             </span>
                           );
                         })}
                       </div>
 
-                      {/* CTA row */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm group/cta">
-                          <span>{card.cta}</span>
-                          <ArrowRight
-                            className="h-3.5 w-3.5 group-hover/cta:translate-x-1.5 transition-transform duration-200"
-                            aria-hidden="true"
-                          />
-                        </div>
-                        <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-blue-500 group-hover:bg-blue-600 transition-all duration-300">
-                          <ArrowRight className="h-3.5 w-3.5 text-gray-400 group-hover:text-white transition-colors duration-300" aria-hidden="true" />
-                        </div>
+                      {/* Minimal Premium CTA */}
+                      <div className="pt-3 lg:pt-4 flex items-center gap-1.5 group/link mt-auto w-max">
+                        <span className="text-[12px] lg:text-[13px] font-[600] text-[#3B82F6] relative">
+                          {card.cta}
+                          <span className="absolute -bottom-[2px] left-0 right-0 h-[1px] bg-[#3B82F6] origin-left scale-x-0 transition-transform duration-300 ease-out group-hover/link:scale-x-100" />
+                        </span>
+                        <ArrowRight className="h-3.5 w-3.5 text-[#3B82F6] transition-transform duration-300 ease-out group-hover/link:translate-x-1" />
                       </div>
+
                     </div>
                   </div>
                 </Link>
@@ -199,111 +213,111 @@ export default function WeddingBirthdaySection() {
           })}
         </div>
 
-        {/* ── Process strip ── */}
+        {/* ── Process Timeline ── */}
         <motion.div
-          initial={{ opacity: 0, y: 28 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           viewport={{ once: true }}
-          className="mt-20 sm:mt-24 lg:mt-28"
+          className="mt-20 sm:mt-24 lg:mt-28 max-w-[900px] mx-auto"
         >
-          {/* Divider */}
-          <div className="flex items-center gap-5 mb-14 sm:mb-16">
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-gray-200 dark:to-gray-800" />
-            <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-gray-400 dark:text-gray-500 whitespace-nowrap">
+          {/* Subtle Divider Header */}
+          <div className="flex items-center justify-center mb-10 sm:mb-12 lg:mb-16">
+            <span className="text-[10px] lg:text-[11px] font-[600] tracking-[0.2em] uppercase text-[#64748B]">
               How it works
             </span>
-            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-gray-200 dark:to-gray-800" />
           </div>
 
-          <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
-            {/* Connector line — desktop only */}
-            <div
-              className="hidden lg:block absolute top-5 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-blue-200/60 via-blue-300/40 to-blue-200/60 dark:from-blue-800/50 dark:via-blue-700/30 dark:to-blue-800/50"
-              aria-hidden="true"
-            />
-
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-6">
             {PROCESS.map((step, i) => {
               const StepIcon = step.icon;
               return (
                 <motion.div
                   key={step.step}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 15 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.55, delay: 0.25 + i * 0.1 }}
+                  transition={{ duration: 0.5, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
                   viewport={{ once: true }}
-                  className="group flex flex-col items-start lg:items-center text-left lg:text-center"
+                  className="flex flex-col items-center text-center group cursor-default"
                 >
-                  {/* Icon circle */}
-                  <div className="relative mb-4">
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white dark:bg-gray-900 border-2 border-blue-200 dark:border-blue-800 flex items-center justify-center group-hover:border-blue-500 group-hover:bg-blue-600 transition-all duration-300 shadow-sm group-hover:shadow-blue-500/25 group-hover:shadow-md relative z-10">
-                      <StepIcon className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors duration-300" aria-hidden="true" />
-                    </div>
+                  {/* Minimal Circle */}
+                  <div className="relative w-[48px] h-[48px] lg:w-[54px] lg:h-[54px] rounded-full bg-white border border-[#E5E7EB] shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex items-center justify-center mb-3 lg:mb-4 group-hover:border-[#3B82F6] transition-colors duration-300">
+                    <StepIcon className="h-[18px] w-[18px] lg:h-5 lg:w-5 text-[#111827] group-hover:text-[#3B82F6] transition-colors duration-300" />
                   </div>
 
-                  <p className="text-[10px] font-bold tracking-[0.18em] text-blue-500 dark:text-blue-500 uppercase mb-1.5">
-                    {step.step}
-                  </p>
-                  <h4 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-1 tracking-tight">
-                    {step.title}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                    {step.description}
-                  </p>
+                  <div className="flex flex-col items-center">
+                    <p className="text-[9px] lg:text-[10px] font-[700] tracking-[0.15em] text-[#3B82F6] uppercase mb-1">
+                      {step.step}
+                    </p>
+                    <h4 className="text-[15px] lg:text-[16px] font-[600] text-[#111827] mb-1 tracking-tight">
+                      {step.title}
+                    </h4>
+                    <p className="text-[12px] lg:text-[13px] text-[#64748B] font-medium leading-[1.4] max-w-[140px] lg:max-w-[160px]">
+                      {step.description}
+                    </p>
+                  </div>
                 </motion.div>
               );
             })}
           </div>
         </motion.div>
 
-        {/* ── Bottom CTA ── */}
+        {/* ── Final Compact CTA ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           viewport={{ once: true }}
-          className="mt-16 sm:mt-20"
+          className="mt-20 lg:mt-28 mx-auto px-0 sm:px-4 lg:px-0"
         >
-          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-blue-600 px-8 sm:px-12 py-10 sm:py-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
-            {/* Subtle inner glow */}
-            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-              <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-blue-400/20 blur-3xl" />
-              <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-blue-800/30 blur-3xl" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.07)_0%,_transparent_60%)]" />
+          <div className="relative overflow-hidden rounded-[22px] lg:rounded-[24px] bg-white px-5 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-10 border border-[#E5E7EB] max-w-[900px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-8 text-center lg:text-left shadow-[0_12px_40px_rgba(15,23,42,0.06)] mx-4 sm:mx-0">
+            
+            {/* Subtle Luxury CTA Background Ambience */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div 
+                className="absolute inset-0 opacity-[0.02] mix-blend-overlay"
+                style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")" }}
+              />
+              <motion.div 
+                animate={{ 
+                  x: ["0%", "15%", "0%", "-15%", "0%"],
+                  y: ["0%", "10%", "0%", "-10%", "0%"]
+                }}
+                transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                className="absolute top-0 left-0 w-[300px] h-[300px] bg-[#3B82F6]/5 rounded-full blur-[80px]" 
+              />
             </div>
 
             <div className="relative z-10">
-              <p className="text-xl sm:text-2xl font-bold text-white tracking-tight mb-1.5">
+              <h3 className="text-[22px] sm:text-[24px] lg:text-[32px] font-[700] text-[#111827] tracking-[-0.02em] leading-[1.2] mb-2 lg:mb-3">
                 Ready to create something special?
-              </p>
-              <p className="text-blue-200/80 text-sm sm:text-base font-light">
-                Trusted by thousands of happy customers across India.
+              </h3>
+              <p className="text-[13px] lg:text-[14px] text-[#64748B] font-medium">
+                Trusted by thousands of happy customers.
               </p>
             </div>
 
-            <div className="relative z-10 flex items-center gap-3 flex-shrink-0">
-              <Link href="/custom-frame/wedding">
+            <div className="relative z-10 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full lg:w-auto shrink-0">
+              <Link href="/custom-frame/wedding" className="w-full sm:w-auto outline-none">
                 <Button
                   variant="outline"
-                  size="lg"
-                  className="gap-2 bg-white/10 border-white/25 text-white hover:bg-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-200"
+                  className="w-full sm:w-auto h-[44px] lg:h-[48px] px-6 lg:px-8 rounded-full bg-transparent border-[#3B82F6]/30 text-[#3B82F6] font-[600] text-[13px] lg:text-[14px] hover:bg-[#EFF6FF] hover:border-[#3B82F6]/50 transition-all duration-300"
                 >
-                  <Heart className="h-4 w-4" aria-hidden="true" />
                   Wedding
                 </Button>
               </Link>
-              <Link href="/custom-frame/birthday">
+              <Link href="/custom-frame/birthday" className="w-full sm:w-auto outline-none group/cta-btn">
                 <Button
-                  size="lg"
-                  className="gap-2 bg-white text-blue-600 hover:bg-blue-50 shadow-xl shadow-blue-900/30 font-semibold transition-all duration-200"
+                  className="w-full sm:w-auto h-[44px] lg:h-[48px] px-6 lg:px-8 rounded-full bg-[#3B82F6] text-white font-[600] text-[13px] lg:text-[14px] hover:bg-[#2563EB] hover:shadow-[0_8px_20px_-4px_rgba(59,130,246,0.3)] transition-all duration-300 border border-transparent"
                 >
-                  <Cake className="h-4 w-4" aria-hidden="true" />
                   Birthday
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  <ArrowRight className="h-3.5 w-3.5 ml-2 text-white/90 group-hover/cta-btn:translate-x-1 transition-transform duration-300" />
                 </Button>
               </Link>
             </div>
+            
           </div>
+
         </motion.div>
 
       </div>

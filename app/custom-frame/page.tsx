@@ -6,6 +6,7 @@ import { Upload, Check, Loader2, ShoppingCart, Info, Package, Truck, Shield, X, 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/store/cart";
+import { useFlyCartStore } from "@/store/fly-cart";
 import { useRouter } from "next/navigation";
 import { useAuth as useCustomAuth } from "@/context/AuthContext";
 import Image from "next/image";
@@ -93,6 +94,7 @@ export default function CustomFramePage() {
   // Hooks
   const { toast } = useToast();
   const { addItem } = useCartStore();
+  const addFlyItem = useFlyCartStore((state) => state.addFlyItem);
   const router = useRouter();
   const { isAuthenticated: isSignedIn } = useCustomAuth();
 
@@ -272,6 +274,12 @@ export default function CustomFramePage() {
     setIsAddingToCart(true);
     try {
       addItem(createCartItem());
+      
+      const imageEl = document.querySelector('[data-product-image="custom"]') as HTMLElement;
+      if (imageEl && displayImage) {
+        addFlyItem(displayImage, imageEl.getBoundingClientRect());
+      }
+      
       setCartAnimation(true);
       setShowSuccess(true);
       toast({ title: "Custom frame added to cart." });
@@ -428,7 +436,7 @@ export default function CustomFramePage() {
                       <div className="absolute inset-0 rounded-[2px] pointer-events-none shadow-[inset_0_0_4px_rgba(0,0,0,0.8)]" />
                       
                       <div className="relative w-full h-full bg-[#fdfdfd] shadow-[inset_0_2px_15px_rgba(0,0,0,0.15)] overflow-hidden rounded-sm flex items-center justify-center">
-                        <div className="relative w-[85%] h-[85%] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden">
+                        <div className="relative w-[85%] h-[85%] bg-white shadow-[0_2px_10px_rgba(0,0,0,0.1)] overflow-hidden" data-product-image="custom">
                           <img src={displayImage} alt="Preview" className="w-full h-full object-cover" />
                         </div>
                         <div 
@@ -465,7 +473,7 @@ export default function CustomFramePage() {
               </div>
               <div className="flex items-center gap-2">
                 {uploadedImage && (
-                  <Button variant="outline" size="sm" onClick={() => setShowCropModal(true)} className="h-9 rounded-lg text-xs font-medium text-blue-600 border-blue-200 hover:bg-blue-50">
+                  <Button variant="outline" size="sm" onClick={() => setShowCropModal(true)} className="h-9 rounded-lg text-xs font-medium text-[#3B82F6] border-[#3B82F6]/30 hover:bg-blue-50">
                     Edit Photo
                   </Button>
                 )}
@@ -473,7 +481,7 @@ export default function CustomFramePage() {
                   size="sm" 
                   onClick={() => fileInputRef.current?.click()} 
                   disabled={isUploading}
-                  className={`h-9 rounded-lg text-xs font-medium ${uploadedImage ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                  className={`h-9 rounded-lg text-xs font-medium ${uploadedImage ? 'bg-blue-50 text-[#3B82F6] hover:bg-blue-100' : 'bg-[#3B82F6] text-white hover:bg-[#2563EB]'}`}
                 >
                   {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
                   {uploadedImage ? "Change" : "Upload Photo"}
@@ -629,14 +637,14 @@ export default function CustomFramePage() {
                   onClick={handleAddToCart}
                   disabled={!uploadedImage || isAddingToCart || showSuccess}
                   variant="outline"
-                  className={`flex-1 h-12 rounded-xl font-medium text-sm transition-all ${showSuccess ? 'text-green-600 border-green-200 bg-green-50' : 'text-blue-600 border-blue-200 hover:bg-blue-50'}`}
+                  className={`flex-1 h-12 rounded-xl font-medium text-sm transition-all ${showSuccess ? 'text-green-600 border-green-200 bg-green-50' : 'text-[#3B82F6] border-[#3B82F6]/30 hover:bg-blue-50'}`}
                 >
                   {showSuccess ? <Check className="w-4 h-4 mr-2" /> : "Add to Cart"}
                 </Button>
                 <Button 
                   onClick={handleBuyNow}
                   disabled={!uploadedImage || isAddingToCart || showSuccess}
-                  className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-md"
+                  className="flex-1 h-12 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-medium text-sm shadow-md"
                 >
                   Buy Now
                 </Button>
@@ -673,7 +681,7 @@ export default function CustomFramePage() {
             {!uploadedImage ? (
               <Button 
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-[44px] min-h-[44px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-[13px] shadow-[0_4px_14px_rgba(59,130,246,0.25)] transition-transform active:scale-95"
+                className="w-full h-[44px] min-h-[44px] rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-medium text-[13px] shadow-[0_4px_14px_rgba(59,130,246,0.25)] transition-transform active:scale-95"
               >
                 Upload Photo
               </Button>
@@ -683,14 +691,14 @@ export default function CustomFramePage() {
                   variant="outline"
                   onClick={handleAddToCart}
                   disabled={isAddingToCart || showSuccess}
-                  className="flex-1 h-[44px] min-h-[44px] rounded-xl text-blue-600 border-blue-200 hover:bg-blue-50 font-medium text-[13px] px-1 transition-colors bg-white shadow-sm"
+                  className="flex-1 h-[44px] min-h-[44px] rounded-xl text-[#3B82F6] border-[#3B82F6]/30 hover:bg-blue-50 font-medium text-[13px] px-1 transition-colors bg-white shadow-sm"
                 >
                   {showSuccess ? <Check className="w-4 h-4 mx-auto text-green-500" /> : "Add to Cart"}
                 </Button>
                 <Button 
                   onClick={handleBuyNow}
                   disabled={isAddingToCart || showSuccess}
-                  className="flex-1 h-[44px] min-h-[44px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-[13px] px-1 shadow-[0_4px_14px_rgba(59,130,246,0.25)] transition-transform active:scale-95"
+                  className="flex-1 h-[44px] min-h-[44px] rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-medium text-[13px] px-1 shadow-[0_4px_14px_rgba(59,130,246,0.25)] transition-transform active:scale-95"
                 >
                   Buy Now
                 </Button>

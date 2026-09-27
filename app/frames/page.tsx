@@ -3,27 +3,23 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import FrameCard from "@/components/FrameCard";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search, SlidersHorizontal, Grid3x3, LayoutGrid, TrendingUp, Star, DollarSign, Layers, Clock } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Search, SlidersHorizontal, ArrowUpDown, X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const categories = [
-  { name: "All", icon: Layers },
-  { name: "Wall Frames", icon: LayoutGrid },
-  { name: "Calligraphy Frames", icon: Star },
-  { name: "Birthday Frames", icon: TrendingUp },
-  { name: "Photo Frames", icon: Grid3x3 },
-  { name: "Custom Frames", icon: Star }
+  "All",
+  "Wall Frames",
+  "Calligraphy Frames",
+  "Birthday Frames",
+  "Photo Frames",
+  "Custom Frames"
 ];
 
 const sortOptions = [
-  { value: "featured", label: "Featured", icon: Star },
-  { value: "newest", label: "Newest First", icon: Clock },
-  { value: "price-low", label: "Price: Low to High", icon: DollarSign },
-  { value: "price-high", label: "Price: High to Low", icon: DollarSign },
-  { value: "name", label: "Name: A to Z", icon: TrendingUp }
+  { value: "featured", label: "Featured" },
+  { value: "newest", label: "Newest" },
+  { value: "price-low", label: "Price: Low to High" },
+  { value: "price-high", label: "Price: High to Low" },
 ];
 
 function FramesList() {
@@ -31,33 +27,30 @@ function FramesList() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // Get active values from URL
   const selectedCategory = searchParams.get("category") || "";
   const initialSearch = searchParams.get("search") || "";
   const sortBy = searchParams.get("sort") || "featured";
 
   const [frames, setFrames] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"grid" | "large">("grid");
-  const [showFilters, setShowFilters] = useState(false);
   const [eligibility, setEligibility] = useState({
     eligible: true,
     discountValue: 15,
     offerActive: true,
   });
 
-  // Local state for immediate typing input, which will update search param with debounce
   const [searchInput, setSearchInput] = useState(initialSearch);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showMobileSort, setShowMobileSort] = useState(false);
+  const [showDesktopSort, setShowDesktopSort] = useState(false);
 
-  // Sync search input if URL search changes externally
   useEffect(() => {
     setSearchInput(initialSearch);
   }, [initialSearch]);
 
-  // Update URL helper
   const updateQueryParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
+    if (value && value !== "All") {
       params.set(key, value);
     } else {
       params.delete(key);
@@ -65,25 +58,21 @@ function FramesList() {
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  // Debounce search input update to URL
   useEffect(() => {
     const handler = setTimeout(() => {
       if (searchInput !== initialSearch) {
         updateQueryParam("search", searchInput);
       }
     }, 400);
-
     return () => clearTimeout(handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput]);
 
-  // Fetch frames whenever category or search param changes
   useEffect(() => {
     fetchFrames();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, initialSearch]);
 
-  // Fetch eligibility once on mount
   useEffect(() => {
     fetchEligibility();
   }, []);
@@ -107,7 +96,7 @@ function FramesList() {
   const fetchFrames = async () => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (selectedCategory) params.append("category", selectedCategory);
+    if (selectedCategory && selectedCategory !== "All") params.append("category", selectedCategory);
     if (initialSearch) params.append("search", initialSearch);
     
     try {
@@ -123,226 +112,245 @@ function FramesList() {
     }
   };
 
-  // Client-side sorting on fetched frames
   const processedFrames = [...frames].sort((a: any, b: any) => {
     switch (sortBy) {
       case "price-low":
         return a.price - b.price;
       case "price-high":
         return b.price - a.price;
-      case "name":
-        return a.title.localeCompare(b.title);
       case "newest":
         return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
       default:
-        return 0; // "featured" or default
+        return 0;
     }
   });
 
   const clearAllFilters = () => {
     setSearchInput("");
     router.push(pathname, { scroll: false });
+    setShowMobileFilters(false);
   };
 
+  const activeFiltersCount = (selectedCategory && selectedCategory !== "All" ? 1 : 0);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
-        {/* Hero Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+    <div className="min-h-screen bg-[#FFFFFF] text-[#111827] font-sans pb-24">
+      {/* Hero Section */}
+      <div className="pt-10 pb-8 md:pt-16 md:pb-12 px-4 text-center bg-[#F8FAFC]">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-6 sm:mb-8 lg:mb-12 text-center"
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="mb-1 md:mb-2"
         >
-          <h1 className="mb-2 sm:mb-3 lg:mb-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent px-2">
-            Our Premium Collection
-          </h1>
-          <p className="text-muted-foreground text-sm sm:text-base lg:text-lg max-w-2xl mx-auto px-4">
-            Discover 100+ handcrafted frames to transform your space
-          </p>
+          <span className="text-[10px] md:text-[11px] font-[700] tracking-[0.15em] text-[#64748B] uppercase">
+            FrameKart Collection
+          </span>
         </motion.div>
 
-        {/* Search Bar */}
-        <motion.div 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-4 sm:mb-6"
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+          className="text-[28px] sm:text-[34px] md:text-[48px] lg:text-[56px] font-[600] tracking-[-0.04em] leading-[1.1] mb-2 md:mb-4 text-[#111827]"
         >
-          <div className="relative max-w-2xl mx-auto group">
-            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground/80 group-focus-within:text-primary transition-colors" />
-            <Input
-              placeholder="Search frames..."
+          Our Premium<br className="md:hidden" /> Collection
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+          className="text-[13px] sm:text-[15px] md:text-[17px] text-[#64748B] max-w-[420px] mx-auto font-medium"
+        >
+          Premium frames designed for meaningful spaces.
+        </motion.p>
+      </div>
+
+      {/* Promotional Marquee */}
+      <div className="w-full bg-[#FFFFFF] py-3 md:py-3.5 overflow-hidden border-b border-[#E5E7EB]">
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes premium-marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-premium-marquee {
+            animation: premium-marquee 35s linear infinite;
+            width: max-content;
+            will-change: transform;
+          }
+          .animate-premium-marquee:hover {
+            animation-play-state: paused;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .animate-premium-marquee {
+              animation: none !important;
+              transform: translateX(0) !important;
+            }
+          }
+        `}} />
+        <div className="animate-premium-marquee flex items-center whitespace-nowrap">
+          {[0, 1].map((dupIdx) => (
+            <div key={dupIdx} className="flex items-center min-w-max">
+              {[
+                "PREMIUM FRAMES", "✦",
+                "15% OFF", "✦",
+                "SECURE PACKAGING", "✦",
+                "FAST DELIVERY", "✦",
+                "CRAFTED FOR YOUR SPACE", "✦"
+              ].map((item, idx) => (
+                <span 
+                  key={idx} 
+                  className={`mx-3 md:mx-6 flex-shrink-0 ${
+                    item === "✦" 
+                      ? "text-[#CBD5E1] text-[8px] md:text-[9px]" 
+                      : "text-[10px] md:text-[11px] font-[600] tracking-[0.2em] text-[#475569] uppercase"
+                  }`}
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-5 lg:px-6 pt-6 md:pt-10">
+        
+        {/* Controls: Search, Desktop Tabs, Desktop Sort */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-8 mb-6">
+          
+          {/* Search Bar */}
+          <div className="relative w-full md:w-[280px] shrink-0">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+            <input 
+              type="text"
+              placeholder="Search frames..." 
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-12 pr-4 h-12 lg:h-14 text-sm sm:text-base shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-border/60 hover:border-border/90 focus-visible:ring-primary/20 focus-visible:ring-4 rounded-full transition-all duration-300 bg-background/80 backdrop-blur-sm"
+              className="w-full h-[44px] md:h-[48px] pl-10 pr-4 bg-white border border-[#E2E8F0] rounded-[12px] md:rounded-[14px] text-[13px] md:text-[14px] text-[#111827] outline-none transition-all duration-300 focus:border-[#3B82F6] focus:shadow-[0_0_0_3px_rgba(59,130,246,0.1)] placeholder:text-[#94A3B8] font-medium"
             />
           </div>
-        </motion.div>
 
-        {/* Filter Bar */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-4 sm:mb-6 lg:mb-8"
-        >
-          <div className="flex flex-row gap-2 sm:gap-4 items-center justify-between mb-3 sm:mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`gap-1.5 sm:gap-2 text-xs sm:text-sm rounded-full px-4 h-10 border-border/60 bg-background/80 backdrop-blur-sm shadow-sm transition-all duration-300 active:scale-[0.98] ${
-                showFilters ? "border-primary text-primary bg-primary/5" : "hover:border-primary/50"
-              }`}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span className="hidden xs:inline">Filters & Sort</span>
-              <span className="xs:hidden">Filters</span>
-            </Button>
-
-            <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-full border border-border/40 backdrop-blur-sm">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("grid")}
-                className="h-8 px-3 rounded-full text-xs gap-1.5 transition-all duration-200 active:scale-95"
-              >
-                <Grid3x3 className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Grid View</span>
-              </Button>
-              <Button
-                variant={viewMode === "large" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("large")}
-                className="h-8 px-3 rounded-full text-xs gap-1.5 transition-all duration-200 active:scale-95"
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Large View</span>
-              </Button>
-            </div>
+          {/* Desktop Categories (Pills) */}
+          <div className="hidden md:flex flex-1 items-center gap-6 overflow-x-auto hide-scrollbar">
+            {categories.map((cat) => {
+              const isActive = (!selectedCategory && cat === "All") || selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => updateQueryParam("category", cat)}
+                  className={`relative whitespace-nowrap text-[13px] lg:text-[14px] font-[500] py-2 transition-colors duration-200 outline-none ${
+                    isActive ? "text-[#3B82F6]" : "text-[#64748B] hover:text-[#111827]"
+                  }`}
+                >
+                  {cat}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#3B82F6] rounded-t-full"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                <Card className="p-4 sm:p-6 space-y-6 bg-background/60 backdrop-blur-md border border-border/60 shadow-[0_20px_50px_rgba(0,0,0,0.06)] rounded-3xl">
-                  {/* Categories */}
-                  <div>
-                    <h3 className="font-semibold text-sm sm:text-base mb-3 flex items-center gap-2 text-foreground/90">
-                      <LayoutGrid className="h-4 w-4 text-primary" />
-                      Categories
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {categories.map((category) => {
-                        const Icon = category.icon;
-                        const isActive = 
-                          (category.name === "All" && !selectedCategory) ||
-                          selectedCategory === category.name;
-                        
-                        return (
-                          <Button
-                            key={category.name}
-                            variant={isActive ? "default" : "outline"}
-                            size="sm"
-                            onClick={() =>
-                              updateQueryParam("category", category.name === "All" ? "" : category.name)
-                            }
-                            className={`gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 rounded-full transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
-                              isActive 
-                                ? "bg-gradient-to-r from-primary to-purple-600 border-none shadow-md shadow-primary/20" 
-                                : "hover:border-primary/50 bg-background/80"
-                            }`}
-                          >
-                            <Icon className="h-3.5 w-3.5" />
-                            {category.name}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
+          {/* Desktop Sort */}
+          <div className="hidden md:block relative shrink-0">
+            <button 
+              onClick={() => setShowDesktopSort(!showDesktopSort)}
+              className="flex items-center gap-2 h-[44px] md:h-[48px] px-4 border border-[#E2E8F0] rounded-[12px] md:rounded-[14px] text-[13px] md:text-[14px] font-[500] text-[#111827] bg-white hover:bg-[#F8FAFC] transition-colors"
+            >
+              Sort: {sortOptions.find(o => o.value === sortBy)?.label || "Featured"}
+              <ArrowUpDown className="h-3.5 w-3.5 text-[#64748B]" />
+            </button>
+            <AnimatePresence>
+              {showDesktopSort && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-[200px] bg-white border border-[#E2E8F0] rounded-[14px] shadow-[0_12px_40px_rgba(15,23,42,0.08)] py-2 z-50 overflow-hidden"
+                >
+                  {sortOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        updateQueryParam("sort", opt.value);
+                        setShowDesktopSort(false);
+                      }}
+                      className={`w-full text-left px-4 py-2.5 text-[13px] font-[500] transition-colors flex items-center justify-between ${
+                        sortBy === opt.value ? "text-[#3B82F6] bg-[#EFF6FF]/50" : "text-[#475569] hover:bg-[#F8FAFC]"
+                      }`}
+                    >
+                      {opt.label}
+                      {sortBy === opt.value && <Check className="h-4 w-4" />}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
 
-                  {/* Sort Options */}
-                  <div>
-                    <h3 className="font-semibold text-sm sm:text-base mb-3 flex items-center gap-2 text-foreground/90">
-                      <TrendingUp className="h-4 w-4 text-primary" />
-                      Sort By
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {sortOptions.map((option) => {
-                        const Icon = option.icon;
-                        const isActive = sortBy === option.value;
-                        return (
-                          <Button
-                            key={option.value}
-                            variant={isActive ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => updateQueryParam("sort", option.value)}
-                            className={`gap-1.5 sm:gap-2 text-xs sm:text-sm h-9 rounded-full transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
-                              isActive 
-                                ? "bg-gradient-to-r from-primary to-purple-600 border-none shadow-md shadow-primary/20" 
-                                : "hover:border-primary/50 bg-background/80"
-                            }`}
-                          >
-                            <Icon className="h-3.5 w-3.5" />
-                            {option.label}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+        {/* Mobile Control Row (Filters & Sort) */}
+        <div className="flex md:hidden items-center gap-3 mb-6">
+          <button 
+            onClick={() => setShowMobileFilters(true)} 
+            className="flex-1 h-[44px] border border-[#E2E8F0] bg-white rounded-[12px] flex items-center justify-center gap-2 text-[13px] font-[500] text-[#111827] active:scale-[0.98] transition-transform shadow-[0_2px_10px_rgba(15,23,42,0.02)]"
+          >
+            <SlidersHorizontal className="h-4 w-4 text-[#64748B]" /> 
+            Filters {activeFiltersCount > 0 && <span className="text-[#3B82F6]">• {activeFiltersCount}</span>}
+          </button>
+          <button 
+            onClick={() => setShowMobileSort(true)} 
+            className="flex-1 h-[44px] border border-[#E2E8F0] bg-white rounded-[12px] flex items-center justify-center gap-2 text-[13px] font-[500] text-[#111827] active:scale-[0.98] transition-transform shadow-[0_2px_10px_rgba(15,23,42,0.02)]"
+          >
+            Sort <ArrowUpDown className="h-4 w-4 text-[#64748B]" />
+          </button>
+        </div>
 
-        {/* Results Count */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mb-4 flex items-center justify-between px-1"
-        >
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Showing <span className="font-semibold text-foreground">{processedFrames.length}</span> {processedFrames.length === 1 ? 'frame' : 'frames'}
-          </p>
-        </motion.div>
+        {/* Product Count */}
+        <div className="mb-4 flex items-center">
+          <span className="text-[11px] md:text-[12px] text-[#94A3B8] font-medium">
+            {processedFrames.length} {processedFrames.length === 1 ? 'frame' : 'frames'}
+          </span>
+        </div>
 
-        {/* Frames Grid */}
+        {/* Product Grid */}
         {loading ? (
-          <div className={`grid gap-3 sm:gap-4 lg:gap-6 ${
-            viewMode === "grid" 
-              ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" 
-              : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-          }`}>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
             {[...Array(8)].map((_, i) => (
-              <Card key={i} className="h-64 sm:h-72 lg:h-96 animate-pulse bg-muted rounded-3xl" />
+              <div key={i} className="aspect-[4/5] bg-[#F1F5F9] rounded-[14px] lg:rounded-[18px] animate-pulse overflow-hidden flex flex-col">
+                <div className="flex-1" />
+                <div className="p-3 bg-white h-[90px] border-t border-[#E5E7EB]">
+                   <div className="h-3 w-2/3 bg-[#E2E8F0] rounded mb-2" />
+                   <div className="h-3 w-1/3 bg-[#E2E8F0] rounded" />
+                </div>
+              </div>
             ))}
           </div>
         ) : processedFrames.length > 0 ? (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className={`grid gap-3 sm:gap-4 lg:gap-6 ${
-              viewMode === "grid" 
-                ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" 
-                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-            }`}
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+            }}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5"
           >
-            {processedFrames.map((frame: any, index: number) => (
+            {processedFrames.map((frame: any) => (
               <motion.div
                 key={frame._id}
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
+                variants={{
+                  hidden: { opacity: 0, y: 15, scale: 0.99 },
+                  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }
+                }}
+                viewport={{ once: true }}
               >
                 <FrameCard 
                   frame={frame} 
@@ -354,31 +362,129 @@ function FramesList() {
           </motion.div>
         ) : (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            className="py-12 sm:py-16 lg:py-24 text-center px-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="py-16 md:py-24 text-center px-4"
           >
-            <div className="max-w-md mx-auto">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-full bg-muted flex items-center justify-center">
-                <Search className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
+            <div className="max-w-md mx-auto flex flex-col items-center">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center mb-5">
+                <Search className="h-6 w-6 md:h-8 md:w-8 text-[#94A3B8]" />
               </div>
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold mb-2">No frames found</h3>
-              <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
-                Try adjusting your search or filters to find what you&apos;re looking for
+              <h3 className="text-[17px] md:text-[20px] font-[600] text-[#111827] mb-2">No frames found</h3>
+              <p className="text-[13px] md:text-[14px] text-[#64748B] mb-6">
+                Try adjusting your search or category filters to find what you're looking for.
               </p>
-              <Button 
+              <button 
                 onClick={clearAllFilters}
-                variant="outline"
-                size="sm"
-                className="sm:size-default rounded-full px-5 hover:border-primary/50"
+                className="h-[40px] md:h-[44px] px-6 rounded-full bg-[#111827] text-white text-[13px] font-[500] hover:bg-[#1E293B] transition-colors"
               >
-                Clear All Filters
-              </Button>
+                Clear Filters
+              </button>
             </div>
           </motion.div>
         )}
       </div>
+
+      {/* Mobile Filter Bottom Sheet */}
+      <AnimatePresence>
+        {showMobileFilters && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileFilters(false)}
+              className="fixed inset-0 bg-[#0F172A]/25 backdrop-blur-[2px] z-[100] md:hidden"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[24px] z-[101] md:hidden flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-[#E5E7EB]">
+                <h3 className="text-[15px] font-[600] text-[#111827]">Filters</h3>
+                <button onClick={() => setShowMobileFilters(false)} className="p-1.5 -mr-1.5 bg-[#F8FAFC] rounded-full text-[#64748B]">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="p-5 overflow-y-auto">
+                <h4 className="text-[12px] font-[600] text-[#94A3B8] uppercase tracking-wider mb-4">Category</h4>
+                <div className="flex flex-col gap-1">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        updateQueryParam("category", cat);
+                        setShowMobileFilters(false);
+                      }}
+                      className={`flex items-center justify-between py-3 px-3 rounded-[10px] text-[14px] font-[500] transition-colors ${
+                        ((!selectedCategory && cat === "All") || selectedCategory === cat)
+                          ? "bg-[#EFF6FF] text-[#3B82F6]" 
+                          : "text-[#475569] active:bg-[#F8FAFC]"
+                      }`}
+                    >
+                      {cat}
+                      {((!selectedCategory && cat === "All") || selectedCategory === cat) && (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Sort Bottom Sheet */}
+      <AnimatePresence>
+        {showMobileSort && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileSort(false)}
+              className="fixed inset-0 bg-[#0F172A]/25 backdrop-blur-[2px] z-[100] md:hidden"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[24px] z-[101] md:hidden flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-[#E5E7EB]">
+                <h3 className="text-[15px] font-[600] text-[#111827]">Sort by</h3>
+                <button onClick={() => setShowMobileSort(false)} className="p-1.5 -mr-1.5 bg-[#F8FAFC] rounded-full text-[#64748B]">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="p-3 pb-8">
+                {sortOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      updateQueryParam("sort", opt.value);
+                      setShowMobileSort(false);
+                    }}
+                    className={`flex items-center justify-between w-full p-4 rounded-[12px] text-[14px] font-[500] transition-colors ${
+                      sortBy === opt.value ? "text-[#3B82F6] bg-[#EFF6FF]" : "text-[#475569] active:bg-[#F8FAFC]"
+                    }`}
+                  >
+                    {opt.label}
+                    {sortBy === opt.value && <Check className="h-4 w-4" />}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
@@ -386,10 +492,9 @@ function FramesList() {
 export default function FramesPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Loading collection...</p>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#E2E8F0] border-t-[#3B82F6]" />
         </div>
       </div>
     }>

@@ -13,30 +13,29 @@ export default function HeroButtons({ buttons, mobile = false }: HeroButtonsProp
   const visibleButtons = mobile ? buttons.filter((button) => button.variant === "default") : buttons;
 
   return (
-    <div className={mobile ? "flex max-w-full flex-wrap gap-2" : "flex flex-row flex-wrap gap-2.5 sm:gap-3 md:gap-4"}>
+    <div className={mobile ? "flex max-w-full flex-wrap gap-2" : "flex flex-row flex-wrap gap-3 sm:gap-4 md:gap-4"}>
       {visibleButtons.map((button, index) => {
         const Icon = button.icon;
         return (
-          <Link key={index} href={button.href}>
+          <Link key={index} href={button.href} className="outline-none inline-block">
             <Button
               variant={button.variant}
               className={
                 mobile
-                  ? `h-[52px] max-w-full rounded-[14px] px-6 text-[15px] font-[600] gap-2 transition-all active:scale-[0.98] ${
+                  ? `h-[46px] w-auto rounded-[12px] px-6 text-[14px] font-[600] gap-1.5 transition-all duration-200 active:scale-[0.97] group ${
                       button.variant === "outline"
-                        ? "border border-black/20 bg-white/80 text-black hover:bg-black hover:text-white"
-                        : "bg-[#3B82F6] hover:bg-blue-600 text-white shadow-[0_8px_24px_rgba(59,130,246,0.16)]"
+                        ? "border border-[#3B82F6]/30 bg-white text-[#3B82F6] shadow-sm hover:bg-[#EFF6FF] hover:border-[#3B82F6]/50"
+                        : "bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-[0_4px_12px_rgba(59,130,246,0.25)]"
                     }`
-                  : `h-11 px-5 text-xs gap-2 sm:h-12 sm:px-6 sm:text-sm md:h-12 md:px-7 md:text-sm lg:h-14 lg:px-8 lg:text-base ${
+                  : `h-12 px-6 text-[14px] gap-2.5 sm:h-12 sm:px-7 sm:text-[15px] lg:h-14 lg:px-8 lg:text-[16px] rounded-xl font-[600] transition-all duration-200 active:scale-[0.97] group ${
                       button.variant === "outline"
-                        ? "border-2 border-black text-black hover:bg-black hover:text-white"
-                        : ""
+                        ? "border border-[#3B82F6]/30 bg-white text-[#3B82F6] shadow-sm hover:bg-[#EFF6FF] hover:border-[#3B82F6]/50"
+                        : "bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-[0_8px_20px_-4px_rgba(59,130,246,0.3)] hover:shadow-[0_12px_24px_-4px_rgba(59,130,246,0.4)]"
                     }`
               }
             >
-              {button.variant === "default" && <Icon className="h-4 w-4" />}
               {button.label}
-              {button.variant === "outline" && <Icon className="h-4 w-4" />}
+              <Icon className={mobile ? "h-[16px] w-[16px] transition-transform duration-200 ease-out group-active:translate-x-1" : "h-[18px] w-[18px] transition-transform duration-250 ease-out group-hover:translate-x-1"} />
             </Button>
           </Link>
         );

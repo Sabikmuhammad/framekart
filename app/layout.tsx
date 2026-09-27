@@ -9,6 +9,7 @@ import MobileNav from "@/components/layout/MobileNav";
 import { Toaster } from "@/components/ui/toaster";
 import LogoIntro from "@/components/LogoIntro";
 import VisitorTracker from "@/components/visitor/VisitorTracker";
+import { FlyToCart } from "@/components/motion/FlyToCart";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -53,6 +54,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <MobileNav />
+          <FlyToCart />
           <Toaster />
           <VisitorTracker />
         </AuthProvider>

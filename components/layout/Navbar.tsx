@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -83,13 +84,28 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/cart" className="relative">
-            <ShoppingCart className="h-5 w-5" />
-            {mounted && cartCount > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
-                {cartCount}
-              </span>
-            )}
+          <Link href="/cart" className="relative" data-cart-target="desktop">
+            <motion.div 
+              key={cartCount}
+              initial={{ scale: 1 }}
+              animate={cartCount > 0 ? { scale: [1, 1.15, 0.96, 1] } : {}}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            >
+              <ShoppingCart className="h-5 w-5" />
+            </motion.div>
+            <AnimatePresence>
+              {mounted && cartCount > 0 && (
+                <motion.span 
+                  key="badge"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: [1.15, 1], opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white"
+                >
+                  {cartCount}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </Link>
 
           {isSignedIn ? (

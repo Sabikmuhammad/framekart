@@ -60,7 +60,7 @@ export default function LimitedOfferBanner({ eligibility }: LimitedOfferBannerPr
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                     <Link href="/frames">
-                      <Button size="lg" variant="secondary" className="gap-2 shadow-xl">
+                      <Button size="lg" className="bg-[#3B82F6] hover:bg-[#2563EB] text-white gap-2 shadow-xl border-none font-semibold">
                         Shop Now
                         <ArrowRight className="h-5 w-5" />
                       </Button>
