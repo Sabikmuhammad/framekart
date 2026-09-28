@@ -698,9 +698,10 @@ export default function CheckoutPage() {
         mode: cashfreeMode, // "sandbox" or "production"
       });
 
-      // ===== Open Checkout Modal =====
+      // ===== Open Checkout Modal / Redirect =====
       const checkoutOptions = {
         paymentSessionId: paymentSessionId,
+        redirectTarget: "_self", // Force redirect to avoid Mobile Safari popup blockers
         returnUrl: `${window.location.origin}/api/cashfree/callback?db_order_id=${orderData.data._id}`,
       };
       
