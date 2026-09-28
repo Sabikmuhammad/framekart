@@ -105,6 +105,16 @@ export default function CheckoutPage() {
   });
   const [visitorFetched, setVisitorFetched] = useState(false);
 
+  // Prefetch states
+  const [preparedSession, setPreparedSession] = useState<{
+    paymentSessionId: string;
+    orderId: string;
+    environment: string;
+  } | null>(null);
+  const [preparedHash, setPreparedHash] = useState<string | null>(null);
+  const [isPreparing, setIsPreparing] = useState(false);
+  const [prepareError, setPrepareError] = useState<string | null>(null);
+
   // Fetch visitor/lead data to auto-prefill checkout
   reactUseEffect(() => {
     const fetchVisitorData = async () => {
@@ -300,6 +310,16 @@ export default function CheckoutPage() {
     eligibility.eligible && eligibility.offerActive
   );
 
+  // Generate a robust preparation-key/hash representing the current checkout state
+  const currentCheckoutHash = React.useMemo(() => {
+    return JSON.stringify({
+      items: items.map(i => ({ id: i._id, q: i.quantity, p: i.price })),
+      total,
+      formData,
+      eligibility
+    });
+  }, [items, total, formData, eligibility]);
+
   // Handle redirects and payment errors
   reactUseEffect(() => {
     if (!mounted) return;
@@ -424,6 +444,224 @@ export default function CheckoutPage() {
     }
   };
 
+  // (useEffect for session invalidation removed; relying on checkout hash instead)
+
+  const preparePaymentSession = async () => {
+    if (isPreparing) return;
+    
+    setIsPreparing(true);
+    setPrepareError(null);
+    console.log('[Payment Debug] Preparing payment session...');
+    
+    // Save the hash we are preparing for
+    const hashAtPreparation = currentCheckoutHash;
+    
+    try {
+      // ===== Load Cashfree SDK early =====
+      if (!window.Cashfree) {
+        console.log('[Payment Debug] Loading Cashfree SDK script for prefetch...');
+        const script = document.createElement("script");
+        script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("Failed to load SDK"));
+          document.body.appendChild(script);
+        });
+      }
+
+      // ===== Prepare DB Order Data =====
+      // Save address if checkbox is checked and it's a new address
+      if (saveAddress && showNewAddressForm) {
+        try {
+          await fetch("/api/addresses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fullName: formData.fullName,
+              phone: formData.phone,
+              addressLine1: formData.addressLine1,
+              addressLine2: formData.addressLine2,
+              landmark: formData.landmark,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+              isDefault: savedAddresses.length === 0, // First address is default
+            }),
+          });
+        } catch (error) {
+          console.error("Failed to save address:", error);
+        }
+      }
+
+      const hasCustomFrames = items.some(item => item.isCustom);
+      const hasTemplateFrames = items.some(item => item.isTemplate);
+      
+      let orderData;
+
+      if (hasTemplateFrames && items.length === 1 && items[0].isTemplate) {
+        const templateItem = items[0];
+        const orderRes = await fetch("/api/template-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerEmail: formData.email,
+            occasion: templateItem.templateFrame?.occasion,
+            templateImage: templateItem.templateFrame?.templateImage,
+            uploadedPhoto: templateItem.templateFrame?.uploadedPhoto || "",
+            frameStyle: templateItem.templateFrame?.frameStyle,
+            metadata: templateItem.templateFrame?.metadata,
+            price: templateItem.price,
+            totalAmount: total,
+            subtotal,
+            shipping,
+            ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
+              discount: {
+                name: eligibility.offerName,
+                type: "PERCENT",
+                value: eligibility.discountValue,
+                amount: discount,
+              },
+            }),
+            address: {
+              fullName: formData.fullName,
+              phone: formData.phone,
+              addressLine1: formData.addressLine1,
+              addressLine2: formData.addressLine2,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+            },
+          }),
+        });
+        orderData = await orderRes.json();
+        if (!orderData.success) throw new Error("Order creation failed");
+      } else if (hasCustomFrames && items.length === 1 && items[0].isCustom) {
+        const customItem = items[0];
+        const orderRes = await fetch("/api/custom-frame-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerEmail: formData.email,
+            imageUrl: customItem.customFrame?.uploadedImageUrl,
+            frameStyle: customItem.customFrame?.frameStyle,
+            frameSize: customItem.customFrame?.frameSize,
+            customerNotes: customItem.customFrame?.customerNotes || "",
+            occasion: customItem.customFrame?.occasion || "custom",
+            occasionMetadata: customItem.customFrame?.occasionMetadata || {},
+            totalAmount: total,
+            subtotal,
+            shipping,
+            ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
+              discount: {
+                name: eligibility.offerName,
+                type: "PERCENT",
+                value: eligibility.discountValue,
+                amount: discount,
+              },
+            }),
+            address: {
+              fullName: formData.fullName,
+              phone: formData.phone,
+              addressLine1: formData.addressLine1,
+              addressLine2: formData.addressLine2,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+            },
+          }),
+        });
+        orderData = await orderRes.json();
+        if (!orderData.success) throw new Error("Order creation failed");
+      } else if (items.length > 0) {
+        const orderRes = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerEmail: formData.email,
+            items: items.map((item) => ({
+              productId: item._id,
+              title: item.title,
+              price: item.price,
+              quantity: item.quantity,
+              imageUrl: item.imageUrl,
+            })),
+            totalAmount: total,
+            subtotal,
+            shipping,
+            ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
+              discount: {
+                name: eligibility.offerName,
+                type: "PERCENT",
+                value: eligibility.discountValue,
+                amount: discount,
+              },
+            }),
+            address: {
+              fullName: formData.fullName,
+              phone: formData.phone,
+              addressLine1: formData.addressLine1,
+              addressLine2: formData.addressLine2,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+            },
+          }),
+        });
+
+        orderData = await orderRes.json();
+        if (!orderData.success) {
+          const errorMsg = orderData.validationErrors 
+            ? `Validation error: ${orderData.validationErrors.map((e: any) => e.message).join(', ')}`
+            : orderData.error || "Order creation failed";
+          throw new Error(errorMsg);
+        }
+      } else {
+        throw new Error("Cart is empty");
+      }
+
+      // ===== Create Cashfree Session =====
+      const cashfreePayload = {
+        amount: total,
+        customerPhone: formData.phone,
+        customerEmail: formData.email,
+        customerName: formData.fullName,
+        orderId: orderData.data._id,
+      };
+
+      const cashfreeRes = await fetch("/api/cashfree/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cashfreePayload),
+      });
+
+      const cashfreeData = await cashfreeRes.json();
+      if (!cashfreeData.success) {
+        throw new Error(cashfreeData.error || "Failed to initialize payment");
+      }
+
+      const paymentSessionId = cashfreeData.data.payment_session_id;
+      if (!paymentSessionId) {
+        throw new Error("Invalid payment session returned");
+      }
+      
+      const cashfreeMode = cashfreeData.data.environment || process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox";
+      
+      setPreparedSession({
+        paymentSessionId,
+        orderId: orderData.data._id,
+        environment: cashfreeMode,
+      });
+      setPreparedHash(hashAtPreparation);
+      console.log('[Payment Debug] Payment session prepared successfully with hash:', hashAtPreparation);
+      
+    } catch (err: any) {
+      console.error("[Payment Debug] Prepare Error:", err);
+      setPrepareError(err.message || "Failed to prepare payment");
+    } finally {
+      setIsPreparing(false);
+    }
+  };
+
   const handlePayment = async () => {
     // Prevent double submission
     if (loading || processingPayment || paymentInitiated) {
@@ -480,247 +718,48 @@ export default function CheckoutPage() {
       return;
     }
 
+    // If not prepared yet OR hash has changed, we manually await the preparation
+    const isSessionValid = preparedSession && preparedHash === currentCheckoutHash;
+    
+    if (!isSessionValid) {
+      if (isPreparing) {
+        toast({ title: "Please wait", description: "Payment is still being prepared." });
+        return;
+      }
+      
+      toast({ title: "Preparing payment", description: "Getting your secure session ready..." });
+      await preparePaymentSession();
+      // Since preparePaymentSession sets state asynchronously, return and let them click again once ready.
+      return;
+    }
+
     setLoading(true);
     setProcessingPayment(true);
     setPaymentInitiated(true);
 
     try {
-      // Save address if checkbox is checked and it's a new address
-      if (saveAddress && showNewAddressForm) {
-        try {
-          await fetch("/api/addresses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fullName: formData.fullName,
-              phone: formData.phone,
-              addressLine1: formData.addressLine1,
-              addressLine2: formData.addressLine2,
-              landmark: formData.landmark,
-              city: formData.city,
-              state: formData.state,
-              pincode: formData.pincode,
-              isDefault: savedAddresses.length === 0, // First address is default
-            }),
-          });
-        } catch (error) {
-          console.error("Failed to save address:", error);
-          // Continue with payment even if address save fails
-        }
-      }
-
-      // Check if cart contains custom frames or template frames
-      const hasCustomFrames = items.some(item => item.isCustom);
-      const hasTemplateFrames = items.some(item => item.isTemplate);
-      
-      let orderData;
-
-      if (hasTemplateFrames && items.length === 1 && items[0].isTemplate) {
-        // Template frame order (Birthday/Wedding)
-        const templateItem = items[0];
-        const orderRes = await fetch("/api/template-order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            customerEmail: formData.email,
-            occasion: templateItem.templateFrame?.occasion,
-            templateImage: templateItem.templateFrame?.templateImage,
-            uploadedPhoto: templateItem.templateFrame?.uploadedPhoto || "",
-            frameStyle: templateItem.templateFrame?.frameStyle,
-            metadata: templateItem.templateFrame?.metadata,
-            price: templateItem.price,
-            totalAmount: total,
-            subtotal,
-            shipping,
-            ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
-              discount: {
-                name: eligibility.offerName,
-                type: "PERCENT",
-                value: eligibility.discountValue,
-                amount: discount,
-              },
-            }),
-            address: {
-              fullName: formData.fullName,
-              phone: formData.phone,
-              addressLine1: formData.addressLine1,
-              addressLine2: formData.addressLine2,
-              city: formData.city,
-              state: formData.state,
-              pincode: formData.pincode,
-            },
-          }),
-        });
-
-        orderData = await orderRes.json();
-        if (!orderData.success) throw new Error("Order creation failed");
-      } else if (hasCustomFrames && items.length === 1 && items[0].isCustom) {
-        // Custom frame order
-        const customItem = items[0];
-        const orderRes = await fetch("/api/custom-frame-order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            customerEmail: formData.email,
-            imageUrl: customItem.customFrame?.uploadedImageUrl,
-            frameStyle: customItem.customFrame?.frameStyle,
-            frameSize: customItem.customFrame?.frameSize,
-            customerNotes: customItem.customFrame?.customerNotes || "",
-            occasion: customItem.customFrame?.occasion || "custom",
-            occasionMetadata: customItem.customFrame?.occasionMetadata || {},
-            totalAmount: total,
-            subtotal,
-            shipping,
-            ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
-              discount: {
-                name: eligibility.offerName,
-                type: "PERCENT",
-                value: eligibility.discountValue,
-                amount: discount,
-              },
-            }),
-            address: {
-              fullName: formData.fullName,
-              phone: formData.phone,
-              addressLine1: formData.addressLine1,
-              addressLine2: formData.addressLine2,
-              city: formData.city,
-              state: formData.state,
-              pincode: formData.pincode,
-            },
-          }),
-        });
-
-        orderData = await orderRes.json();
-        if (!orderData.success) throw new Error("Order creation failed");
-      } else {
-        // Regular order
-        const orderRes = await fetch("/api/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            customerEmail: formData.email,
-            items: items.map((item) => ({
-              productId: item._id,
-              title: item.title,
-              price: item.price,
-              quantity: item.quantity,
-              imageUrl: item.imageUrl,
-            })),
-            totalAmount: total,
-            subtotal,
-            shipping,
-            ...(eligibility.offerActive && eligibility.eligible && discount > 0 && {
-              discount: {
-                name: eligibility.offerName,
-                type: "PERCENT",
-                value: eligibility.discountValue,
-                amount: discount,
-              },
-            }),
-            address: {
-              fullName: formData.fullName,
-              phone: formData.phone,
-              addressLine1: formData.addressLine1,
-              addressLine2: formData.addressLine2,
-              city: formData.city,
-              state: formData.state,
-              pincode: formData.pincode,
-            },
-          }),
-        });
-
-        orderData = await orderRes.json();
-        console.log("[Payment Debug] Payment API response success:", orderData.success);
-        
-        if (!orderData.success) {
-          const errorMsg = orderData.validationErrors 
-            ? `Validation error: ${orderData.validationErrors.map((e: any) => e.message).join(', ')}`
-            : orderData.error || "Order creation failed";
-          throw new Error(errorMsg);
-        }
-      }
-
-      // ===== Create Cashfree Payment Session =====
-      console.log('[Payment Debug] Creating payment order');
-      const cashfreePayload = {
-        amount: total,
-        customerPhone: formData.phone,
-        customerEmail: formData.email,
-        customerName: formData.fullName,
-        orderId: orderData.data._id,
-      };
-
-      const cashfreeRes = await fetch("/api/cashfree/order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(cashfreePayload),
-      });
-
-      console.log("[Payment Debug] Payment API status", cashfreeRes.status);
-      const cashfreeData = await cashfreeRes.json();
-      
-      console.log("[Payment Debug] Payment API response parsed. success:", cashfreeData.success);
-      
-      if (!cashfreeData.success) {
-        throw new Error(cashfreeData.error || "Failed to initialize payment");
-      }
-      
-      const paymentSessionId = cashfreeData.data.payment_session_id;
-      
-      console.log(`[Payment Debug] paymentSessionId exists: ${!!paymentSessionId}`);
-      if (paymentSessionId) {
-         console.log(`[Payment Debug] paymentSessionId length: ${paymentSessionId.length}`);
-      }
-      
-      if (!paymentSessionId) {
-        throw new Error("Invalid payment session");
-      }
-      
-      console.log('[Payment Debug] payment session received');
-
-      // ===== Load and Initialize Cashfree SDK =====
       if (!window.Cashfree) {
-        console.log('[Payment Debug] Loading Cashfree SDK script...');
-        const script = document.createElement("script");
-        script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
-        
-        await new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = () => reject(new Error("Failed to load Cashfree SDK"));
-          document.body.appendChild(script);
-        });
+        throw new Error("Payment SDK not loaded");
       }
       
-      console.log(`[Payment Debug] Cashfree SDK loaded: ${!!window.Cashfree}`);
-
-      const cashfreeMode = cashfreeData.data.environment || process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox";
-      console.log(`[Payment Debug] Cashfree environment: ${cashfreeMode}`);
-      
-      console.log('[Payment Debug] Cashfree initialized');
       let cashfree;
       try {
         cashfree = await window.Cashfree({
-          mode: cashfreeMode,
+          mode: preparedSession.environment,
         });
       } catch (err: any) {
         console.error("[Payment Debug] Error initializing Cashfree:", err);
-        throw err;
+        throw new Error("Failed to initialize payment gateway");
       }
-
-      // ===== Open Checkout Modal / Redirect =====
+      
       const checkoutOptions = {
-        paymentSessionId: paymentSessionId,
+        paymentSessionId: preparedSession.paymentSessionId,
         redirectTarget: "_self",
-        returnUrl: `${window.location.origin}/api/cashfree/callback?db_order_id=${orderData.data._id}`,
+        returnUrl: `${window.location.origin}/api/cashfree/callback?db_order_id=${preparedSession.orderId}`,
       };
       
-      console.log(`[Payment Debug] redirectTarget: ${checkoutOptions.redirectTarget}`);
-      
       console.log('[Payment Debug] BEFORE cashfree.checkout()');
-      console.log('[Payment Debug] Calling cashfree.checkout');
       
-      // We wrap checkout in a timeout promise just in case it hangs!
       const checkoutPromise = cashfree.checkout(checkoutOptions);
       
       const timeoutPromise = new Promise((_, reject) => {
@@ -729,16 +768,24 @@ export default function CheckoutPage() {
       
       const result = await Promise.race([checkoutPromise, timeoutPromise]) as any;
       
-      console.log('[Payment Debug] AFTER cashfree.checkout()');
-      console.log('[Payment Debug] Checkout returned/resolved:', result);
-      
-      if (result.error) {
-        console.log('[Payment Debug] Checkout error:', result.error);
+      if (result && result.error) {
         throw new Error(result.error.message || "Payment failed");
       }
       
-      if (result.redirect) {
+      if (result && result.redirect) {
         console.log('🔄 Redirecting to callback...');
+        // Fallback safety timeout: if the browser silently blocks the form submission,
+        // we unlock the button after 5 seconds to prevent the infinite loading state.
+        setTimeout(() => {
+          setLoading(false);
+          setProcessingPayment(false);
+          setPaymentInitiated(false);
+          toast({
+            title: "Navigation Blocked",
+            description: "Your browser blocked the redirect. Please check your pop-up blockers or try again.",
+            variant: "destructive",
+          });
+        }, 5000);
         return;
       }
       
@@ -1200,18 +1247,28 @@ export default function CheckoutPage() {
               <div className="hidden lg:block mt-8">
                 <Button
                   onClick={handlePayment}
-                  disabled={!isFormValid || loading || processingPayment || paymentInitiated}
+                  disabled={!isFormValid || loading || processingPayment || paymentInitiated || isPreparing}
                   className="w-full h-[52px] rounded-[14px] text-[15px] font-semibold group transition-all tracking-wide"
                 >
                   {processingPayment || paymentInitiated ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      {paymentInitiated ? "Redirecting..." : "Processing..."}
+                      {paymentInitiated ? "Redirecting..." : "Opening secure payment..."}
                     </span>
                   ) : loading ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="w-5 h-5 animate-spin" />
                       Please wait...
+                    </span>
+                  ) : isPreparing ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Preparing payment...
+                    </span>
+                  ) : (!preparedSession || preparedHash !== currentCheckoutHash) && isFormValid ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Check className="w-5 h-5" />
+                      REVIEW ORDER
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2 w-full">
@@ -1220,6 +1277,11 @@ export default function CheckoutPage() {
                     </span>
                   )}
                 </Button>
+                {prepareError && (
+                  <p className="text-red-500 text-[13px] font-medium mt-3 text-center">
+                    {prepareError}
+                  </p>
+                )}
                 
                 <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground">
                   <ShieldCheck className="w-4 h-4 opacity-70" />
@@ -1252,11 +1314,23 @@ export default function CheckoutPage() {
               </div>
               <Button
                 onClick={handlePayment}
-                disabled={!isFormValid || loading || processingPayment || paymentInitiated}
+                disabled={!isFormValid || loading || processingPayment || paymentInitiated || isPreparing}
                 className="flex-1 h-[46px] rounded-xl text-[13px] font-semibold tracking-wide"
               >
                 {processingPayment || paymentInitiated || loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  </span>
+                ) : isPreparing ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    PREPARING...
+                  </span>
+                ) : (!preparedSession || preparedHash !== currentCheckoutHash) && isFormValid ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Check className="w-4 h-4" />
+                    REVIEW
+                  </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     PROCEED <ArrowRight className="w-4 h-4" />

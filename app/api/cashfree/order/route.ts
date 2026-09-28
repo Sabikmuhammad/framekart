@@ -85,8 +85,9 @@ export async function POST(req: NextRequest) {
     if (orderType === "bulk") {
       const BulkOrder = (await import("@/models/BulkOrder")).BulkOrder;
       dbOrder = await BulkOrder.findById(orderId);
-      if (dbOrder) {
-        dbOrder.totalAmount = dbOrder.pricing?.finalTotal || amount; // For compatibility
+      if (dbOrder && (!dbOrder.pricing || !dbOrder.pricing.finalTotal || dbOrder.pricing.finalTotal <= 0)) {
+        console.error("❌ Bulk order not ready for payment (no final pricing):", orderId);
+        return NextResponse.json({ success: false, error: "Order quote is not yet finalized." }, { status: 400 });
       }
     } else {
       const Order = (await import("@/models/Order")).default;
