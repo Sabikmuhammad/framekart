@@ -32,8 +32,8 @@ const nextConfig = {
       style-src 'self' 'unsafe-inline';
       img-src 'self' blob: data: https://res.cloudinary.com;
       font-src 'self' data:;
-      connect-src 'self' https://api.cashfree.com https://sandbox.cashfree.com https://checkout.cashfree.com https://payments.cashfree.com;
-      frame-src 'self' https://checkout.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com;
+      connect-src 'self' https://api.cashfree.com https://sandbox.cashfree.com https://checkout.cashfree.com https://payments.cashfree.com https://*.cashfree.com;
+      frame-src 'self' https://checkout.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://*.cashfree.com;
       object-src 'none';
       base-uri 'self';
       form-action 'self';

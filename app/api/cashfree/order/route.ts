@@ -218,6 +218,7 @@ export async function POST(req: NextRequest) {
       data: {
         payment_session_id: responseData.payment_session_id,
         order_id: responseData.order_id,
+        environment: environment,
       }
     });
 

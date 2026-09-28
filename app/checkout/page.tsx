@@ -690,9 +690,8 @@ export default function CheckoutPage() {
         console.log('✅ Cashfree SDK loaded');
       }
 
-      // ===== Initialize Cashfree with Environment Mode =====
-      // IMPORTANT: SDK mode must match backend environment
-      const cashfreeMode = process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox";
+      // IMPORTANT: SDK mode must exactly match backend environment
+      const cashfreeMode = cashfreeData.data.environment || process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox";
       console.log('🔧 Initializing Cashfree SDK with mode:', cashfreeMode);
       
       const cashfree = await window.Cashfree({
