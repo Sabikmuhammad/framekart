@@ -290,8 +290,7 @@ export default function CheckoutPage() {
                       formData.addressLine1.trim() !== "" && 
                       formData.city.trim() !== "" && 
                       formData.state.trim() !== "" && 
-                      formData.pincode.length === 6 && 
-                      pincodeValid;
+                      formData.pincode.length === 6;
 
   // Calculate pricing with discount (client-side for display only)
   const subtotal = getTotalPrice();
@@ -347,22 +346,6 @@ export default function CheckoutPage() {
     return null;
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    
-    // Clear auto-filled badge if user edits the field manually
-    if ((name === "fullName" || name === "phone") && autoFilled[name as keyof typeof autoFilled]) {
-      setAutoFilled(prev => ({ ...prev, [name]: false }));
-    }
-    
-    // Reset pincode validation when user types
-    if (name === "pincode") {
-      setPincodeError("");
-      setPincodeValid(false);
-    }
-  };
-
   // Validate pincode and auto-fill city & state
   const validatePincode = async (pincode: string) => {
     // Reset states
@@ -380,7 +363,7 @@ export default function CheckoutPage() {
     setPincodeLoading(true);
 
     try {
-      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      const response = await fetch(`/api/pincode/${pincode}`);
       
       if (!response.ok) {
         throw new Error("Unable to validate pincode. Please try again.");
@@ -407,15 +390,36 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       console.error("Pincode validation error:", error);
-      setPincodeError("Unable to validate pincode. Please check your internet connection.");
+      // Fail silently on timeout/network error to not block the user
+      setPincodeError(""); 
     } finally {
       setPincodeLoading(false);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Clear auto-filled badge if user edits the field manually
+    if ((name === "fullName" || name === "phone") && autoFilled[name as keyof typeof autoFilled]) {
+      setAutoFilled(prev => ({ ...prev, [name]: false }));
+    }
+    
+    // Auto-trigger validation if 6 digits are typed, else reset validation state
+    if (name === "pincode") {
+      if (value.length === 6) {
+        validatePincode(value);
+      } else {
+        setPincodeError("");
+        setPincodeValid(false);
+      }
+    }
+  };
+
   // Handle pincode blur event
   const handlePincodeBlur = () => {
-    if (formData.pincode && formData.pincode.length === 6) {
+    if (formData.pincode && formData.pincode.length === 6 && !pincodeValid) {
       validatePincode(formData.pincode);
     }
   };
@@ -466,19 +470,14 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Validate pincode
-    if (!pincodeValid && formData.pincode) {
-      await validatePincode(formData.pincode);
-      
-      // Check again after validation
-      if (pincodeError || !pincodeValid) {
-        toast({
-          title: "Invalid Pincode",
-          description: "Please enter a valid Indian pincode",
-          variant: "destructive",
-        });
-        return;
-      }
+    // Validate pincode format locally instead of relying on the flaky external API
+    if (!/^[0-9]{6}$/.test(formData.pincode)) {
+      toast({
+        title: "Invalid Pincode",
+        description: "Please enter a valid 6-digit Indian pincode",
+        variant: "destructive",
+      });
+      return;
     }
 
     setLoading(true);
@@ -973,7 +972,6 @@ export default function CheckoutPage() {
                           onChange={handleInputChange}
                           required
                           autoComplete="email"
-                          disabled={!!user?.email}
                           className="h-[52px] bg-white dark:bg-background rounded-[14px] border-[#E2E8F0] dark:border-border text-[#0F172A] dark:text-foreground placeholder:text-[#94A3B8] focus-visible:ring-0 focus-visible:border-primary focus-visible:shadow-[0_0_0_3px_rgba(59,130,246,0.10)] transition-all duration-200"
                         />
                       </div>
@@ -1189,7 +1187,7 @@ export default function CheckoutPage() {
               <div className="hidden lg:block mt-8">
                 <Button
                   onClick={handlePayment}
-                  disabled={!isFormValid || loading || processingPayment || paymentInitiated || pincodeLoading}
+                  disabled={!isFormValid || loading || processingPayment || paymentInitiated}
                   className="w-full h-[52px] rounded-[14px] text-[15px] font-semibold group transition-all tracking-wide"
                 >
                   {processingPayment || paymentInitiated ? (
@@ -1241,7 +1239,7 @@ export default function CheckoutPage() {
               </div>
               <Button
                 onClick={handlePayment}
-                disabled={!isFormValid || loading || processingPayment || paymentInitiated || pincodeLoading}
+                disabled={!isFormValid || loading || processingPayment || paymentInitiated}
                 className="flex-1 h-[46px] rounded-xl text-[13px] font-semibold tracking-wide"
               >
                 {processingPayment || paymentInitiated || loading ? (

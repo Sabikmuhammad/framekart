@@ -28,12 +28,12 @@ const nextConfig = {
   async headers() {
     const cspHeader = `
       default-src 'self';
-      script-src 'self' ${process.env.NODE_ENV !== 'production' ? "'unsafe-eval'" : ""} 'unsafe-inline' https://checkout.cashfree.com;
+      script-src 'self' ${process.env.NODE_ENV !== 'production' ? "'unsafe-eval'" : ""} 'unsafe-inline' https://sdk.cashfree.com https://checkout.cashfree.com;
       style-src 'self' 'unsafe-inline';
       img-src 'self' blob: data: https://res.cloudinary.com;
       font-src 'self' data:;
-      connect-src 'self' https://api.cashfree.com https://sandbox.cashfree.com https://checkout.cashfree.com;
-      frame-src 'self' https://checkout.cashfree.com;
+      connect-src 'self' https://api.cashfree.com https://sandbox.cashfree.com https://checkout.cashfree.com https://payments.cashfree.com;
+      frame-src 'self' https://checkout.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com;
       object-src 'none';
       base-uri 'self';
       form-action 'self';
