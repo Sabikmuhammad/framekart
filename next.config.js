@@ -36,7 +36,7 @@ const nextConfig = {
       frame-src 'self' https://checkout.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://*.cashfree.com;
       object-src 'none';
       base-uri 'self';
-      form-action 'self';
+      form-action 'self' https://api.cashfree.com https://checkout.cashfree.com https://sandbox.cashfree.com https://payments.cashfree.com https://*.cashfree.com;
       frame-ancestors 'none';
     `.replace(/\s{2,}/g, ' ').trim()
 

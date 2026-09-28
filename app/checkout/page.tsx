@@ -631,8 +631,9 @@ export default function CheckoutPage() {
         });
 
         orderData = await orderRes.json();
+        console.log("[Payment Debug] Payment API response success:", orderData.success);
+        
         if (!orderData.success) {
-          console.error("Order creation failed:", orderData);
           const errorMsg = orderData.validationErrors 
             ? `Validation error: ${orderData.validationErrors.map((e: any) => e.message).join(', ')}`
             : orderData.error || "Order creation failed";
@@ -641,7 +642,7 @@ export default function CheckoutPage() {
       }
 
       // ===== Create Cashfree Payment Session =====
-      console.log('💳 Creating Cashfree payment session...');
+      console.log('[Payment Debug] Creating payment order');
       const cashfreePayload = {
         amount: total,
         customerPhone: formData.phone,
@@ -649,7 +650,6 @@ export default function CheckoutPage() {
         customerName: formData.fullName,
         orderId: orderData.data._id,
       };
-      console.log('📦 Cashfree payload:', cashfreePayload);
 
       const cashfreeRes = await fetch("/api/cashfree/order", {
         method: "POST",
@@ -657,27 +657,31 @@ export default function CheckoutPage() {
         body: JSON.stringify(cashfreePayload),
       });
 
+      console.log("[Payment Debug] Payment API status", cashfreeRes.status);
       const cashfreeData = await cashfreeRes.json();
-      console.log('📡 Cashfree API response:', cashfreeData);
+      
+      console.log("[Payment Debug] Payment API response parsed. success:", cashfreeData.success);
       
       if (!cashfreeData.success) {
-        console.error("❌ Cashfree order creation failed:", cashfreeData);
         throw new Error(cashfreeData.error || "Failed to initialize payment");
       }
       
       const paymentSessionId = cashfreeData.data.payment_session_id;
       
+      console.log(`[Payment Debug] paymentSessionId exists: ${!!paymentSessionId}`);
+      if (paymentSessionId) {
+         console.log(`[Payment Debug] paymentSessionId length: ${paymentSessionId.length}`);
+      }
+      
       if (!paymentSessionId) {
-        console.error("❌ No payment_session_id in response");
         throw new Error("Invalid payment session");
       }
       
-      console.log('✅ Payment session ID received:', paymentSessionId);
+      console.log('[Payment Debug] payment session received');
 
       // ===== Load and Initialize Cashfree SDK =====
-      // Check if script is already loaded
       if (!window.Cashfree) {
-        console.log('📜 Loading Cashfree SDK...');
+        console.log('[Payment Debug] Loading Cashfree SDK script...');
         const script = document.createElement("script");
         script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
         
@@ -686,55 +690,64 @@ export default function CheckoutPage() {
           script.onerror = () => reject(new Error("Failed to load Cashfree SDK"));
           document.body.appendChild(script);
         });
-        
-        console.log('✅ Cashfree SDK loaded');
       }
-
-      // IMPORTANT: SDK mode must exactly match backend environment
-      const cashfreeMode = cashfreeData.data.environment || process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox";
-      console.log('🔧 Initializing Cashfree SDK with mode:', cashfreeMode);
       
-      const cashfree = await window.Cashfree({
-        mode: cashfreeMode, // "sandbox" or "production"
-      });
+      console.log(`[Payment Debug] Cashfree SDK loaded: ${!!window.Cashfree}`);
+
+      const cashfreeMode = cashfreeData.data.environment || process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox";
+      console.log(`[Payment Debug] Cashfree environment: ${cashfreeMode}`);
+      
+      console.log('[Payment Debug] Cashfree initialized');
+      let cashfree;
+      try {
+        cashfree = await window.Cashfree({
+          mode: cashfreeMode,
+        });
+      } catch (err: any) {
+        console.error("[Payment Debug] Error initializing Cashfree:", err);
+        throw err;
+      }
 
       // ===== Open Checkout Modal / Redirect =====
       const checkoutOptions = {
         paymentSessionId: paymentSessionId,
-        redirectTarget: "_self", // Force redirect to avoid Mobile Safari popup blockers
+        redirectTarget: "_self",
         returnUrl: `${window.location.origin}/api/cashfree/callback?db_order_id=${orderData.data._id}`,
       };
       
-      console.log('🚀 Opening Cashfree checkout...');
-      console.log('📋 Order ID:', orderData.data._id);
-      console.log('🔑 Session ID:', paymentSessionId);
+      console.log(`[Payment Debug] redirectTarget: ${checkoutOptions.redirectTarget}`);
       
-      // Open checkout - this returns a promise that resolves/rejects based on user action
-      const result = await cashfree.checkout(checkoutOptions);
+      console.log('[Payment Debug] BEFORE cashfree.checkout()');
+      console.log('[Payment Debug] Calling cashfree.checkout');
       
-      console.log('💳 Checkout result:', result);
+      // We wrap checkout in a timeout promise just in case it hangs!
+      const checkoutPromise = cashfree.checkout(checkoutOptions);
       
-      // Handle the result
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Cashfree checkout timed out after 10s")), 10000);
+      });
+      
+      const result = await Promise.race([checkoutPromise, timeoutPromise]) as any;
+      
+      console.log('[Payment Debug] AFTER cashfree.checkout()');
+      console.log('[Payment Debug] Checkout returned/resolved:', result);
+      
       if (result.error) {
-        // Payment failed or was cancelled by user
-        console.error('❌ Checkout error:', result.error);
+        console.log('[Payment Debug] Checkout error:', result.error);
         throw new Error(result.error.message || "Payment failed");
       }
       
       if (result.redirect) {
-        // User will be redirected - keep loading state
         console.log('🔄 Redirecting to callback...');
-        // Don't reset loading state - user is being redirected
         return;
       }
       
-      // Payment completed - user will be redirected by return_url
-      console.log('✅ Payment flow completed');
+      console.log('[Payment Debug] Cashfree checkout result handled');
     } catch (error: any) {
-      console.error("❌ Payment error:", error);
+      console.error("[Payment Debug] Checkout caught exception:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Unable to start payment. Please try again.",
         variant: "destructive",
       });
       setLoading(false);
