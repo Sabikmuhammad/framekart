@@ -19,6 +19,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CashfreeOrderSchema } from "@/lib/validation";
 import { ZodError } from "zod";
+import { generateCheckoutContext } from "@/lib/cashfree-context";
 
 export async function POST(req: NextRequest) {
   try {
@@ -121,6 +122,13 @@ export async function POST(req: NextRequest) {
     // Generate unique order ID (Cashfree requires alphanumeric + underscore/hyphen only)
     const cashfreeOrderId = `order_${orderId}_${Date.now()}`;
     
+    // Generate the context string dynamically (always <= 100 chars)
+    const checkoutContext = generateCheckoutContext(dbOrder.orderNumber, dbOrder.items);
+    
+    console.log("[Cashfree] Contextual checkout enabled");
+    console.log(`[Cashfree] Context length: ${checkoutContext.length}`);
+    console.log(`[Cashfree] Context: ${checkoutContext}`);
+    
     const orderPayload = {
       order_id: cashfreeOrderId,
       order_amount: parseFloat(serverAmount.toFixed(2)), // Ensure 2 decimal places
@@ -134,6 +142,9 @@ export async function POST(req: NextRequest) {
       order_meta: {
         return_url: returnUrl,
         notify_url: notifyUrl,
+      },
+      order_tags: {
+        checkout_context: checkoutContext,
       },
       order_note: `FrameKart Order ${orderId}`,
     };
