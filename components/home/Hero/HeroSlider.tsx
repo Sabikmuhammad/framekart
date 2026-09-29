@@ -30,7 +30,7 @@ export default function HeroSlider({
       {/* Mobile Slider */}
       <div className="w-full md:hidden mb-7">
         <div className="relative h-[375px] sm:h-[400px] w-full overflow-hidden bg-[#F8FAFC]">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={`mobile-bg-${currentSlide}`}
               initial={{ scale: 1.015, opacity: 0 }}
@@ -88,7 +88,7 @@ export default function HeroSlider({
 
       {/* Desktop Slider */}
       <div className="relative hidden h-[560px] overflow-hidden md:block lg:h-[700px] group">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={`desktop-bg-${currentSlide}`}
             initial={{ scale: 1.04, opacity: 0 }}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect as reactUseEffect } from "react";
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
@@ -1054,7 +1055,7 @@ export default function CheckoutPage() {
                   <div key={item._id} className="flex gap-4 items-center">
                     {item.imageUrl && (
                       <div className="relative w-[60px] h-[60px] rounded-xl overflow-hidden bg-secondary/30 shrink-0 border border-border/50">
-                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                        <Image src={item.imageUrl} alt={item.title} fill sizes="60px" className="object-cover" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">

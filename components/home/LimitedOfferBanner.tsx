@@ -20,7 +20,7 @@ interface LimitedOfferBannerProps {
 
 export default function LimitedOfferBanner({ eligibility }: LimitedOfferBannerProps) {
   const categoryImages = {
-    offerBanner: "/images/banners/H1.png",
+    offerBanner: "/images/banners/H1.webp",
   };
 
   return (
