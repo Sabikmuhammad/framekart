@@ -90,7 +90,7 @@ export default function CustomFrameBanner() {
                       className="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl transform -rotate-2 relative ring-1 ring-white/10 group cursor-pointer"
                     >
                       <Image
-                        src="/images/custom-banner/p7.png"
+                        src="/images/custom-banner/p7.webp"
                         alt="Custom Frame Example"
                         fill
                         className="object-cover"
