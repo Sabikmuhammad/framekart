@@ -105,13 +105,7 @@ export default function CheckoutPage() {
   });
   const [visitorFetched, setVisitorFetched] = useState(false);
 
-  // Prefetch states
-  const [preparedSession, setPreparedSession] = useState<{
-    paymentSessionId: string;
-    orderId: string;
-    environment: string;
-  } | null>(null);
-  const [preparedHash, setPreparedHash] = useState<string | null>(null);
+  // Standard checkout states
   const [isPreparing, setIsPreparing] = useState(false);
   const [prepareError, setPrepareError] = useState<string | null>(null);
 
@@ -310,16 +304,6 @@ export default function CheckoutPage() {
     eligibility.eligible && eligibility.offerActive
   );
 
-  // Generate a robust preparation-key/hash representing the current checkout state
-  const currentCheckoutHash = React.useMemo(() => {
-    return JSON.stringify({
-      items: items.map(i => ({ id: i._id, q: i.quantity, p: i.price })),
-      total,
-      formData,
-      eligibility
-    });
-  }, [items, total, formData, eligibility]);
-
   // Handle redirects and payment errors
   reactUseEffect(() => {
     if (!mounted) return;
@@ -446,20 +430,34 @@ export default function CheckoutPage() {
 
   // (useEffect for session invalidation removed; relying on checkout hash instead)
 
-  const preparePaymentSession = async () => {
-    if (isPreparing) return;
-    
+  const handlePayment = async () => {
+    // Prevent double submission
+    if (loading || processingPayment || paymentInitiated || isPreparing) {
+      return;
+    }
+
+    // Validate required fields
+    if (!formData.email || !formData.fullName || !formData.phone || !formData.addressLine1 || 
+        !formData.city || !formData.state || !formData.pincode) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields including email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setProcessingPayment(true);
+    setPaymentInitiated(true);
     setIsPreparing(true);
-    setPrepareError(null);
-    console.log('[Payment Debug] Preparing payment session...');
-    
-    // Save the hash we are preparing for
-    const hashAtPreparation = currentCheckoutHash;
-    
+
+    console.log('[Cashfree Debug] Backend session request started');
+
     try {
-      // ===== Load Cashfree SDK early =====
+      // ===== Load Cashfree SDK dynamically =====
       if (!window.Cashfree) {
-        console.log('[Payment Debug] Loading Cashfree SDK script for prefetch...');
+        console.log('[Cashfree Debug] SDK loading');
         const script = document.createElement("script");
         script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
         await new Promise((resolve, reject) => {
@@ -467,32 +465,10 @@ export default function CheckoutPage() {
           script.onerror = () => reject(new Error("Failed to load SDK"));
           document.body.appendChild(script);
         });
+        console.log('[Cashfree Debug] SDK loaded');
       }
 
       // ===== Prepare DB Order Data =====
-      // Save address if checkbox is checked and it's a new address
-      if (saveAddress && showNewAddressForm) {
-        try {
-          await fetch("/api/addresses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fullName: formData.fullName,
-              phone: formData.phone,
-              addressLine1: formData.addressLine1,
-              addressLine2: formData.addressLine2,
-              landmark: formData.landmark,
-              city: formData.city,
-              state: formData.state,
-              pincode: formData.pincode,
-              isDefault: savedAddresses.length === 0, // First address is default
-            }),
-          });
-        } catch (error) {
-          console.error("Failed to save address:", error);
-        }
-      }
-
       const hasCustomFrames = items.some(item => item.isCustom);
       const hasTemplateFrames = items.some(item => item.isTemplate);
       
@@ -639,159 +615,45 @@ export default function CheckoutPage() {
         throw new Error(cashfreeData.error || "Failed to initialize payment");
       }
 
+      console.log('[Cashfree Debug] Backend session received');
+
       const paymentSessionId = cashfreeData.data.payment_session_id;
       if (!paymentSessionId) {
         throw new Error("Invalid payment session returned");
       }
-      
-      const cashfreeMode = cashfreeData.data.environment || process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox";
-      
-      setPreparedSession({
-        paymentSessionId,
-        orderId: orderData.data._id,
-        environment: cashfreeMode,
-      });
-      setPreparedHash(hashAtPreparation);
-      console.log('[Payment Debug] Payment session prepared successfully with hash:', hashAtPreparation);
-      
-    } catch (err: any) {
-      console.error("[Payment Debug] Prepare Error:", err);
-      setPrepareError(err.message || "Failed to prepare payment");
-    } finally {
-      setIsPreparing(false);
-    }
-  };
+      console.log('[Cashfree Debug] Payment session exists');
 
-  const handlePayment = async () => {
-    // Prevent double submission
-    if (loading || processingPayment || paymentInitiated) {
-      return;
-    }
-
-    // Validate required fields
-    if (!formData.email || !formData.fullName || !formData.phone || !formData.addressLine1 || 
-        !formData.city || !formData.state || !formData.pincode) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields including email",
-        variant: "destructive",
-      });
-      
-      setTimeout(() => {
-        const firstInvalid = document.querySelector('.border-red-400, :invalid');
-        if (firstInvalid) {
-          firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          (firstInvalid as HTMLElement).focus();
-        }
-      }, 50);
-      return;
-    }
-
-    // Validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate phone number
-    if (formData.phone.length < 10) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid phone number",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate pincode format locally instead of relying on the flaky external API
-    if (!/^[0-9]{6}$/.test(formData.pincode)) {
-      toast({
-        title: "Invalid Pincode",
-        description: "Please enter a valid 6-digit Indian pincode",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // If not prepared yet OR hash has changed, we manually await the preparation
-    const isSessionValid = preparedSession && preparedHash === currentCheckoutHash;
-    
-    if (!isSessionValid) {
-      if (isPreparing) {
-        toast({ title: "Please wait", description: "Payment is still being prepared." });
-        return;
-      }
-      
-      toast({ title: "Preparing payment", description: "Getting your secure session ready..." });
-      await preparePaymentSession();
-      // Since preparePaymentSession sets state asynchronously, return and let them click again once ready.
-      return;
-    }
-
-    setLoading(true);
-    setProcessingPayment(true);
-    setPaymentInitiated(true);
-
-    try {
-      if (!window.Cashfree) {
-        throw new Error("Payment SDK not loaded");
-      }
-      
       let cashfree;
       try {
+        const envMode = cashfreeData.data.environment || "sandbox";
         cashfree = await window.Cashfree({
-          mode: preparedSession.environment,
+          mode: envMode,
         });
+        console.log('[Cashfree Debug] Cashfree initialized');
       } catch (err: any) {
-        console.error("[Payment Debug] Error initializing Cashfree:", err);
+        console.error("[Cashfree Debug] Error initializing Cashfree:", err);
         throw new Error("Failed to initialize payment gateway");
       }
-      
+
       const checkoutOptions = {
-        paymentSessionId: preparedSession.paymentSessionId,
+        paymentSessionId: paymentSessionId,
         redirectTarget: "_self",
-        returnUrl: `${window.location.origin}/api/cashfree/callback?db_order_id=${preparedSession.orderId}`,
+        returnUrl: `${window.location.origin}/api/cashfree/callback?db_order_id=${orderData.data._id}`,
       };
       
-      console.log('[Payment Debug] BEFORE cashfree.checkout()');
+      console.log('[Cashfree Debug] checkout() called');
       
-      const checkoutPromise = cashfree.checkout(checkoutOptions);
+      const result = await cashfree.checkout(checkoutOptions);
       
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Cashfree checkout timed out after 10s")), 10000);
-      });
-      
-      const result = await Promise.race([checkoutPromise, timeoutPromise]) as any;
-      
+      console.log('[Cashfree Debug] checkout result', result);
+
       if (result && result.error) {
+        console.log('[Cashfree Debug] checkout error', result.error);
         throw new Error(result.error.message || "Payment failed");
       }
-      
-      if (result && result.redirect) {
-        console.log('🔄 Redirecting to callback...');
-        // Fallback safety timeout: if the browser silently blocks the form submission,
-        // we unlock the button after 5 seconds to prevent the infinite loading state.
-        setTimeout(() => {
-          setLoading(false);
-          setProcessingPayment(false);
-          setPaymentInitiated(false);
-          toast({
-            title: "Navigation Blocked",
-            description: "Your browser blocked the redirect. Please check your pop-up blockers or try again.",
-            variant: "destructive",
-          });
-        }, 5000);
-        return;
-      }
-      
-      console.log('[Payment Debug] Cashfree checkout result handled');
+
     } catch (error: any) {
-      console.error("[Payment Debug] Checkout caught exception:", error);
+      console.error("[Cashfree Debug] Exception caught:", error);
       toast({
         title: "Error",
         description: error.message || "Unable to start payment. Please try again.",
@@ -800,6 +662,7 @@ export default function CheckoutPage() {
       setLoading(false);
       setProcessingPayment(false);
       setPaymentInitiated(false);
+      setIsPreparing(false);
     }
   };
 

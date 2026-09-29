@@ -143,9 +143,10 @@ export async function POST(req: NextRequest) {
         return_url: returnUrl,
         notify_url: notifyUrl,
       },
-      order_tags: {
-        checkout_context: checkoutContext,
-      },
+      // Temporarily disabled for diagnosis:
+      // order_tags: {
+      //   checkout_context: checkoutContext,
+      // },
       order_note: `FrameKart Order ${orderId}`,
     };
 
