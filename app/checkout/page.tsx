@@ -1128,11 +1128,6 @@ export default function CheckoutPage() {
                       <Loader2 className="w-5 h-5 animate-spin" />
                       Preparing payment...
                     </span>
-                  ) : (!preparedSession || preparedHash !== currentCheckoutHash) && isFormValid ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Check className="w-5 h-5" />
-                      REVIEW ORDER
-                    </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2 w-full">
                       PROCEED TO PAYMENT
@@ -1188,11 +1183,6 @@ export default function CheckoutPage() {
                   <span className="flex items-center justify-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     PREPARING...
-                  </span>
-                ) : (!preparedSession || preparedHash !== currentCheckoutHash) && isFormValid ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Check className="w-4 h-4" />
-                    REVIEW
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
